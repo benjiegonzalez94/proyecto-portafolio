@@ -20,10 +20,10 @@ const profiles = await getAllProfiles();
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="m15 18-6-6 6-6"/>
             </svg>
-            <span>Ver Portal</span>
+            <span>Folio Portal</span>
           </a>
           <span class="divider">/</span>
-          <span class="current-section">Panel de Control</span>
+          <span class="current-section">Folio CMS</span>
         </div>
 
         <div class="admin-topbar__user">
@@ -78,6 +78,9 @@ const profiles = await getAllProfiles();
         </div>
 
         <div class="profile-actions-header">
+          <button id="btn-quick-preview" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.45rem;">
+            <span>👁️ Vista Previa</span>
+          </button>
           <a id="btn-view-live" href="/benjie" target="_blank" class="btn btn-live">
             <span>Ver Portafolio en Vivo</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -88,6 +91,9 @@ const profiles = await getAllProfiles();
           </a>
         </div>
       </section>
+
+      <!-- TOAST NOTIFICATION CONTAINER -->
+      <div id="toast-container" class="toast-container"></div>
 
       <!-- PESTAÑAS DE NAVEGACIÓN -->
       <div class="tabs-nav">
@@ -360,6 +366,25 @@ const profiles = await getAllProfiles();
       </form>
     </div>
   </div>
+
+  <!-- MODAL VISTA PREVIA RÁPIDA -->
+  <div id="preview-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-dialog preview-dialog">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <h3 style="margin: 0;">Vista Previa del Portafolio</h3>
+          <div class="device-toggle-group">
+            <button type="button" class="device-btn active" data-device="desktop">💻 Desktop</button>
+            <button type="button" class="device-btn" data-device="mobile">📱 Móvil</button>
+          </div>
+        </div>
+        <button id="modal-preview-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body preview-modal-body">
+        <iframe id="preview-iframe" src="/benjie" class="preview-iframe"></iframe>
+      </div>
+    </div>
+  </div>
 </BaseLayout>
 
 <script>
@@ -382,6 +407,63 @@ const profiles = await getAllProfiles();
   let currentSlug = selectProfile ? selectProfile.value : 'benjie';
   let currentPortfolio: FullPortfolio | null = fallbackPortfolios[currentSlug];
   let currentUserSession: any = null;
+
+  // FUNCIÓN TOAST NOTIFICATIONS
+  function showToast(message: string, type: 'success' | 'error' | 'info' = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast-item toast-item--${type}`;
+    const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+    toast.innerHTML = `
+      <span class="toast-icon">${icon}</span>
+      <span class="toast-msg">${message}</span>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add('toast-visible');
+    }, 10);
+
+    setTimeout(() => {
+      toast.classList.remove('toast-visible');
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+
+  // GESTIÓN DE VISTA PREVIA RÁPIDA
+  const btnQuickPreview = document.getElementById('btn-quick-preview');
+  const previewModal = document.getElementById('preview-modal');
+  const previewIframe = document.getElementById('preview-iframe') as HTMLIFrameElement;
+  const modalPreviewClose = document.getElementById('modal-preview-close');
+  const deviceBtns = document.querySelectorAll('.device-btn');
+
+  btnQuickPreview?.addEventListener('click', () => {
+    if (previewModal && previewIframe) {
+      previewIframe.src = `/${currentSlug}?preview=${Date.now()}`;
+      previewModal.style.display = 'flex';
+    }
+  });
+
+  modalPreviewClose?.addEventListener('click', () => {
+    if (previewModal) previewModal.style.display = 'none';
+  });
+
+  deviceBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      deviceBtns.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      const device = btn.getAttribute('data-device');
+      if (previewIframe) {
+        if (device === 'mobile') {
+          previewIframe.style.width = '375px';
+        } else {
+          previewIframe.style.width = '100%';
+        }
+      }
+    });
+  });
 
   // 1. VERIFICAR AUTENTICACIÓN
   async function checkAuthSession() {
@@ -623,8 +705,7 @@ const profiles = await getAllProfiles();
     const { url, error } = await uploadMediaFile(file, 'avatars', currentPortfolio.profile.slug);
 
     if (error || !url) {
-      alert(`Error al subir imagen: ${error}`);
-      if (statusIndicator) statusIndicator.textContent = '';
+      showToast(`Error al subir imagen: ${error}`, 'error');
       return;
     }
 
@@ -641,10 +722,7 @@ const profiles = await getAllProfiles();
         .eq('id', currentPortfolio.profile.id);
     }
 
-    if (statusIndicator) {
-      statusIndicator.textContent = '✓ Foto actualizada con éxito';
-      statusIndicator.style.color = '#16a34a';
-    }
+    showToast('Foto de perfil actualizada con éxito en Supabase', 'success');
   });
 
   // 7. GESTIÓN DE PLANTILLAS
@@ -656,12 +734,6 @@ const profiles = await getAllProfiles();
       currentPortfolio.profile.template_id = tmplId;
       populateProfileForm(currentPortfolio);
 
-      const statusIndicator = document.getElementById('template-save-status');
-      if (statusIndicator) {
-        statusIndicator.textContent = 'Guardando plantilla...';
-        statusIndicator.style.color = '#3b82f6';
-      }
-
       if (supabase && isSupabaseConfigured) {
         await supabase
           .from('profiles')
@@ -669,10 +741,7 @@ const profiles = await getAllProfiles();
           .eq('id', currentPortfolio.profile.id);
       }
 
-      if (statusIndicator) {
-        statusIndicator.textContent = `✓ Plantilla "${tmplId}" activada para /${currentPortfolio.profile.slug}`;
-        statusIndicator.style.color = '#16a34a';
-      }
+      showToast(`Plantilla "${tmplId}" activada para /${currentPortfolio.profile.slug}`, 'success');
     });
   });
 
@@ -682,7 +751,6 @@ const profiles = await getAllProfiles();
     e.preventDefault();
     if (!currentPortfolio) return;
 
-    const statusIndicator = document.getElementById('profile-save-status');
     currentPortfolio.profile.full_name = (document.getElementById('prof-fullname') as HTMLInputElement).value;
     currentPortfolio.profile.headline = (document.getElementById('prof-headline') as HTMLInputElement).value;
     currentPortfolio.profile.bio = (document.getElementById('prof-bio') as HTMLTextAreaElement).value;
@@ -692,11 +760,6 @@ const profiles = await getAllProfiles();
     currentPortfolio.profile.hero_badge = (document.getElementById('prof-badge') as HTMLInputElement).value;
     currentPortfolio.profile.avatar_url = (document.getElementById('prof-avatar') as HTMLInputElement).value;
     currentPortfolio.profile.theme_accent = (document.getElementById('prof-theme') as HTMLInputElement).value;
-
-    if (statusIndicator) {
-      statusIndicator.textContent = 'Guardando perfil...';
-      statusIndicator.style.color = '#3b82f6';
-    }
 
     if (supabase && isSupabaseConfigured) {
       try {
@@ -717,21 +780,12 @@ const profiles = await getAllProfiles();
           .eq('id', currentPortfolio.profile.id);
 
         if (error) throw error;
-        if (statusIndicator) {
-          statusIndicator.textContent = '✓ Guardado exitosamente en Supabase';
-          statusIndicator.style.color = '#16a34a';
-        }
+        showToast('Perfil guardado exitosamente en Supabase', 'success');
       } catch (err: any) {
-        if (statusIndicator) {
-          statusIndicator.textContent = `Error: ${err.message}`;
-          statusIndicator.style.color = '#ef4444';
-        }
+        showToast(`Error al guardar: ${err.message}`, 'error');
       }
     } else {
-      if (statusIndicator) {
-        statusIndicator.textContent = '✓ Guardado en sesión local';
-        statusIndicator.style.color = '#16a34a';
-      }
+      showToast('Guardado en memoria de sesión local', 'info');
     }
   });
 
@@ -1642,5 +1696,98 @@ const profiles = await getAllProfiles();
   }
   .admin-table tr:hover td {
     background: #f8fafc;
+  }
+
+  /* TOAST NOTIFICATIONS */
+  .toast-container {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+  }
+  .toast-item {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .toast-item.toast-visible {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  .toast-item--success {
+    border-left: 4px solid #22c55e;
+    color: #15803d;
+  }
+  .toast-item--error {
+    border-left: 4px solid #ef4444;
+    color: #b91c1c;
+  }
+  .toast-item--info {
+    border-left: 4px solid #3b82f6;
+    color: #1d4ed8;
+  }
+  .toast-icon {
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  /* QUICK PREVIEW MODAL */
+  .preview-dialog {
+    max-width: 1000px !important;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .preview-modal-body {
+    flex: 1;
+    padding: 0 !important;
+    display: flex;
+    justify-content: center;
+    background: #0f172a;
+    overflow: hidden;
+  }
+  .preview-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    transition: width 0.3s ease;
+    background: #ffffff;
+  }
+  .device-toggle-group {
+    display: inline-flex;
+    background: #f1f5f9;
+    padding: 2px;
+    border-radius: 6px;
+    gap: 2px;
+  }
+  .device-btn {
+    border: none;
+    background: none;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .device-btn.active {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 </style>
