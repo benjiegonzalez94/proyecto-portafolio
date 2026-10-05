@@ -1,0 +1,37 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+
+# Resultado del build
+dist/
+.astro/
+
+# Registros y cachés
+*.log
+npm-debug.log*
+pnpm-debug.log*
+__pycache__/
+*.pyc
+
+# Capturas de revisión (solo para comprobar el diseño en local)
+qa-shots/
+
+# Variables de entorno (nunca subir secretos al repositorio)
+.env
+.env.*
+!.env.example
+.agents/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Despliegue
+.netlify/
+.vercel/

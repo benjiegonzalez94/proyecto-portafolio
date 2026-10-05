@@ -1,0 +1,802 @@
+---
+/**
+ * admin/index.astro — Panel de Administración (CMS) de Portafolios.
+ * Permite gestionar perfiles, proyectos, experiencias y servicios con Supabase.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { isSupabaseConfigured, getAllProfiles } from '../../lib/supabase';
+
+const profiles = await getAllProfiles();
+---
+
+<BaseLayout title="Panel de Administración — Portfolio CMS">
+  <div class="admin-wrapper" id="admin-app">
+    
+    <!-- BARRA SUPERIOR ADMIN -->
+    <header class="admin-topbar">
+      <div class="container admin-topbar__inner">
+        <div class="admin-topbar__brand">
+          <a href="/" class="brand-link" title="Volver al Portal">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m15 18-6-6 6-6"/>
+            </svg>
+            <span>Ver Sitio Web</span>
+          </a>
+          <span class="divider">/</span>
+          <span class="current-section">Gestor de Portafolios</span>
+        </div>
+
+        <div class="admin-topbar__status">
+          <div class={`status-badge ${isSupabaseConfigured ? 'status-badge--live' : 'status-badge--local'}`}>
+            <span class="status-indicator"></span>
+            <span>{isSupabaseConfigured ? 'Supabase Conectado' : 'Modo Demo / Local'}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="container admin-body">
+      
+      <!-- ALERTA SI NO HAY CREDENCIALES CONFIGURADAS -->
+      {!isSupabaseConfigured && (
+        <div class="notice-box">
+          <div class="notice-box__icon">💡</div>
+          <div class="notice-box__content">
+            <h4>Supabase no está conectado todavía</h4>
+            <p>
+              Para que los cambios se guarden en la base de datos en la nube de forma persistente, crea un proyecto gratuito en <a href="https://supabase.com" target="_blank" rel="noopener">Supabase</a>, copia tus credenciales en el archivo <code>.env</code> y ejecuta el script <code>supabase/schema.sql</code>. Mientras tanto, puedes explorar la interfaz del panel.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <!-- SELECTOR DE PERFIL -->
+      <section class="profile-selector-section">
+        <label for="select-profile-active" class="label-bold">Selecciona el Portafolio a Administrar:</label>
+        <div class="selector-row">
+          <select id="select-profile-active" class="custom-select">
+            {profiles.map((p) => (
+              <option value={p.slug}>{p.full_name} ({p.slug})</option>
+            ))}
+          </select>
+          <a id="btn-view-live" href="/benjie" target="_blank" class="btn btn-outline">
+            Ver Portafolio en Vivo ↗
+          </a>
+        </div>
+      </section>
+
+      <!-- PESTAÑAS DE NAVEGACIÓN -->
+      <div class="tabs-nav">
+        <button class="tab-btn active" data-tab="tab-profile">Datos Personales</button>
+        <button class="tab-btn" data-tab="tab-projects">Proyectos</button>
+        <button class="tab-btn" data-tab="tab-experiences">Experiencia</button>
+        <button class="tab-btn" data-tab="tab-services">Servicios</button>
+      </div>
+
+      <!-- TAB 1: DATOS PERSONALES -->
+      <div class="tab-content active" id="tab-profile">
+        <div class="card">
+          <h2 class="card-title">Información Principal</h2>
+          <form id="form-profile" class="admin-form">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="prof-fullname">Nombre Completo</label>
+                <input type="text" id="prof-fullname" required placeholder="Ej: Benjie González" />
+              </div>
+              <div class="form-group">
+                <label for="prof-headline">Título Profesional / Headline</label>
+                <input type="text" id="prof-headline" required placeholder="Ej: Ingeniero en TI" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="prof-bio">Biografía / Presentación</label>
+              <textarea id="prof-bio" rows="4" placeholder="Breve descripción sobre tu trayectoria y pasiones..."></textarea>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="prof-email">Correo Electrónico</label>
+                <input type="email" id="prof-email" placeholder="tu-correo@ejemplo.com" />
+              </div>
+              <div class="form-group">
+                <label for="prof-location">Ubicación</label>
+                <input type="text" id="prof-location" placeholder="Ciudad, País" />
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="prof-badge">Badge de Disponibilidad</label>
+                <input type="text" id="prof-badge" placeholder="Disponible para proyectos" />
+              </div>
+              <div class="form-group">
+                <label for="prof-theme">Color de Acento (Hex)</label>
+                <input type="color" id="prof-theme" value="#2563eb" class="color-picker-input" />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="btn-save-profile">
+                Guardar Cambios de Perfil
+              </button>
+              <span class="save-indicator" id="profile-save-status"></span>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- TAB 2: PROYECTOS -->
+      <div class="tab-content" id="tab-projects">
+        <div class="card">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-title">Proyectos del Portafolio</h2>
+              <p class="card-subtitle">Administra los trabajos que se mostrarán en la galería.</p>
+            </div>
+            <button class="btn btn-primary" id="btn-add-project">+ Añadir Proyecto</button>
+          </div>
+
+          <div class="items-list" id="projects-list-container">
+            <p class="empty-text">Cargando proyectos...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: EXPERIENCIAS -->
+      <div class="tab-content" id="tab-experiences">
+        <div class="card">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-title">Trayectoria y Experiencia</h2>
+              <p class="card-subtitle">Cargos, empresas y periodos laborales.</p>
+            </div>
+            <button class="btn btn-primary" id="btn-add-exp">+ Añadir Experiencia</button>
+          </div>
+
+          <div class="items-list" id="exp-list-container">
+            <p class="empty-text">Cargando experiencia...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: SERVICIOS -->
+      <div class="tab-content" id="tab-services">
+        <div class="card">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-title">Servicios Ofrecidos</h2>
+              <p class="card-subtitle">Especialidades y soluciones que ofreces a clientes.</p>
+            </div>
+            <button class="btn btn-primary" id="btn-add-srv">+ Añadir Servicio</button>
+          </div>
+
+          <div class="items-list" id="srv-list-container">
+            <p class="empty-text">Cargando servicios...</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { fallbackPortfolios, supabase, isSupabaseConfigured } from '../../lib/supabase';
+  import type { FullPortfolio } from '../../lib/types';
+
+  const selectProfile = document.getElementById('select-profile-active') as HTMLSelectElement;
+  const btnViewLive = document.getElementById('btn-view-live') as HTMLAnchorElement;
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  let currentSlug = selectProfile ? selectProfile.value : 'benjie';
+  let currentPortfolio: FullPortfolio | null = fallbackPortfolios[currentSlug];
+
+  // Cambio de pestañas
+  tabBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach((b) => b.classList.remove('active'));
+      tabContents.forEach((c) => c.classList.remove('active'));
+
+      btn.classList.add('active');
+      const targetId = btn.getAttribute('data-tab');
+      if (targetId) {
+        document.getElementById(targetId)?.classList.add('active');
+      }
+    });
+  });
+
+  // Cargar datos en el formulario
+  function populateProfileForm(portfolio: FullPortfolio) {
+    const p = portfolio.profile;
+    (document.getElementById('prof-fullname') as HTMLInputElement).value = p.full_name || '';
+    (document.getElementById('prof-headline') as HTMLInputElement).value = p.headline || '';
+    (document.getElementById('prof-bio') as HTMLTextAreaElement).value = p.bio || '';
+    (document.getElementById('prof-email') as HTMLInputElement).value = p.email || '';
+    (document.getElementById('prof-location') as HTMLInputElement).value = p.location || '';
+    (document.getElementById('prof-badge') as HTMLInputElement).value = p.hero_badge || '';
+    (document.getElementById('prof-theme') as HTMLInputElement).value = p.theme_accent || '#2563eb';
+    if (btnViewLive) {
+      btnViewLive.href = `/${p.slug}`;
+    }
+    renderProjects(portfolio);
+    renderExperiences(portfolio);
+    renderServices(portfolio);
+  }
+
+  function renderProjects(portfolio: FullPortfolio) {
+    const container = document.getElementById('projects-list-container');
+    if (!container) return;
+    if (portfolio.projects.length === 0) {
+      container.innerHTML = '<p class="empty-text">No hay proyectos agregados.</p>';
+      return;
+    }
+
+    container.innerHTML = portfolio.projects
+      .map(
+        (proj, idx) => `
+      <div class="item-row">
+        <div class="item-info">
+          <strong>${proj.title}</strong>
+          <span class="item-sub">${proj.category || 'Sin categoría'}</span>
+          <p class="item-desc">${proj.description}</p>
+        </div>
+        <div class="item-actions">
+          <button class="btn btn-sm btn-delete" data-del-proj="${idx}">Eliminar</button>
+        </div>
+      </div>
+    `
+      )
+      .join('');
+
+    // Listener para eliminar
+    container.querySelectorAll('[data-del-proj]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-proj'));
+        portfolio.projects.splice(idx, 1);
+        renderProjects(portfolio);
+      });
+    });
+  }
+
+  function renderExperiences(portfolio: FullPortfolio) {
+    const container = document.getElementById('exp-list-container');
+    if (!container) return;
+    if (portfolio.experiences.length === 0) {
+      container.innerHTML = '<p class="empty-text">No hay experiencias registradas.</p>';
+      return;
+    }
+
+    container.innerHTML = portfolio.experiences
+      .map(
+        (exp, idx) => `
+      <div class="item-row">
+        <div class="item-info">
+          <strong>${exp.role}</strong> — <span class="item-company">${exp.company}</span>
+          <span class="item-sub">${exp.period}</span>
+          <p class="item-desc">${exp.description}</p>
+        </div>
+        <div class="item-actions">
+          <button class="btn btn-sm btn-delete" data-del-exp="${idx}">Eliminar</button>
+        </div>
+      </div>
+    `
+      )
+      .join('');
+
+    container.querySelectorAll('[data-del-exp]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-exp'));
+        portfolio.experiences.splice(idx, 1);
+        renderExperiences(portfolio);
+      });
+    });
+  }
+
+  function renderServices(portfolio: FullPortfolio) {
+    const container = document.getElementById('srv-list-container');
+    if (!container) return;
+    if (portfolio.services.length === 0) {
+      container.innerHTML = '<p class="empty-text">No hay servicios agregados.</p>';
+      return;
+    }
+
+    container.innerHTML = portfolio.services
+      .map(
+        (srv, idx) => `
+      <div class="item-row">
+        <div class="item-info">
+          <strong>${srv.title}</strong>
+          <p class="item-desc">${srv.description}</p>
+        </div>
+        <div class="item-actions">
+          <button class="btn btn-sm btn-delete" data-del-srv="${idx}">Eliminar</button>
+        </div>
+      </div>
+    `
+      )
+      .join('');
+
+    container.querySelectorAll('[data-del-srv]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-srv'));
+        portfolio.services.splice(idx, 1);
+        renderServices(portfolio);
+      });
+    });
+  }
+
+  // Cambio de perfil en el select
+  selectProfile?.addEventListener('change', async () => {
+    currentSlug = selectProfile.value;
+    currentPortfolio = fallbackPortfolios[currentSlug];
+    if (currentPortfolio) {
+      populateProfileForm(currentPortfolio);
+    }
+  });
+
+  // Guardar perfil
+  const formProfile = document.getElementById('form-profile');
+  const statusIndicator = document.getElementById('profile-save-status');
+
+  formProfile?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentPortfolio) return;
+
+    currentPortfolio.profile.full_name = (document.getElementById('prof-fullname') as HTMLInputElement).value;
+    currentPortfolio.profile.headline = (document.getElementById('prof-headline') as HTMLInputElement).value;
+    currentPortfolio.profile.bio = (document.getElementById('prof-bio') as HTMLTextAreaElement).value;
+    currentPortfolio.profile.email = (document.getElementById('prof-email') as HTMLInputElement).value;
+    currentPortfolio.profile.location = (document.getElementById('prof-location') as HTMLInputElement).value;
+    currentPortfolio.profile.hero_badge = (document.getElementById('prof-badge') as HTMLInputElement).value;
+    currentPortfolio.profile.theme_accent = (document.getElementById('prof-theme') as HTMLInputElement).value;
+
+    if (statusIndicator) {
+      statusIndicator.textContent = 'Guardando...';
+      statusIndicator.style.color = '#3b82f6';
+    }
+
+    if (supabase && isSupabaseConfigured) {
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            full_name: currentPortfolio.profile.full_name,
+            headline: currentPortfolio.profile.headline,
+            bio: currentPortfolio.profile.bio,
+            email: currentPortfolio.profile.email,
+            location: currentPortfolio.profile.location,
+            hero_badge: currentPortfolio.profile.hero_badge,
+            theme_accent: currentPortfolio.profile.theme_accent,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('slug', currentSlug);
+
+        if (error) throw error;
+        if (statusIndicator) {
+          statusIndicator.textContent = '✓ Guardado en Supabase';
+          statusIndicator.style.color = '#16a34a';
+        }
+      } catch (err) {
+        console.error(err);
+        if (statusIndicator) {
+          statusIndicator.textContent = '⚠️ Guardado en memoria local (revisa Supabase)';
+          statusIndicator.style.color = '#eab308';
+        }
+      }
+    } else {
+      setTimeout(() => {
+        if (statusIndicator) {
+          statusIndicator.textContent = '✓ Guardado localmente en sesión';
+          statusIndicator.style.color = '#16a34a';
+        }
+      }, 400);
+    }
+  });
+
+  // Agregar nuevo proyecto
+  document.getElementById('btn-add-project')?.addEventListener('click', () => {
+    if (!currentPortfolio) return;
+    const title = prompt('Título del nuevo proyecto:');
+    if (!title) return;
+    const description = prompt('Descripción breve del proyecto:') || '';
+    const category = prompt('Categoría (ej: Web, Redes, Diseño):') || 'General';
+
+    currentPortfolio.projects.push({
+      id: `new-${Date.now()}`,
+      profile_id: currentPortfolio.profile.id,
+      title,
+      description,
+      category,
+      tags: [category],
+    });
+    renderProjects(currentPortfolio);
+  });
+
+  // Agregar nueva experiencia
+  document.getElementById('btn-add-exp')?.addEventListener('click', () => {
+    if (!currentPortfolio) return;
+    const role = prompt('Cargo / Rol:');
+    if (!role) return;
+    const company = prompt('Empresa o entidad:') || '';
+    const period = prompt('Periodo (ej: 2023 - Presente):') || '2024';
+
+    currentPortfolio.experiences.push({
+      id: `exp-${Date.now()}`,
+      profile_id: currentPortfolio.profile.id,
+      role,
+      company,
+      period,
+      description: 'Responsabilidades y logros principales.',
+    });
+    renderExperiences(currentPortfolio);
+  });
+
+  // Agregar nuevo servicio
+  document.getElementById('btn-add-srv')?.addEventListener('click', () => {
+    if (!currentPortfolio) return;
+    const title = prompt('Título del servicio:');
+    if (!title) return;
+    const description = prompt('Descripción del servicio:') || '';
+
+    currentPortfolio.services.push({
+      id: `srv-${Date.now()}`,
+      profile_id: currentPortfolio.profile.id,
+      title,
+      description,
+      icon: 'code',
+    });
+    renderServices(currentPortfolio);
+  });
+
+  // Carga inicial
+  if (currentPortfolio) {
+    populateProfileForm(currentPortfolio);
+  }
+</script>
+
+<style>
+  .admin-wrapper {
+    min-height: 100vh;
+    background: #f8fafc;
+    color: #1e293b;
+    padding-bottom: 5rem;
+  }
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* TOPBAR */
+  .admin-topbar {
+    background: #0f172a;
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .admin-topbar__inner {
+    height: 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .admin-topbar__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9375rem;
+  }
+  .brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #94a3b8;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .brand-link:hover {
+    color: #ffffff;
+  }
+  .divider {
+    color: #475569;
+  }
+  .current-section {
+    font-weight: 700;
+    color: #f8fafc;
+  }
+
+  /* STATUS BADGE */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .status-badge--live {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+  .status-badge--live .status-indicator {
+    background: #22c55e;
+    box-shadow: 0 0 6px #22c55e;
+  }
+  .status-badge--local {
+    background: rgba(234, 179, 8, 0.15);
+    color: #eab308;
+  }
+  .status-badge--local .status-indicator {
+    background: #eab308;
+  }
+  .status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  /* ALERTA NOTICE */
+  .notice-box {
+    margin-top: 2rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 0.85rem;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .notice-box__icon {
+    font-size: 1.5rem;
+  }
+  .notice-box__content h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    color: #1e3a8a;
+  }
+  .notice-box__content p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #1e40af;
+    line-height: 1.5;
+  }
+  .notice-box__content code {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  /* SELECTOR DE PERFIL */
+  .profile-selector-section {
+    margin-top: 2rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.85rem;
+    padding: 1.25rem 1.5rem;
+  }
+  .label-bold {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 0.5rem;
+  }
+  .selector-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .custom-select {
+    padding: 0.65rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #cbd5e1;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0f172a;
+    background: #ffffff;
+    min-width: 260px;
+  }
+
+  /* PESTAÑAS */
+  .tabs-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 1px;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    padding: 0.75rem 1.25rem;
+    background: none;
+    border: none;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -3px;
+    transition: all 0.2s ease;
+  }
+  .tab-btn:hover {
+    color: #0f172a;
+  }
+  .tab-btn.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+  }
+
+  /* TAB CONTENTS */
+  .tab-content {
+    display: none;
+    margin-top: 1.5rem;
+  }
+  .tab-content.active {
+    display: block;
+  }
+
+  /* CARD */
+  .card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  .card-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.5rem 0;
+  }
+  .card-subtitle {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #64748b;
+  }
+  .card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  /* FORMS */
+  .admin-form {
+    margin-top: 1.5rem;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+  }
+  .form-group label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+  }
+  .form-group input,
+  .form-group textarea {
+    padding: 0.75rem 1rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    color: #0f172a;
+    font-family: inherit;
+  }
+  .color-picker-input {
+    height: 46px;
+    padding: 0.2rem 0.4rem !important;
+    cursor: pointer;
+  }
+  .form-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f1f5f9;
+  }
+  .save-indicator {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  /* BOTONES */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    border: none;
+    transition: all 0.2s ease;
+  }
+  .btn-primary {
+    background: #2563eb;
+    color: #ffffff;
+  }
+  .btn-primary:hover {
+    background: #1d4ed8;
+  }
+  .btn-outline {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+  }
+  .btn-outline:hover {
+    background: #f8fafc;
+  }
+  .btn-sm {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+  .btn-delete {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+  .btn-delete:hover {
+    background: #fecaca;
+  }
+
+  /* LISTADOS */
+  .items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.25rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    gap: 1rem;
+  }
+  .item-info strong {
+    font-size: 1.05rem;
+    color: #0f172a;
+  }
+  .item-company {
+    color: #2563eb;
+    font-weight: 600;
+  }
+  .item-sub {
+    display: block;
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-top: 0.15rem;
+  }
+  .item-desc {
+    margin: 0.5rem 0 0 0;
+    font-size: 0.875rem;
+    color: #475569;
+    line-height: 1.5;
+  }
+  .empty-text {
+    text-align: center;
+    color: #94a3b8;
+    padding: 2rem;
+  }
+</style>

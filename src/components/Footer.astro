@@ -1,0 +1,323 @@
+---
+/**
+ * Footer.astro — Pie de página.
+ *
+ * Tres columnas (marca, enlaces, contacto) más una barra inferior con el aviso
+ * de derechos de autor y las redes sociales.
+ */
+import { site } from '../data/site';
+import Icon from './Icon.astro';
+
+const year = new Date().getFullYear();
+
+/** Primeras 6 áreas de servicio, para la columna de enlaces. */
+const serviceLinks = site.services.slice(0, 5);
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer__top">
+      <!-- Columna 1: marca -->
+      <div class="footer__brand">
+        <a class="footer__logo" href="/">
+          <span class="footer__mark" aria-hidden="true">{site.initials}</span>
+          <span>
+            <strong>{site.name}</strong>
+            <small>{site.role}</small>
+          </span>
+        </a>
+        <p class="footer__pitch">{site.tagline}</p>
+        <p class="footer__place">
+          <Icon name="map-pin" size={16} />
+          {site.location}
+        </p>
+      </div>
+
+      <!-- Columna 2: navegación -->
+      <nav class="footer__col" aria-label="Enlaces del sitio">
+        <h2 class="footer__title">Explorar</h2>
+        <ul class="footer__list">
+          {
+            site.nav.map((item) => (
+              <li>
+                <a href={item.href}>{item.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <!-- Columna 3: servicios -->
+      <div class="footer__col">
+        <h2 class="footer__title">Servicios</h2>
+        <ul class="footer__list">
+          {
+            serviceLinks.map((service) => (
+              <li>
+                <a href="/servicios">{service.title}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <!-- Columna 4: contacto -->
+      <div class="footer__col">
+        <h2 class="footer__title">Contacto</h2>
+        <ul class="footer__list footer__list--contact">
+          <li>
+            <a href={`mailto:${site.email}`}>
+              <Icon name="mail" size={16} />
+              {site.email}
+            </a>
+          </li>
+          <li>
+            <a href={`tel:${site.phone.replace(/\s/g, '')}`}>
+              <Icon name="phone" size={16} />
+              {site.phone}
+            </a>
+          </li>
+        </ul>
+
+        <p class="footer__availability">
+          <span class="availability">{site.availability}</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Redes sociales -->
+    <div class="footer__social">
+      <span class="footer__social-label">Sígueme</span>
+      <ul class="social">
+        {
+          site.social.map((link) => (
+            <li>
+              <a
+                href={link.network === 'email' ? `mailto:${link.url}` : link.url}
+                target={link.network === 'email' ? undefined : '_blank'}
+                rel={link.network === 'email' ? undefined : 'noopener noreferrer'}
+                aria-label={`${link.label} de ${site.name}`}
+              >
+                <Icon name={link.network === 'email' ? 'mail' : link.network} size={19} />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <!-- Barra inferior -->
+    <div class="footer__bottom">
+      <p>© {year} {site.name}. Todos los derechos reservados.</p>
+      <p class="footer__made">
+        Diseñado y desarrollado con <Icon name="heart" size={14} /> en Manta, Ecuador
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    padding-top: var(--space-2xl);
+    padding-bottom: var(--space-md);
+    color: var(--c-cream);
+    background: var(--c-dark);
+  }
+
+  .footer__top {
+    display: grid;
+    gap: var(--space-lg);
+    grid-template-columns: 1.6fr repeat(3, 1fr);
+    padding-bottom: var(--space-xl);
+    border-bottom: 1px solid rgb(255 249 243 / 12%);
+  }
+
+  /* ------------------------------------------------------------- Columna 1 */
+
+  .footer__logo {
+    display: inline-flex;
+    gap: 0.7rem;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+  }
+
+  .footer__mark {
+    display: grid;
+    place-items: center;
+    width: 2.7rem;
+    height: 2.7rem;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--c-white);
+    background: linear-gradient(135deg, var(--c-pink), var(--c-violet) 55%, var(--c-cyan));
+    border-radius: 32%;
+  }
+
+  .footer__logo strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .footer__logo small {
+    display: block;
+    font-size: 0.7rem;
+    color: rgb(255 249 243 / 60%);
+  }
+
+  .footer__pitch {
+    max-width: 26rem;
+    font-size: var(--fs-sm);
+    color: rgb(255 249 243 / 70%);
+  }
+
+  .footer__place {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+    margin-top: 0.75rem;
+    font-size: var(--fs-xs);
+    color: rgb(255 249 243 / 55%);
+  }
+
+  /* --------------------------------------------------------- Columnas 2-4 */
+
+  .footer__title {
+    margin-bottom: var(--space-sm);
+    font-family: var(--font-display);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--c-yellow);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  .footer__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .footer__list a {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: var(--fs-sm);
+    color: rgb(255 249 243 / 72%);
+    transition: color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+
+  .footer__list a:hover {
+    color: var(--c-white);
+    transform: translateX(3px);
+  }
+
+  .footer__list--contact a:hover {
+    color: var(--c-cyan);
+  }
+
+  .footer__availability {
+    margin-top: var(--space-md);
+  }
+
+  /* ------------------------------------------------------------- Redes */
+
+  .footer__social {
+    display: flex;
+    gap: var(--space-md);
+    align-items: center;
+    justify-content: space-between;
+    padding-block: var(--space-md);
+    border-bottom: 1px solid rgb(255 249 243 / 12%);
+  }
+
+  .footer__social-label {
+    font-family: var(--font-display);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: rgb(255 249 243 / 55%);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  .social {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .social a {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    color: var(--c-cream);
+    background: rgb(255 249 243 / 8%);
+    border: 1px solid rgb(255 249 243 / 12%);
+    border-radius: var(--radius-full);
+    transition:
+      transform var(--dur) var(--ease-bounce),
+      background-color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease);
+  }
+
+  .social a:hover {
+    background: linear-gradient(135deg, var(--c-pink), var(--c-violet));
+    border-color: transparent;
+    transform: translateY(-4px) scale(1.06);
+  }
+
+  /* -------------------------------------------------------- Barra inferior */
+
+  .footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem var(--space-md);
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--space-md);
+    font-size: var(--fs-xs);
+    color: rgb(255 249 243 / 55%);
+  }
+
+  .footer__made {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+  }
+
+  .footer__made :global(svg) {
+    color: var(--c-pink);
+  }
+
+  /* ------------------------------------------------------------ Responsive */
+
+  @media (max-width: 64rem) {
+    .footer__top {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .footer__brand {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .footer__top {
+      grid-template-columns: 1fr;
+    }
+
+    .footer__social {
+      flex-direction: column;
+      gap: var(--space-sm);
+      align-items: flex-start;
+    }
+
+    .footer__bottom {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

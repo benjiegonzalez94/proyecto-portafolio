@@ -1,0 +1,236 @@
+---
+/**
+ * portafolio.astro — Índice de proyectos con filtros por categoría.
+ *
+ * Los filtros funcionan sin recargar la página y sin librerías externas:
+ * cada tarjeta lleva su categoría en `data-category` y el script oculta las que
+ * no corresponden. Si JavaScript está desactivado, se ven todos los proyectos.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../components/Icon.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { site, categories } from '../../data/site';
+
+const projects = site.projects;
+---
+
+<BaseLayout
+  title="Portafolio"
+  description={`Selección de ${projects.length} proyectos de diseño gráfico, identidad visual, empaques, video y marketing realizados por ${site.name} en Manta, Ecuador.`}
+>
+  <!-- ============================================================ CABECERA -->
+  <section class="page-head has-blobs">
+    <span class="blob page-head__blob" aria-hidden="true"></span>
+
+    <div class="container">
+      <nav class="crumbs" aria-label="Migas de pan">
+        <a href="/">Inicio</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Portafolio</span>
+      </nav>
+
+      <p class="section__eyebrow">Portafolio</p>
+      <h1 class="page-head__title">
+        Proyectos con <span class="highlight">intención</span>
+      </h1>
+      <p class="page-head__lead">
+        {projects.length} trabajos de identidad visual, diseño editorial, empaques, video y
+        marketing. Filtra por tipo de proyecto para ver lo que más te interesa.
+      </p>
+
+      <!-- Filtros por categoría -->
+      <div class="filters" role="group" aria-label="Filtrar proyectos por categoría">
+        {
+          categories.map((category, i) => (
+            <button
+              class="filter"
+              type="button"
+              data-filter={category}
+              aria-pressed={i === 0 ? 'true' : 'false'}
+            >
+              {category}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================== PROYECTOS -->
+  <section class="section section--tight" aria-label="Listado de proyectos">
+    <div class="container">
+      <!-- Aviso para lectores de pantalla con el número de resultados -->
+      <p class="sr-only" id="filter-status" role="status" aria-live="polite"></p>
+
+      <div class="portfolio__grid" id="portfolio-grid">
+        {
+          projects.map((project, i) => (
+            <div class="portfolio__item" data-category={project.category}>
+              <ProjectCard project={project} delay={(i % 3) * 80} />
+            </div>
+          ))
+        }
+      </div>
+
+      <!-- Mensaje si un filtro no tiene resultados -->
+      <p class="portfolio__empty" id="portfolio-empty" hidden>
+        Todavía no hay proyectos en esta categoría. <a href="/contacto">¿Creamos el primero?</a>
+      </p>
+    </div>
+  </section>
+
+  <CtaBand
+    title="¿Te gustaría algo así para tu marca?"
+    text="Cuéntame tu idea y te preparo una propuesta a la medida, con alcance, tiempos y presupuesto claros."
+    buttonLabel="Empezar un proyecto"
+  />
+</BaseLayout>
+
+<style>
+  /* ------------------------------------------------------------ Cabecera */
+
+  .page-head {
+    padding-top: clamp(7rem, 12vw, 9.5rem);
+    /* Sin relleno inferior: la cuadrícula de proyectos ya aporta su respiro,
+       así no se acumulan dos espacios seguidos. */
+    padding-bottom: 0;
+  }
+
+  .page-head__blob {
+    top: 2rem;
+    right: -8rem;
+    width: 26rem;
+    height: 26rem;
+    background: var(--c-cyan);
+    opacity: 0.3;
+  }
+
+  .crumbs {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: var(--space-md);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+
+  .crumbs a:hover {
+    color: var(--c-violet);
+    text-decoration: underline;
+  }
+
+  .page-head__title {
+    font-size: var(--fs-4xl);
+  }
+
+  .page-head__lead {
+    max-width: 44rem;
+    margin-top: var(--space-sm);
+    font-size: var(--fs-lg);
+    color: var(--c-muted);
+  }
+
+  /* ------------------------------------------------------------- Filtros */
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: var(--space-lg);
+  }
+
+  .filter {
+    padding: 0.55rem 1.15rem;
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--c-ink);
+    background: var(--c-white);
+    border: 1.5px solid var(--c-line);
+    border-radius: var(--radius-full);
+    transition:
+      color var(--dur) var(--ease),
+      background-color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease),
+      transform var(--dur) var(--ease-bounce);
+  }
+
+  .filter:hover {
+    border-color: var(--c-violet);
+    transform: translateY(-2px);
+  }
+
+  .filter[aria-pressed='true'] {
+    color: var(--c-white);
+    background: linear-gradient(100deg, var(--c-pink), var(--c-violet));
+    border-color: transparent;
+  }
+
+  /* ------------------------------------------------------------ Cuadrícula */
+
+  .portfolio__grid {
+    display: grid;
+    gap: var(--space-md);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  }
+
+  /* Animación al filtrar */
+  .portfolio__item {
+    transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+  }
+
+  .portfolio__item.is-hidden {
+    display: none;
+  }
+
+  .portfolio__empty {
+    padding: var(--space-xl) 0;
+    font-size: var(--fs-lg);
+    color: var(--c-muted);
+    text-align: center;
+  }
+
+  .portfolio__empty a {
+    color: var(--c-violet);
+    text-decoration: underline;
+  }
+</style>
+
+<script>
+  /**
+   * Filtrado de proyectos por categoría.
+   * Actualiza aria-pressed en los botones y anuncia el resultado a los lectores
+   * de pantalla mediante la región aria-live #filter-status.
+   */
+  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('.filter'));
+  const items = Array.from(document.querySelectorAll<HTMLElement>('.portfolio__item'));
+  const status = document.getElementById('filter-status');
+  const empty = document.getElementById('portfolio-empty');
+
+  function applyFilter(category: string): void {
+    let visible = 0;
+
+    for (const item of items) {
+      const match = category === 'Todos' || item.dataset.category === category;
+      item.classList.toggle('is-hidden', !match);
+      if (match) visible += 1;
+    }
+
+    for (const button of buttons) {
+      button.setAttribute('aria-pressed', String(button.dataset.filter === category));
+    }
+
+    if (empty) empty.hidden = visible > 0;
+    if (status) {
+      status.textContent = `${visible} ${visible === 1 ? 'proyecto' : 'proyectos'} en la categoría ${category}.`;
+    }
+  }
+
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      const category = button.dataset.filter;
+      if (category) applyFilter(category);
+    });
+  }
+</script>

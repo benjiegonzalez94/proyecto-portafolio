@@ -1,0 +1,163 @@
+---
+/**
+ * CtaBand.astro — Banda de llamada a la acción.
+ *
+ * Bloque de contraste, con degradado de marca, que invita a escribir.
+ * Se reutiliza al final de varias páginas.
+ */
+import { site } from '../data/site';
+import Icon from './Icon.astro';
+
+export interface Props {
+  title?: string;
+  text?: string;
+  /** Texto del botón principal. */
+  buttonLabel?: string;
+  buttonHref?: string;
+}
+
+const {
+  title = '¿Tienes un proyecto en mente?',
+  text = 'Cuéntame qué necesitas y te respondo en menos de 24 horas con una propuesta clara: alcance, tiempos y precio, sin compromiso.',
+  buttonLabel = 'Hablemos de tu proyecto',
+  buttonHref = '/contacto',
+} = Astro.props;
+---
+
+<section class="cta section" aria-labelledby="cta-title">
+  <div class="container">
+    <div class="cta__box" data-reveal>
+      <!-- Formas decorativas -->
+      <span class="cta__shape cta__shape--1" aria-hidden="true"></span>
+      <span class="cta__shape cta__shape--2" aria-hidden="true"></span>
+      <span class="cta__shape cta__shape--3" aria-hidden="true"></span>
+
+      <div class="cta__content">
+        <h2 class="cta__title" id="cta-title">{title}</h2>
+        <p class="cta__text">{text}</p>
+
+        <div class="cta__actions">
+          <a class="btn btn--outline cta__btn" href={buttonHref}>
+            {buttonLabel}
+            <span class="btn__icon"><Icon name="arrow-right" size={18} /></span>
+          </a>
+          <a class="cta__mail" href={`mailto:${site.email}`}>
+            <Icon name="mail" size={18} />
+            {site.email}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta__box {
+    position: relative;
+    padding: clamp(2.5rem, 6vw, 5rem);
+    overflow: hidden;
+    color: var(--c-white);
+    background: linear-gradient(115deg, var(--c-pink) 0%, var(--c-violet) 52%, var(--c-cyan) 100%);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 30px 70px -28px rgb(124 58 237 / 62%);
+    isolation: isolate;
+  }
+
+  /* Círculos translúcidos que dan profundidad */
+  .cta__shape {
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .cta__shape--1 {
+    top: -5rem;
+    right: -3rem;
+    width: 18rem;
+    height: 18rem;
+    background: rgb(255 255 255 / 14%);
+  }
+
+  .cta__shape--2 {
+    right: 6rem;
+    bottom: -7rem;
+    width: 14rem;
+    height: 14rem;
+    background: var(--c-yellow);
+    opacity: 0.3;
+  }
+
+  .cta__shape--3 {
+    bottom: -4rem;
+    left: 12%;
+    width: 9rem;
+    height: 9rem;
+    background: rgb(255 255 255 / 10%);
+  }
+
+  .cta__content {
+    position: relative;
+    max-width: 44rem;
+  }
+
+  .cta__title {
+    font-size: var(--fs-3xl);
+    text-wrap: balance;
+  }
+
+  .cta__text {
+    margin-top: var(--space-sm);
+    font-size: var(--fs-lg);
+    color: rgb(255 255 255 / 90%);
+  }
+
+  .cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm) var(--space-md);
+    align-items: center;
+    margin-top: var(--space-lg);
+  }
+
+  /* El botón se vuelve blanco sobre el degradado: máxima legibilidad */
+  .cta__btn {
+    --btn-fg: var(--c-white);
+
+    padding-inline: 2rem;
+    border-color: rgb(255 255 255 / 65%);
+    backdrop-filter: blur(4px);
+  }
+
+  .cta__btn:hover {
+    --btn-bg: var(--c-white);
+    --btn-fg: var(--c-violet);
+  }
+
+  .cta__mail {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding-bottom: 2px;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--c-white);
+    border-bottom: 2px solid rgb(255 255 255 / 35%);
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .cta__mail:hover {
+    border-color: var(--c-white);
+  }
+
+  @media (max-width: 34rem) {
+    .cta__actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .cta__mail {
+      justify-content: center;
+    }
+  }
+</style>

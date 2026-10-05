@@ -1,0 +1,798 @@
+---
+/**
+ * contacto.astro — Página de contacto.
+ *
+ * ⚠️ IMPORTANTE SOBRE EL FORMULARIO
+ * Un formulario en un sitio estático necesita un servicio externo que reciba los
+ * mensajes. Ahora mismo está preparado para Formspree, que es gratis y se activa
+ * en 2 minutos:
+ *
+ *   1. Entra en https://formspree.io y crea una cuenta con tu correo.
+ *   2. Crea un formulario nuevo ("New Form") y copia el identificador que te dan,
+ *      por ejemplo "xbljrpwq".
+ *   3. Pégalo abajo en la constante FORMSPREE_ID (reemplaza TU_ID_AQUI).
+ *
+ * Mientras no lo configures, el formulario no se envía: muestra un aviso y ofrece
+ * WhatsApp y correo, que sí funcionan siempre. Así el sitio nunca queda roto.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../data/site';
+
+/**
+ * Escribe aquí tu identificador de Formspree.
+ * Ejemplo: const FORMSPREE_ID = 'xbljrpwq';
+ */
+const FORMSPREE_ID = 'TU_ID_AQUI';
+
+const formAction = FORMSPREE_ID === 'TU_ID_AQUI' ? '' : `https://formspree.io/f/${FORMSPREE_ID}`;
+
+// Enlace de WhatsApp con mensaje ya escrito (código de país + número, sin signos)
+const whatsappNumber = site.phone.replace(/[^0-9]/g, '');
+const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+  `Hola ${site.name}, me gustaría conversar sobre un proyecto de diseño.`
+)}`;
+
+// Opciones del selector "tipo de proyecto"
+const projectTypes = [
+  'Identidad visual / branding',
+  'Diseño gráfico o publicitario',
+  'Edición de video',
+  'Marketing y contenido para redes',
+  'Análisis de datos y métricas',
+  'Producción de contenido visual',
+  'Otro / no estoy segura',
+];
+
+// Rangos de presupuesto orientativos
+const budgets = ['Menos de $200', '$200 – $500', '$500 – $1.000', '$1.000 – $3.000', 'Más de $3.000', 'Aún no lo sé'];
+---
+
+<BaseLayout
+  title="Contacto"
+  description={`Escríbele a ${site.name}, ${site.role} en ${site.location}, para cotizar tu proyecto de diseño gráfico, video o marketing. Respuesta en menos de 24 horas.`}
+>
+  <!-- ============================================================ CABECERA -->
+  <section class="page-head has-blobs">
+    <span class="blob page-head__blob" aria-hidden="true"></span>
+
+    <div class="container">
+      <nav class="crumbs" aria-label="Migas de pan">
+        <a href="/">Inicio</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Contacto</span>
+      </nav>
+
+      <p class="section__eyebrow">Contacto</p>
+      <h1 class="page-head__title">
+        Cuéntame tu <span class="gradient-text">idea</span>
+      </h1>
+      <p class="page-head__lead">
+        Completa el formulario o escríbeme directamente por WhatsApp o correo. Respondo en menos de
+        24 horas con los siguientes pasos y una propuesta clara.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================= CONTENIDO -->
+  <section class="section section--tight" aria-label="Formulario y datos de contacto">
+    <div class="container contact">
+      <!-- ------------------------------------------------------- Formulario -->
+      <div class="contact__form-wrap" data-reveal>
+        <form
+          class="form card"
+          id="contact-form"
+          method="POST"
+          action={formAction || undefined}
+          data-configured={formAction ? 'true' : 'false'}
+          data-whatsapp={whatsappNumber}
+          data-email={site.email}
+          novalidate
+        >
+          <h2 class="form__title">Formulario de proyecto</h2>
+          <p class="form__hint">Los campos marcados con <span aria-hidden="true">*</span> son obligatorios.</p>
+
+          <div class="form__row">
+            <div class="field">
+              <label for="nombre">Nombre completo <span aria-hidden="true">*</span></label>
+              <input id="nombre" name="nombre" type="text" autocomplete="name" required />
+              <p class="field__error" data-error-for="nombre" hidden>Escribe tu nombre.</p>
+            </div>
+
+            <div class="field">
+              <label for="email">Correo electrónico <span aria-hidden="true">*</span></label>
+              <input id="email" name="email" type="email" autocomplete="email" required />
+              <p class="field__error" data-error-for="email" hidden>Escribe un correo válido.</p>
+            </div>
+          </div>
+
+          <div class="form__row">
+            <div class="field">
+              <label for="telefono">Teléfono o WhatsApp</label>
+              <input id="telefono" name="telefono" type="tel" autocomplete="tel" />
+            </div>
+
+            <div class="field">
+              <label for="empresa">Marca o empresa</label>
+              <input id="empresa" name="empresa" type="text" autocomplete="organization" />
+            </div>
+          </div>
+
+          <div class="form__row">
+            <div class="field">
+              <label for="tipo">¿Qué necesitas? <span aria-hidden="true">*</span></label>
+              <select id="tipo" name="tipo_proyecto" required>
+                <option value="">Selecciona una opción</option>
+                {projectTypes.map((type) => <option value={type}>{type}</option>)}
+              </select>
+              <p class="field__error" data-error-for="tipo" hidden>Selecciona qué necesitas.</p>
+            </div>
+
+            <div class="field">
+              <label for="presupuesto">Presupuesto estimado</label>
+              <select id="presupuesto" name="presupuesto">
+                <option value="">Prefiero no decirlo todavía</option>
+                {budgets.map((budget) => <option value={budget}>{budget}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="mensaje">Cuéntame sobre tu proyecto <span aria-hidden="true">*</span></label>
+            <textarea
+              id="mensaje"
+              name="mensaje"
+              rows="6"
+              required
+              placeholder="¿Qué vendes, a quién te diriges y qué te gustaría lograr? Si ya tienes logo o material, cuéntamelo también."></textarea>
+            <p class="field__error" data-error-for="mensaje" hidden>Escribe al menos 20 caracteres.</p>
+          </div>
+
+          <!-- Antispam sencillo: si un robot lo rellena, se descarta el envío -->
+          <div class="form__honeypot" aria-hidden="true">
+            <label for="website">No rellenes este campo</label>
+            <input id="website" name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <label class="checkbox">
+            <input id="privacidad" name="privacidad" type="checkbox" required />
+            <span>
+              Autorizo que {site.name} use mis datos únicamente para responder a esta consulta.
+            </span>
+          </label>
+          <p class="field__error" data-error-for="privacidad" hidden>Debes aceptar para continuar.</p>
+
+          <button class="btn btn--primary form__submit" type="submit">
+            Enviar mensaje
+            <span class="btn__icon"><Icon name="send" size={17} /></span>
+          </button>
+
+          <!-- Aviso si el formulario aún no está conectado a Formspree -->
+          {
+            !formAction && (
+              <p class="form__notice">
+                <Icon name="clock" size={16} />
+                <span>
+                  Este formulario todavía no está conectado. Mientras tanto, escríbeme por{' '}
+                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">WhatsApp</a> o a{' '}
+                  <a href={`mailto:${site.email}`}>{site.email}</a> y te respondo igual de rápido.
+                </span>
+              </p>
+            )
+          }
+
+          <p class="form__status" id="form-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+
+      <!-- ------------------------------------------------------- Datos -->
+      <aside class="contact__aside" data-reveal style="--reveal-delay:120ms" aria-label="Datos de contacto">
+        <div class="ccard card">
+          <h2 class="ccard__title">Hablemos directo</h2>
+
+          <ul class="ccard__list">
+            <li>
+              <span class="ccard__icon"><Icon name="mail" size={18} /></span>
+              <span>
+                <small>Correo</small>
+                <a href={`mailto:${site.email}`}>{site.email}</a>
+              </span>
+            </li>
+            <li>
+              <span class="ccard__icon"><Icon name="phone" size={18} /></span>
+              <span>
+                <small>Teléfono</small>
+                <a href={`tel:${whatsappNumber}`}>{site.phone}</a>
+              </span>
+            </li>
+            <li>
+              <span class="ccard__icon"><Icon name="map-pin" size={18} /></span>
+              <span>
+                <small>Ubicación</small>
+                <strong>{site.location}</strong>
+              </span>
+            </li>
+            <li>
+              <span class="ccard__icon"><Icon name="clock" size={18} /></span>
+              <span>
+                <small>Tiempo de respuesta</small>
+                <strong>Menos de 24 horas</strong>
+              </span>
+            </li>
+          </ul>
+
+          <a class="btn btn--primary ccard__cta" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+            <Icon name="whatsapp" size={18} />
+            Escribir por WhatsApp
+          </a>
+        </div>
+
+        <!-- Redes -->
+        <div class="ccard card">
+          <h2 class="ccard__title">Sígueme</h2>
+          <ul class="social">
+            {
+              site.social.map((link) => (
+                <li>
+                  <a
+                    href={link.network === 'email' ? `mailto:${link.url}` : link.url}
+                    target={link.network === 'email' ? undefined : '_blank'}
+                    rel={link.network === 'email' ? undefined : 'noopener noreferrer'}
+                    aria-label={link.label}
+                  >
+                    <Icon name={link.network === 'email' ? 'mail' : link.network} size={19} />
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <!-- Disponibilidad -->
+        <div class="ccard ccard--accent">
+          <span class="availability">{site.availability}</span>
+          <p class="ccard__note">
+            Tengo cupos disponibles este mes. Los proyectos se agendan por orden de reserva.
+          </p>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ------------------------------------------------------------ Cabecera */
+
+  .page-head {
+    padding-top: clamp(7rem, 12vw, 9.5rem);
+    /* Sin relleno inferior: la siguiente sección ya aporta su respiro, así
+       no se acumulan dos espacios seguidos */
+    padding-bottom: 0;
+  }
+
+  .page-head__blob {
+    top: 1rem;
+    left: 40%;
+    width: 28rem;
+    height: 28rem;
+    background: var(--c-pink);
+    opacity: 0.28;
+  }
+
+  .crumbs {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: var(--space-md);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+
+  .crumbs a:hover {
+    color: var(--c-violet);
+    text-decoration: underline;
+  }
+
+  .page-head__title {
+    font-size: var(--fs-4xl);
+  }
+
+  .page-head__lead {
+    max-width: 46rem;
+    margin-top: var(--space-sm);
+    font-size: var(--fs-lg);
+    color: var(--c-muted);
+  }
+
+  /* ----------------------------------------------------------- Estructura */
+
+  .contact {
+    display: grid;
+    gap: var(--space-lg);
+    align-items: start;
+    grid-template-columns: 1.5fr 1fr;
+  }
+
+  /* ---------------------------------------------------------- Formulario */
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    border-radius: var(--radius-lg);
+  }
+
+  .form__title {
+    font-size: var(--fs-2xl);
+  }
+
+  .form__hint {
+    margin-top: -0.75rem;
+    font-size: var(--fs-sm);
+    color: var(--c-muted);
+  }
+
+  .form__hint span {
+    color: var(--c-pink);
+  }
+
+  .form__row {
+    display: grid;
+    gap: var(--space-md);
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* ------------------------------------------------------------- Campos */
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .field label {
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+  }
+
+  .field label span {
+    color: var(--c-pink);
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    font-size: var(--fs-sm);
+    background: var(--c-cream);
+    border: 1.5px solid var(--c-line);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background-color var(--dur) var(--ease);
+  }
+
+  .field textarea {
+    min-height: 8rem;
+    resize: vertical;
+  }
+
+  .field select {
+    cursor: pointer;
+    appearance: none;
+    /* Flecha propia, para que se vea igual en todos los navegadores */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b6579' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.9rem center;
+    background-size: 1.1rem;
+    padding-right: 2.6rem;
+  }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    background: var(--c-white);
+    border-color: var(--c-violet);
+    outline: none;
+    box-shadow: 0 0 0 4px rgb(124 58 237 / 14%);
+  }
+
+  .field input::placeholder,
+  .field textarea::placeholder {
+    color: color-mix(in srgb, var(--c-muted) 75%, transparent);
+  }
+
+  /* Campo con error */
+  .field.has-error input,
+  .field.has-error select,
+  .field.has-error textarea {
+    border-color: var(--c-pink);
+    background: rgb(255 45 120 / 5%);
+  }
+
+  .field__error {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--c-pink);
+  }
+
+  /* ---------------------------------------------------------- Antispam */
+
+  .form__honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* --------------------------------------------------------- Casilla */
+
+  .checkbox {
+    display: flex;
+    gap: 0.65rem;
+    align-items: flex-start;
+    font-size: var(--fs-sm);
+    color: var(--c-muted);
+    cursor: pointer;
+  }
+
+  .checkbox input {
+    flex-shrink: 0;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-top: 0.22rem;
+    accent-color: var(--c-violet);
+    cursor: pointer;
+  }
+
+  /* ------------------------------------------------------- Envío y avisos */
+
+  .form__submit {
+    align-self: flex-start;
+    min-width: 13rem;
+  }
+
+  .form__notice {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    padding: 0.9rem 1rem;
+    font-size: var(--fs-xs);
+    color: #78350f;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: var(--radius-sm);
+  }
+
+  .form__notice :global(svg) {
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+
+  .form__notice a {
+    font-weight: 700;
+    text-decoration: underline;
+  }
+
+  .form__status {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+  }
+
+  .form__status.is-ok {
+    color: #15803d;
+  }
+
+  .form__status.is-error {
+    color: var(--c-pink);
+  }
+
+  /* -------------------------------------------------------- Barra lateral */
+
+  .contact__aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .ccard {
+    padding: var(--space-md);
+    border-radius: var(--radius-lg);
+  }
+
+  .ccard__title {
+    margin-bottom: var(--space-sm);
+    font-size: var(--fs-lg);
+  }
+
+  .ccard__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .ccard__list li {
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-start;
+  }
+
+  .ccard__icon {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--c-violet);
+    background: rgb(124 58 237 / 10%);
+    border-radius: 30%;
+  }
+
+  .ccard__list small {
+    display: block;
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+
+  .ccard__list strong {
+    display: block;
+    font-size: var(--fs-sm);
+    font-weight: 700;
+  }
+
+  .ccard__list a {
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .ccard__list a:hover {
+    color: var(--c-violet);
+    text-decoration: underline;
+  }
+
+  .ccard__cta {
+    width: 100%;
+    margin-top: var(--space-md);
+  }
+
+  .social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .social a {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    background: var(--c-cream);
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius-full);
+    transition:
+      transform var(--dur) var(--ease-bounce),
+      color var(--dur) var(--ease),
+      background-color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease);
+  }
+
+  .social a:hover {
+    color: var(--c-white);
+    background: linear-gradient(135deg, var(--c-pink), var(--c-violet));
+    border-color: transparent;
+    transform: translateY(-4px);
+  }
+
+  .ccard--accent {
+    background: linear-gradient(135deg, rgb(255 45 120 / 10%), rgb(124 58 237 / 10%));
+    border: 1px solid rgb(124 58 237 / 18%);
+  }
+
+  .ccard__note {
+    margin-top: var(--space-sm);
+    font-size: var(--fs-sm);
+    color: var(--c-muted);
+  }
+
+  /* ------------------------------------------------------------ Responsive */
+
+  @media (max-width: 62rem) {
+    .contact {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .form__row {
+      grid-template-columns: 1fr;
+    }
+
+    .form__submit {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Validación del formulario en el navegador.
+   *
+   * - Comprueba los campos antes de enviar y muestra los errores junto a cada uno.
+   * - Si el formulario aún no está conectado a Formspree, no se envía: se avisa y
+   *   se ofrecen WhatsApp y correo, que funcionan siempre.
+   * - Si hay JavaScript desactivado, el navegador valida por su cuenta gracias a
+   *   los atributos `required`, así que el formulario sigue siendo usable.
+   */
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  const status = document.getElementById('form-status');
+
+  if (form) {
+    const configured = form.dataset.configured === 'true';
+
+    /**
+     * Rellena el formulario si se llega desde un botón de servicios o planes,
+     * por ejemplo /contacto?servicio=Edición%20de%20video
+     * o /contacto?plan=Profesional
+     */
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get('servicio') ?? params.get('plan');
+
+    if (requested) {
+      const message = form.querySelector<HTMLTextAreaElement>('#mensaje');
+      const type = form.querySelector<HTMLSelectElement>('#tipo');
+
+      if (type) {
+        // Busca la opción que mejor coincida con el servicio solicitado
+        const option = Array.from(type.options).find(
+          (opt) => opt.value && requested.toLowerCase().includes(opt.value.split(' ')[0].toLowerCase())
+        );
+        if (option) type.value = option.value;
+      }
+
+      if (message && !message.value) {
+        message.value = `Hola, me interesa el servicio de ${requested}. `;
+        message.focus();
+        // Coloca el cursor al final del texto ya escrito
+        message.setSelectionRange(message.value.length, message.value.length);
+      }
+    }
+
+    /** Muestra u oculta el mensaje de error de un campo. */
+    const setError = (name: string, message: string | null): boolean => {
+      const field = form.querySelector(`[name="${name}"]`);
+      const wrapper = field?.closest('.field');
+      const error = form.querySelector(`[data-error-for="${name}"]`);
+
+      if (wrapper) wrapper.classList.toggle('has-error', Boolean(message));
+      if (error) {
+        error.textContent = message ?? '';
+        (error as HTMLElement).hidden = !message;
+      }
+      return !message;
+    };
+
+    /** Comprueba un campo concreto según sus reglas. */
+    const validateField = (name: string): boolean => {
+      const field = form.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+        `[name="${name}"]`
+      );
+      if (!field) return true;
+
+      const value = field.value.trim();
+
+      if (name === 'nombre') {
+        return setError(name, value.length >= 2 ? null : 'Escribe tu nombre.');
+      }
+      if (name === 'email') {
+        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+        return setError(name, ok ? null : 'Escribe un correo válido, por ejemplo nombre@correo.com.');
+      }
+      if (name === 'tipo') {
+        return setError(name, value ? null : 'Selecciona qué necesitas.');
+      }
+      if (name === 'mensaje') {
+        return setError(
+          name,
+          value.length >= 20 ? null : 'Cuéntame un poco más: escribe al menos 20 caracteres.'
+        );
+      }
+      return true;
+    };
+
+    // Validación al salir del campo, para avisar cuanto antes
+    for (const name of ['nombre', 'email', 'tipo', 'mensaje']) {
+      const field = form.querySelector(`[name="${name}"]`);
+      field?.addEventListener('blur', () => validateField(name));
+      field?.addEventListener('input', () => {
+        // Si ya se había marcado un error, se revisa mientras escribe
+        if (field.closest('.field')?.classList.contains('has-error')) validateField(name);
+      });
+    }
+
+    // --- Envío ---
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const fieldsOk = ['nombre', 'email', 'tipo', 'mensaje']
+        .map(validateField)
+        .every(Boolean);
+
+      const privacy = form.querySelector<HTMLInputElement>('#privacidad');
+      const privacyOk = Boolean(privacy?.checked);
+      const privacyError = form.querySelector('[data-error-for="privacidad"]') as HTMLElement | null;
+      if (privacyError) privacyError.hidden = privacyOk;
+      if (!privacyOk) privacyError?.scrollIntoView({ block: 'center' });
+
+      if (!fieldsOk || !privacyOk) {
+        if (status) {
+          status.className = 'form__status is-error';
+          status.textContent = 'Revisa los campos marcados para poder enviar el mensaje.';
+        }
+        form.querySelector('.has-error input, .has-error select, .has-error textarea')?.scrollIntoView({
+          block: 'center',
+          behavior: 'smooth',
+        });
+        return;
+      }
+
+      // Formulario todavía sin conectar: se avisa y no se pierde el mensaje
+      if (!configured) {
+        if (status) {
+          status.className = 'form__status is-error';
+          status.innerHTML =
+            'El formulario aún no está conectado. Escríbeme por ' +
+            '<a href="https://wa.me/' +
+            form.dataset.whatsapp +
+            '" target="_blank" rel="noopener noreferrer">WhatsApp</a> o a ' +
+            '<a href="mailto:' +
+            form.dataset.email +
+            '">' +
+            form.dataset.email +
+            '</a>.';
+        }
+        return;
+      }
+
+      // Envío real a Formspree
+      const button = form.querySelector<HTMLButtonElement>('.form__submit');
+      const original = button?.innerHTML;
+      if (button) {
+        button.disabled = true;
+        button.textContent = 'Enviando…';
+      }
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+
+        if (response.ok) {
+          form.reset();
+          if (status) {
+            status.className = 'form__status is-ok';
+            status.textContent =
+              '¡Mensaje enviado! Gracias por escribirme, te responderé en menos de 24 horas.';
+          }
+        } else {
+          throw new Error('Respuesta no válida del servidor');
+        }
+      } catch {
+        if (status) {
+          status.className = 'form__status is-error';
+          status.textContent =
+            'No se pudo enviar el mensaje. Revisa tu conexión o escríbeme directamente por correo.';
+        }
+      } finally {
+        if (button) {
+          button.disabled = false;
+          button.innerHTML = original ?? 'Enviar mensaje';
+        }
+      }
+    });
+  }
+</script>

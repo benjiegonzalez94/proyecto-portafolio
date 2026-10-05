@@ -1,0 +1,9 @@
+# robots.txt — Instrucciones para los buscadores.
+# Permite indexar todo el sitio y avisa dónde está el mapa del sitio.
+
+User-agent: *
+Allow: /
+
+# Nada que ocultar: este sitio es público.
+
+Sitemap: https://nahomimachuca.com/sitemap-index.xml

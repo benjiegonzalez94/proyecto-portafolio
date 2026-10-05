@@ -1,0 +1,619 @@
+/* ==========================================================================
+   SISTEMA DE DISEÑO — Portafolio Nahomi Machuca
+   Estética colorida y creativa sobre una base limpia y legible.
+
+   Todo el sitio se controla desde las variables de :root.
+   Si quieres cambiar la identidad de color, edita las líneas de "MARCA".
+   ========================================================================== */
+
+/* --------------------------------------------------------------- 1. TOKENS */
+
+:root {
+  /* --- MARCA: colores principales --- */
+  --c-pink: #ff2d78; /* Rosa chicle — acento principal */
+  --c-violet: #7c3aed; /* Violeta eléctrico */
+  --c-cyan: #06b6d4; /* Cian vibrante */
+  --c-tangerine: #ff6b35; /* Naranja mandarina */
+  --c-yellow: #ffc93c; /* Amarillo sol */
+  --c-lime: #a3e635; /* Lima fresca */
+
+  /* --- Neutros --- */
+  --c-ink: #17141f; /* Negro violáceo: texto principal */
+  --c-cream: #fff9f3; /* Fondo cálido */
+  --c-white: #ffffff;
+  --c-muted: #6b6579; /* Texto secundario */
+  --c-line: #e9e2f2; /* Bordes suaves */
+  --c-surface: #ffffff; /* Superficie de tarjetas */
+  --c-dark: #14111c; /* Fondo oscuro para secciones de contraste */
+
+  /* --- Tipografía --- */
+  --font-display: 'Outfit Variable', 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Escala tipográfica fluida: se adapta sola al ancho de pantalla */
+  --fs-xs: 0.8125rem;
+  --fs-sm: 0.9375rem;
+  --fs-base: clamp(1rem, 0.97rem + 0.15vw, 1.0625rem);
+  --fs-lg: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  --fs-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --fs-2xl: clamp(1.5rem, 1.25rem + 1.1vw, 2rem);
+  --fs-3xl: clamp(1.875rem, 1.4rem + 2vw, 2.75rem);
+  --fs-4xl: clamp(2.25rem, 1.5rem + 3.4vw, 4rem);
+  --fs-5xl: clamp(2.75rem, 1.6rem + 5.6vw, 5.75rem);
+
+  /* --- Espaciado --- */
+  --space-2xs: 0.375rem;
+  --space-xs: 0.625rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.5rem;
+  --space-xl: 4rem;
+  --space-2xl: 6rem;
+  --space-3xl: clamp(5rem, 9vw, 9rem);
+
+  /* --- Estructura --- */
+  --container: 76rem;
+  --container-narrow: 48rem;
+  --gutter: clamp(1.25rem, 5vw, 2.5rem);
+  --radius-sm: 0.625rem;
+  --radius: 1.25rem;
+  --radius-lg: 2rem;
+  --radius-full: 999px;
+
+  /* --- Sombras --- */
+  --shadow-sm: 0 1px 2px rgb(23 20 31 / 6%), 0 2px 8px rgb(23 20 31 / 4%);
+  --shadow: 0 4px 12px rgb(23 20 31 / 7%), 0 12px 32px rgb(23 20 31 / 6%);
+  --shadow-lg: 0 8px 24px rgb(23 20 31 / 9%), 0 24px 64px rgb(23 20 31 / 9%);
+  --shadow-color: 0 18px 46px -12px rgb(124 58 237 / 34%);
+
+  /* --- Movimiento --- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur: 0.35s;
+
+  /* --- Capas --- */
+  --z-sticky: 100;
+  --z-header: 200;
+  --z-menu: 300;
+}
+
+/* --------------------------------------------- 2. RESET Y COMPORTAMIENTO */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* Evita que el encabezado fijo tape los títulos al saltar a un ancla */
+  scroll-padding-top: 6.5rem;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: 1.7;
+  color: var(--c-ink);
+  background-color: var(--c-cream);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  min-height: 100dvh;
+}
+
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  list-style: none;
+  padding: 0;
+}
+
+:target {
+  scroll-margin-top: 6.5rem;
+}
+
+/* Accesibilidad: foco siempre visible y con buen contraste */
+:focus-visible {
+  outline: 3px solid var(--c-violet);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+::selection {
+  background-color: var(--c-pink);
+  color: var(--c-white);
+}
+
+/* --------------------------------------------------------- 3. TIPOGRAFÍA */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--fs-5xl);
+}
+h2 {
+  font-size: var(--fs-4xl);
+}
+h3 {
+  font-size: var(--fs-2xl);
+}
+h4 {
+  font-size: var(--fs-xl);
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* --------------------------------------------------------- 4. ESTRUCTURA */
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.container--narrow {
+  max-width: var(--container-narrow);
+}
+
+.section {
+  padding-block: var(--space-3xl);
+}
+
+.section--tight {
+  padding-block: var(--space-2xl);
+}
+
+.section--dark {
+  background-color: var(--c-dark);
+  color: var(--c-cream);
+}
+
+.section--dark .section__eyebrow {
+  color: var(--c-yellow);
+}
+
+.stack > * + * {
+  margin-top: var(--space-sm);
+}
+
+/* --------------------------------------------------- 5. UTILIDADES CLAVE */
+
+/* Texto que solo leen los lectores de pantalla */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Enlace para saltar directo al contenido (accesibilidad con teclado) */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: calc(var(--z-header) + 10);
+  padding: 0.75rem 1.5rem;
+  font-weight: 700;
+  color: var(--c-white);
+  background: var(--c-ink);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  transform: translate(-50%, -110%);
+  transition: transform 0.2s var(--ease);
+}
+
+.skip-link:focus-visible {
+  transform: translate(-50%, 0);
+}
+
+/* Rótulo pequeño sobre los títulos de sección */
+.section__eyebrow {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--c-violet);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.section__eyebrow::before {
+  width: 1.75rem;
+  height: 2px;
+  content: '';
+  background: currentColor;
+  border-radius: 2px;
+}
+
+/* Encabezado de sección: título + entradilla */
+.section__head {
+  max-width: 46rem;
+  margin-bottom: var(--space-xl);
+}
+
+.section__head--center {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.section__head--center .section__eyebrow {
+  justify-content: center;
+}
+
+.section__lead {
+  margin-top: var(--space-sm);
+  font-size: var(--fs-lg);
+  color: var(--c-muted);
+}
+
+.section--dark .section__lead {
+  color: rgb(255 249 243 / 72%);
+}
+
+.lead {
+  font-size: var(--fs-lg);
+  color: var(--c-muted);
+}
+
+.muted {
+  color: var(--c-muted);
+}
+
+/* Texto con degradado de marca */
+.gradient-text {
+  background: linear-gradient(100deg, var(--c-pink) 0%, var(--c-violet) 48%, var(--c-cyan) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Marcador de texto tipo rotulador */
+.highlight {
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.highlight::after {
+  position: absolute;
+  inset: auto -0.15em 0.02em -0.15em;
+  z-index: -1;
+  height: 0.42em;
+  content: '';
+  background: var(--c-yellow);
+  border-radius: 2px;
+  transform: rotate(-0.6deg);
+}
+
+/* ----------------------------------------------------------- 6. PÍLDORAS */
+
+.pill {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  padding: 0.4rem 0.9rem;
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--c-ink);
+  background: var(--c-white);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-full);
+}
+
+.pill--solid {
+  color: var(--c-white);
+  background: var(--c-ink);
+  border-color: var(--c-ink);
+}
+
+.pill--accent {
+  color: var(--c-white);
+  background: linear-gradient(100deg, var(--c-pink), var(--c-violet));
+  border-color: transparent;
+}
+
+/* Distintivo de disponibilidad con punto que late */
+.availability {
+  display: inline-flex;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.4rem 1rem 0.4rem 0.75rem;
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: #14532d;
+  background: #dcfce7;
+  border-radius: var(--radius-full);
+}
+
+.availability::before {
+  width: 0.5rem;
+  height: 0.5rem;
+  content: '';
+  background: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgb(34 197 94 / 70%);
+  animation: pulse-dot 2.2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% {
+    box-shadow: 0 0 0 0 rgb(34 197 94 / 65%);
+  }
+  70% {
+    box-shadow: 0 0 0 0.5rem rgb(34 197 94 / 0%);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(34 197 94 / 0%);
+  }
+}
+
+/* ----------------------------------------------------------- 7. BOTONES */
+
+.btn {
+  --btn-bg: var(--c-ink);
+  --btn-fg: var(--c-white);
+
+  position: relative;
+  display: inline-flex;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 1.75rem;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--btn-fg);
+  text-align: center;
+  letter-spacing: -0.01em;
+  background: var(--btn-bg);
+  border: 2px solid var(--btn-bg);
+  border-radius: var(--radius-full);
+  transition:
+    transform var(--dur) var(--ease-bounce),
+    box-shadow var(--dur) var(--ease),
+    background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+
+.btn:active {
+  transform: translateY(-1px);
+}
+
+.btn--primary {
+  --btn-bg: var(--c-ink);
+
+  background: linear-gradient(100deg, var(--c-pink) 0%, var(--c-violet) 55%, var(--c-cyan) 100%);
+  background-size: 200% 100%;
+  background-position: 0% 50%;
+  border-color: transparent;
+  transition:
+    transform var(--dur) var(--ease-bounce),
+    box-shadow var(--dur) var(--ease),
+    background-position 0.6s var(--ease);
+}
+
+.btn--primary:hover {
+  background-position: 100% 50%;
+  box-shadow: var(--shadow-color);
+}
+
+.btn--outline {
+  --btn-bg: transparent;
+  --btn-fg: var(--c-ink);
+
+  border-color: var(--c-ink);
+}
+
+.btn--outline:hover {
+  --btn-bg: var(--c-ink);
+  --btn-fg: var(--c-white);
+}
+
+.btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--c-ink);
+
+  padding-inline: 0.5rem;
+  border-color: transparent;
+}
+
+.btn--ghost:hover {
+  --btn-fg: var(--c-violet);
+  box-shadow: none;
+  transform: translateX(4px);
+}
+
+.section--dark .btn--outline {
+  --btn-fg: var(--c-cream);
+
+  border-color: rgb(255 249 243 / 40%);
+}
+
+.section--dark .btn--outline:hover {
+  --btn-bg: var(--c-cream);
+  --btn-fg: var(--c-ink);
+}
+
+.btn__icon {
+  display: grid;
+  place-items: center;
+  width: 1.05em;
+  height: 1.05em;
+  transition: transform var(--dur) var(--ease);
+}
+
+.btn:hover .btn__icon {
+  transform: translateX(3px);
+}
+
+/* --------------------------------------------------------- 8. TARJETAS */
+
+.card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+
+.card--hover:hover {
+  border-color: transparent;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-6px);
+}
+
+/* Rejillas reutilizables */
+.grid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.grid--2 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+.grid--3 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+}
+
+.grid--4 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+}
+
+/* --------------------------------------------------- 9. FONDOS DECORATIVOS */
+
+/* Manchas de color difuminadas de fondo */
+.blob {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.has-blobs {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------- 10. ANIMACIONES */
+
+/* Aparecer al hacer scroll. Lo activa src/scripts/animations.ts */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.7s var(--ease),
+    transform 0.7s var(--ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Si el sistema pide menos movimiento, se desactiva todo */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------ 11. IMPRESIÓN */
+
+@media print {
+  .site-header,
+  .site-footer,
+  .btn {
+    display: none !important;
+  }
+
+  body {
+    color: #000;
+    background: #fff;
+  }
+}

@@ -1,0 +1,467 @@
+---
+/**
+ * [slug].astro — Página individual de cada proyecto.
+ *
+ * Astro genera una página estática por cada proyecto definido en
+ * src/data/site.ts. Para añadir uno nuevo, basta con agregarlo a ese archivo:
+ * esta página se crea sola, sin tocar código.
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../components/Icon.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { site } from '../../data/site';
+
+export function getStaticPaths() {
+  return site.projects.map((project) => ({
+    params: { slug: project.slug },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+
+// --- Imagen principal del proyecto ---
+const images = import.meta.glob<{ default: ImageMetadata }>('../../assets/proyectos/*', { eager: true });
+const image = images[`../../assets/proyectos/${project.image}`]?.default;
+
+// --- Proyecto anterior y siguiente, para navegar en círculo ---
+const index = site.projects.findIndex((p) => p.slug === project.slug);
+const next = site.projects[(index + 1) % site.projects.length];
+const prev = site.projects[(index - 1 + site.projects.length) % site.projects.length];
+
+// --- Otros proyectos de la misma categoría (máximo 3) ---
+const related = site.projects
+  .filter((p) => p.slug !== project.slug && p.category === project.category)
+  .slice(0, 3);
+
+// --- Proyectos de relleno si no hay de la misma categoría ---
+const fallback = site.projects.filter((p) => p.slug !== project.slug).slice(0, 3);
+const suggestions = related.length > 0 ? related : fallback;
+
+// --- Datos estructurados del proyecto ---
+const projectSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: project.title,
+  description: project.summary,
+  dateCreated: project.year,
+  creator: { '@type': 'Person', name: site.name },
+  about: project.category,
+  keywords: project.tags.join(', '),
+  url: `${site.url}/portafolio/${project.slug}`,
+};
+---
+
+<BaseLayout
+  title={`${project.title} — ${project.category}`}
+  description={`${project.summary} Proyecto de ${project.category.toLowerCase()} realizado por ${site.name} para ${project.client} en ${project.year}.`}
+  image={image ? undefined : '/og-image.svg'}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(projectSchema)} is:inline />
+
+  <article class="proj">
+    <!-- ========================================================= CABECERA -->
+    <header class="proj__head has-blobs">
+      <span class="blob proj__blob" aria-hidden="true"></span>
+
+      <div class="container">
+        <nav class="crumbs" aria-label="Migas de pan">
+          <a href="/">Inicio</a>
+          <span aria-hidden="true">/</span>
+          <a href="/portafolio">Portafolio</a>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">{project.title}</span>
+        </nav>
+
+        <span class="pill pill--accent">{project.category}</span>
+
+        <h1 class="proj__title">{project.title}</h1>
+        <p class="proj__summary">{project.summary}</p>
+      </div>
+    </header>
+
+    <!-- ========================================================== IMAGEN -->
+    <div class="container">
+      <figure class="proj__cover" data-reveal>
+        {
+          image ? (
+            <Image
+              src={image}
+              alt={`Vista principal del proyecto ${project.title} — ${project.category}`}
+              widths={[600, 1000, 1400]}
+              sizes="(max-width: 76rem) 92vw, 76rem"
+              loading="eager"
+              decoding="async"
+              quality={88}
+            />
+          ) : (
+            <div class="proj__cover-placeholder" aria-hidden="true" />
+          )
+        }
+      </figure>
+    </div>
+
+    <!-- ========================================================== DETALLE -->
+    <div class="container proj__body">
+      <!-- Columna principal -->
+      <div class="proj__main">
+        <h2 class="proj__h2">Sobre el proyecto</h2>
+        <p class="proj__text">{project.description}</p>
+
+        <h2 class="proj__h2">Lo que hicimos</h2>
+        <ul class="proj__tags">
+          {
+            project.tags.map((tag) => (
+              <li>
+                <Icon name="check" size={16} />
+                {tag}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <!-- Ficha técnica lateral -->
+      <aside class="proj__aside card" aria-label="Ficha del proyecto">
+        <h2 class="proj__aside-title">Ficha técnica</h2>
+        <dl class="specs">
+          <div class="specs__row">
+            <dt>Cliente</dt>
+            <dd>{project.client}</dd>
+          </div>
+          <div class="specs__row">
+            <dt>Categoría</dt>
+            <dd>{project.category}</dd>
+          </div>
+          <div class="specs__row">
+            <dt>Año</dt>
+            <dd>{project.year}</dd>
+          </div>
+          <div class="specs__row">
+            <dt>Servicios</dt>
+            <dd>{project.tags.join(' · ')}</dd>
+          </div>
+        </dl>
+
+        <a class="btn btn--primary proj__aside-cta" href="/contacto">
+          Quiero algo parecido
+          <span class="btn__icon"><Icon name="arrow-right" size={17} /></span>
+        </a>
+      </aside>
+    </div>
+
+    <!-- ================================================ NAVEGACIÓN ANTERIOR -->
+    <div class="container">
+      <nav class="proj__nav" aria-label="Navegación entre proyectos">
+        <a class="proj__nav-link proj__nav-link--prev" href={`/portafolio/${prev.slug}`} rel="prev">
+          <span class="proj__nav-label">
+            <Icon name="arrow-left" size={16} />
+            Anterior
+          </span>
+          <strong>{prev.title}</strong>
+        </a>
+
+        <a class="proj__nav-link proj__nav-link--next" href={`/portafolio/${next.slug}`} rel="next">
+          <span class="proj__nav-label">
+            Siguiente
+            <Icon name="arrow-right" size={16} />
+          </span>
+          <strong>{next.title}</strong>
+        </a>
+      </nav>
+    </div>
+
+    <!-- ================================================= OTROS PROYECTOS -->
+    {
+      suggestions.length > 0 && (
+        <section class="section section--tight proj__more" aria-labelledby="more-title">
+          <div class="container">
+            <header class="section__head section__head--center" data-reveal>
+              <p class="section__eyebrow">Sigue explorando</p>
+              <h2 id="more-title">
+                {related.length > 0 ? `Más en ${project.category}` : 'Otros proyectos'}
+              </h2>
+            </header>
+
+            <div class="proj__more-grid">
+              {suggestions.map((item, i) => (
+                <ProjectCard project={item} delay={i * 80} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    <CtaBand
+      title="¿Hacemos algo así para tu marca?"
+      text="Escríbeme con tu idea y te respondo en menos de 24 horas con una propuesta clara."
+      buttonLabel="Contactarme"
+      buttonHref="/contacto"
+    />
+  </article>
+</BaseLayout>
+
+<style>
+  /* ------------------------------------------------------------ Cabecera */
+
+  .proj__head {
+    padding-top: clamp(7rem, 12vw, 9.5rem);
+    padding-bottom: var(--space-lg);
+  }
+
+  .proj__blob {
+    top: 1rem;
+    left: 30%;
+    width: 28rem;
+    height: 28rem;
+    background: var(--c-pink);
+    opacity: 0.26;
+  }
+
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: var(--space-md);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+
+  .crumbs a:hover {
+    color: var(--c-violet);
+    text-decoration: underline;
+  }
+
+  .proj__title {
+    margin-top: var(--space-sm);
+    font-size: var(--fs-4xl);
+  }
+
+  .proj__summary {
+    max-width: 46rem;
+    margin-top: var(--space-sm);
+    font-size: var(--fs-lg);
+    color: var(--c-muted);
+  }
+
+  /* -------------------------------------------------------------- Imagen */
+
+  .proj__cover {
+    margin: 0;
+    overflow: hidden;
+    background: var(--c-line);
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .proj__cover :global(img) {
+    width: 100%;
+    /* Se limita la altura para que la ficha del proyecto y el texto queden a la
+       vista sin tener que bajar media pantalla. */
+    max-height: min(60vh, 34rem);
+    object-fit: cover;
+  }
+
+  .proj__cover-placeholder {
+    aspect-ratio: 4 / 3;
+    background: repeating-linear-gradient(
+      45deg,
+      rgb(124 58 237 / 12%) 0 18px,
+      rgb(124 58 237 / 5%) 18px 36px
+    );
+  }
+
+  /* -------------------------------------------------------------- Cuerpo */
+
+  .proj__body {
+    display: grid;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    align-items: start;
+    grid-template-columns: 1.6fr 1fr;
+    padding-top: var(--space-xl);
+  }
+
+  .proj__h2 {
+    margin-top: var(--space-lg);
+    font-size: var(--fs-2xl);
+  }
+
+  .proj__h2:first-child {
+    margin-top: 0;
+  }
+
+  .proj__text {
+    margin-top: var(--space-sm);
+    font-size: var(--fs-lg);
+    color: var(--c-muted);
+  }
+
+  .proj__tags {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: var(--space-sm);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+
+  .proj__tags li {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+    font-size: var(--fs-base);
+  }
+
+  .proj__tags :global(svg) {
+    flex-shrink: 0;
+    color: var(--c-cyan);
+  }
+
+  /* -------------------------------------------------------------- Ficha */
+
+  .proj__aside {
+    position: sticky;
+    top: 6.5rem;
+    padding: var(--space-md);
+    border-radius: var(--radius-lg);
+  }
+
+  .proj__aside-title {
+    margin-bottom: var(--space-sm);
+    font-size: var(--fs-lg);
+  }
+
+  .specs {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .specs__row {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: space-between;
+    padding-block: 0.7rem;
+    border-bottom: 1px solid var(--c-line);
+  }
+
+  .specs__row:last-child {
+    border-bottom: none;
+  }
+
+  .specs dt {
+    flex-shrink: 0;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--c-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .specs dd {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .proj__aside-cta {
+    width: 100%;
+    margin-top: var(--space-md);
+  }
+
+  /* ---------------------------------------------------------- Navegación */
+
+  .proj__nav {
+    display: grid;
+    gap: var(--space-sm);
+    grid-template-columns: 1fr 1fr;
+    margin-top: var(--space-xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--c-line);
+  }
+
+  .proj__nav-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: var(--space-md);
+    background: var(--c-white);
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius);
+    transition:
+      transform var(--dur) var(--ease),
+      border-color var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
+  }
+
+  .proj__nav-link:hover {
+    border-color: var(--c-violet);
+    box-shadow: var(--shadow);
+    transform: translateY(-4px);
+  }
+
+  .proj__nav-link--next {
+    text-align: right;
+  }
+
+  .proj__nav-label {
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: center;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--c-violet);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .proj__nav-link--next .proj__nav-label {
+    justify-content: flex-end;
+  }
+
+  .proj__nav-link strong {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+  }
+
+  /* ------------------------------------------------------ Otros proyectos */
+
+  .proj__more {
+    background: linear-gradient(180deg, transparent, rgb(6 182 212 / 6%) 50%, transparent);
+  }
+
+  .proj__more-grid {
+    display: grid;
+    gap: var(--space-md);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  }
+
+  /* ------------------------------------------------------------ Responsive */
+
+  @media (max-width: 62rem) {
+    .proj__body {
+      grid-template-columns: 1fr;
+    }
+
+    .proj__aside {
+      position: static;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .proj__nav {
+      grid-template-columns: 1fr;
+    }
+
+    .proj__nav-link--next {
+      text-align: left;
+    }
+
+    .proj__nav-link--next .proj__nav-label {
+      justify-content: flex-start;
+    }
+  }
+</style>

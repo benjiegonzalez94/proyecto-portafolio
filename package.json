@@ -1,0 +1,27 @@
+{
+  "name": "portafolio-nahomi-machuca",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Portafolio web de Nahomi Machuca — Diseñadora Gráfica, Editora de Video y Creadora de Contenido (Manta, Ecuador).",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "cross-env ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "preview": "astro preview",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true});require('node:fs').rmSync('.astro',{recursive:true,force:true})\"",
+    "check": "astro check",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.6.0",
+    "@fontsource-variable/outfit": "^5.2.8",
+    "@fontsource-variable/plus-jakarta-sans": "^5.2.8",
+    "@supabase/supabase-js": "^2.117.2",
+    "astro": "^5.16.0",
+    "sharp": "^0.34.4"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
+  }
+}

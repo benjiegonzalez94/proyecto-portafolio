@@ -1,0 +1,553 @@
+---
+/**
+ * sobre-mi.astro — Página de presentación personal.
+ *
+ * Todo el contenido (historia, herramientas, formación, valores) se edita en
+ * el bloque `about` de src/data/site.ts.
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site } from '../data/site';
+
+const images = import.meta.glob<{ default: ImageMetadata }>('../assets/proyectos/*', { eager: true });
+const portrait = images['../assets/proyectos/sobre-mi.svg']?.default;
+---
+
+<BaseLayout
+  title="Sobre mí"
+  description={`Conoce a ${site.name}, ${site.role} en ${site.location}. Ingeniera en TI y Magíster en Ciencia de Datos aplicada al diseño y al marketing.`}
+>
+  <!-- ============================================================ CABECERA -->
+  <section class="page-head has-blobs">
+    <span class="blob page-head__blob" aria-hidden="true"></span>
+
+    <div class="container">
+      <nav class="crumbs" aria-label="Migas de pan">
+        <a href="/">Inicio</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Sobre mí</span>
+      </nav>
+
+      <div class="intro">
+        <!-- Retrato -->
+        <div class="intro__media" data-reveal>
+          <div class="intro__frame">
+            {
+              portrait && (
+                <Image
+                  src={portrait}
+                  alt={`Retrato de ${site.name}, ${site.role}`}
+                  widths={[420, 700]}
+                  sizes="(max-width: 62rem) 80vw, 36vw"
+                  loading="eager"
+                  decoding="async"
+                />
+              )
+            }
+          </div>
+
+          <ul class="intro__badges">
+            <li class="pill"><Icon name="map-pin" size={15} /> {site.location}</li>
+            <li class="pill"><Icon name="check" size={15} /> {site.availability}</li>
+          </ul>
+        </div>
+
+        <!-- Texto -->
+        <div class="intro__text">
+          <p class="section__eyebrow">Sobre mí</p>
+          <h1 class="intro__title">{site.about.heading}</h1>
+          <p class="intro__role">{site.role}</p>
+
+          <div class="intro__actions">
+            <a class="btn btn--primary" href="/contacto">
+              Trabajemos juntas
+              <span class="btn__icon"><Icon name="arrow-right" size={18} /></span>
+            </a>
+            <a class="btn btn--outline" href="/portafolio">Ver mi trabajo</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================= HISTORIA -->
+  <section class="section" aria-labelledby="historia-title">
+    <div class="container story">
+      <div class="story__text" data-reveal>
+        <h2 class="sr-only" id="historia-title">Mi historia</h2>
+        {
+          site.about.paragraphs.map((paragraph) => (
+            <p class="story__p">{paragraph}</p>
+          ))
+        }
+      </div>
+
+      <!-- Formación -->
+      <aside class="edu card" data-reveal style="--reveal-delay:120ms" aria-label="Formación académica">
+        <h3 class="edu__title">
+          <Icon name="star" size={19} />
+          Formación
+        </h3>
+        <ul class="edu__list">
+          {
+            site.about.education.map((item) => (
+              <li>
+                <strong>{item.title}</strong>
+                <small>
+                  {item.place}
+                  {item.year && ` · ${item.year}`}
+                </small>
+              </li>
+            ))
+          }
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- =============================================================== VALORES -->
+  <section class="section section--dark" aria-labelledby="valores-title">
+    <div class="container">
+      <header class="section__head section__head--center" data-reveal>
+        <p class="section__eyebrow">Cómo trabajo</p>
+        <h2 id="valores-title">Lo que puedes esperar de mí</h2>
+      </header>
+
+      <div class="values">
+        {
+          site.about.values.map((value, i) => (
+            <article class="value" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+              <span class="value__icon">
+                <Icon name={value.icon} size={22} />
+              </span>
+              <h3 class="value__title">{value.title}</h3>
+              <p class="value__text">{value.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== HERRAMIENTAS -->
+  <section class="section skills" aria-labelledby="skills-title">
+    <div class="container">
+      <header class="section__head section__head--center" data-reveal>
+        <p class="section__eyebrow">Herramientas</p>
+        <h2 id="skills-title">Con qué trabajo</h2>
+        <p class="section__lead">
+          Domino el paquete creativo completo y también las herramientas técnicas de análisis y web.
+        </p>
+      </header>
+
+      <div class="skills__grid">
+        {
+          site.about.skills.map((group, i) => (
+            <div class="skill-group card" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+              <h3 class="skill-group__title">{group.group}</h3>
+              <ul class="skill-group__list">
+                {group.items.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== TESTIMONIOS -->
+  <section class="section section--tight testimonials" aria-labelledby="opiniones-title">
+    <div class="container">
+      <header class="section__head section__head--center" data-reveal>
+        <p class="section__eyebrow">Testimonios</p>
+        <h2 id="opiniones-title">Quienes han trabajado conmigo</h2>
+      </header>
+
+      <div class="grid grid--3">
+        {
+          site.testimonials.map((t, i) => (
+            <figure class="tcard card" data-reveal style={`--reveal-delay:${i * 90}ms`}>
+              <span class="tcard__quote" aria-hidden="true">
+                <Icon name="quote" size={26} />
+              </span>
+              <blockquote class="tcard__text">{t.quote}</blockquote>
+              <figcaption class="tcard__author">
+                <span class="tcard__avatar" aria-hidden="true">
+                  {t.author
+                    .split(' ')
+                    .slice(0, 2)
+                    .map((w) => w[0])
+                    .join('')}
+                </span>
+                <span>
+                  <strong>{t.author}</strong>
+                  <small>{t.role}</small>
+                </span>
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    title="¿Trabajamos juntas?"
+    text="Me encantaría conocer tu proyecto. Escríbeme y conversamos sin compromiso sobre cómo puedo ayudarte."
+    buttonLabel="Escríbeme ahora"
+  />
+</BaseLayout>
+
+<style>
+  /* ------------------------------------------------------------ Cabecera */
+
+  .page-head {
+    padding-top: clamp(7rem, 12vw, 9.5rem);
+    /* Sin relleno inferior: la siguiente sección ya aporta su respiro, así
+       no se acumulan dos espacios seguidos */
+    padding-bottom: 0;
+  }
+
+  .page-head__blob {
+    top: 3rem;
+    right: -7rem;
+    width: 30rem;
+    height: 30rem;
+    background: var(--c-violet);
+    opacity: 0.28;
+  }
+
+  .crumbs {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+
+  .crumbs a:hover {
+    color: var(--c-violet);
+    text-decoration: underline;
+  }
+
+  .intro {
+    display: grid;
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+    grid-template-columns: 0.8fr 1.2fr;
+  }
+
+  /* -------------------------------------------------------------- Retrato */
+
+  .intro__media {
+    position: relative;
+  }
+
+  .intro__frame {
+    position: relative;
+    z-index: 1;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--c-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .intro__frame :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Marco de color desplazado detrás del retrato.
+     Se oculta cuando hay imagen real, porque entonces solo aporta un borde
+     suelto que se ve como un error de capas. */
+  .intro__media::before {
+    position: absolute;
+    inset: 1.2rem -1.2rem -1.2rem 1.2rem;
+    z-index: 0;
+    content: '';
+    background: linear-gradient(135deg, var(--c-cyan), var(--c-violet));
+    border-radius: var(--radius-lg);
+    opacity: 0.24;
+  }
+
+  .intro__media:has(img)::before {
+    display: none;
+  }
+
+  .intro__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: var(--space-sm);
+  }
+
+  .intro__badges :global(svg) {
+    color: var(--c-violet);
+  }
+
+  /* --------------------------------------------------------------- Texto */
+
+  .intro__title {
+    font-size: var(--fs-4xl);
+  }
+
+  .intro__role {
+    margin-top: var(--space-sm);
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    color: var(--c-violet);
+  }
+
+  .intro__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+  }
+
+  /* ------------------------------------------------------------- Historia */
+
+  .story {
+    display: grid;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    align-items: start;
+    grid-template-columns: 1.7fr 1fr;
+  }
+
+  .story__p {
+    font-size: var(--fs-lg);
+    color: var(--c-muted);
+  }
+
+  .story__p + .story__p {
+    margin-top: var(--space-md);
+  }
+
+  /* Primera letra destacada */
+  .story__p:first-of-type::first-letter {
+    float: left;
+    padding-right: 0.6rem;
+    font-family: var(--font-display);
+    font-size: 3.6rem;
+    font-weight: 800;
+    line-height: 0.85;
+    color: var(--c-pink);
+  }
+
+  /* ----------------------------------------------------------- Formación */
+
+  .edu {
+    padding: var(--space-md);
+    border-radius: var(--radius-lg);
+  }
+
+  .edu__title {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+    font-size: var(--fs-lg);
+  }
+
+  .edu__title :global(svg) {
+    color: var(--c-yellow);
+  }
+
+  .edu__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .edu__list li {
+    padding-left: var(--space-sm);
+    border-left: 3px solid var(--c-line);
+  }
+
+  .edu__list strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+  }
+
+  .edu__list small {
+    display: block;
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+
+  /* ------------------------------------------------------------- Valores */
+
+  .values {
+    display: grid;
+    gap: var(--space-md);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+
+  .value {
+    padding: var(--space-md);
+    background: rgb(255 249 243 / 6%);
+    border: 1px solid rgb(255 249 243 / 12%);
+    border-radius: var(--radius);
+    transition: background-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+
+  .value:hover {
+    background: rgb(255 249 243 / 11%);
+    transform: translateY(-5px);
+  }
+
+  .value__icon {
+    display: grid;
+    place-items: center;
+    width: 2.9rem;
+    height: 2.9rem;
+    margin-bottom: 0.85rem;
+    color: var(--c-ink);
+    background: var(--c-yellow);
+    border-radius: 30%;
+  }
+
+  .value__title {
+    font-size: var(--fs-lg);
+  }
+
+  .value__text {
+    margin-top: 0.4rem;
+    font-size: var(--fs-sm);
+    color: rgb(255 249 243 / 72%);
+  }
+
+  /* -------------------------------------------------------- Herramientas */
+
+  .skills {
+    background: var(--c-white);
+  }
+
+  .skills__grid {
+    display: grid;
+    gap: var(--space-md);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+
+  .skill-group {
+    padding: var(--space-md);
+    border-radius: var(--radius-lg);
+  }
+
+  .skill-group__title {
+    margin-bottom: var(--space-sm);
+    font-family: var(--font-display);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--c-violet);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .skill-group__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .skill-group__list li {
+    padding: 0.32rem 0.75rem;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    background: var(--c-cream);
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius-full);
+    transition: background-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+
+  .skill-group__list li:hover {
+    background: rgb(124 58 237 / 10%);
+    transform: translateY(-2px);
+  }
+
+  /* --------------------------------------------------------- Testimonios */
+
+  .tcard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    border-radius: var(--radius-lg);
+  }
+
+  .tcard__quote {
+    color: var(--c-pink);
+    opacity: 0.55;
+  }
+
+  .tcard__text {
+    flex: 1;
+    font-size: var(--fs-base);
+    font-style: italic;
+    line-height: 1.65;
+  }
+
+  .tcard__author {
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--c-line);
+  }
+
+  .tcard__avatar {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    font-weight: 800;
+    color: var(--c-white);
+    background: linear-gradient(135deg, var(--c-violet), var(--c-cyan));
+    border-radius: 50%;
+  }
+
+  .tcard__author strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+  }
+
+  .tcard__author small {
+    display: block;
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+
+  /* ------------------------------------------------------------ Responsive */
+
+  @media (max-width: 62rem) {
+    .intro,
+    .story {
+      grid-template-columns: 1fr;
+    }
+
+    .intro__media {
+      max-width: 24rem;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .intro__actions .btn {
+      width: 100%;
+    }
+  }
+</style>

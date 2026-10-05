@@ -1,0 +1,487 @@
+---
+/**
+ * Header.astro — Encabezado fijo con navegación.
+ *
+ * Funciones:
+ *  · Se vuelve translúcido y con sombra al bajar por la página.
+ *  · Marca la página actual (aria-current) para accesibilidad y para el estilo.
+ *  · En móvil abre un panel a pantalla completa, con cierre por tecla Escape,
+ *    bloqueo del scroll de fondo y devolución del foco al botón.
+ */
+import { site } from '../data/site';
+import Icon from './Icon.astro';
+
+const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+
+/** Comprueba si el enlace corresponde a la página actual. */
+function isActive(href: string): boolean {
+  const clean = href.replace(/\/+$/, '') || '/';
+  if (clean === '/') return path === '/';
+  return path === clean || path.startsWith(`${clean}/`);
+}
+---
+
+<header class="site-header" id="site-header">
+  <div class="container header__inner">
+    <!-- Marca / logotipo -->
+    <a class="brand" href="/" aria-label={`${site.name} — ir al inicio`}>
+      <span class="brand__mark" aria-hidden="true">{site.initials}</span>
+      <span class="brand__text">
+        <strong>{site.name}</strong>
+        <small>{site.role}</small>
+      </span>
+    </a>
+
+    <!-- Navegación de escritorio -->
+    <nav class="nav" aria-label="Navegación principal">
+      <ul class="nav__list">
+        {
+          site.nav.map((item) => (
+            <li>
+              <a
+                class="nav__link"
+                href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <a class="btn btn--primary header__cta" href="/contacto">
+        Trabajemos juntas
+        <span class="btn__icon"><Icon name="arrow-right" size={17} /></span>
+      </a>
+
+      <!-- Botón del menú móvil -->
+      <button
+        class="burger"
+        id="burger"
+        type="button"
+        aria-label="Abrir menú de navegación"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+      >
+        <span class="burger__box" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Panel de navegación móvil -->
+<div class="mobile-menu" id="mobile-menu" hidden>
+  <nav aria-label="Navegación móvil">
+    <ul class="mobile-menu__list">
+      {
+        site.nav.map((item, i) => (
+          <li style={`--i:${i}`}>
+            <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+              <span>{item.label}</span>
+              <Icon name="arrow-up-right" size={22} />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  <div class="mobile-menu__foot">
+    <a class="btn btn--primary" href="/contacto">
+      Trabajemos juntas
+      <span class="btn__icon"><Icon name="arrow-right" size={17} /></span>
+    </a>
+    <a class="mobile-menu__mail" href={`mailto:${site.email}`}>
+      <Icon name="mail" size={18} />
+      {site.email}
+    </a>
+  </div>
+</div>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: var(--z-header);
+    padding-block: 0.9rem;
+    transition:
+      background-color 0.3s var(--ease),
+      box-shadow 0.3s var(--ease),
+      backdrop-filter 0.3s var(--ease),
+      padding 0.3s var(--ease);
+  }
+
+  /* Estado al hacer scroll: fondo translúcido con desenfoque */
+  .site-header.is-scrolled {
+    padding-block: 0.55rem;
+    background-color: rgb(255 249 243 / 82%);
+    backdrop-filter: blur(14px) saturate(1.6);
+    box-shadow: 0 1px 0 var(--c-line), 0 8px 28px rgb(23 20 31 / 6%);
+  }
+
+  .header__inner {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* ---------------------------------------------------------- Marca */
+
+  .brand {
+    display: inline-flex;
+    gap: 0.7rem;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .brand__mark {
+    display: grid;
+    place-items: center;
+    width: 2.65rem;
+    height: 2.65rem;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--c-white);
+    letter-spacing: 0.02em;
+    background: linear-gradient(135deg, var(--c-pink), var(--c-violet) 55%, var(--c-cyan));
+    border-radius: 32%;
+    box-shadow: 0 6px 16px -4px rgb(124 58 237 / 45%);
+    transition: transform var(--dur) var(--ease-bounce);
+  }
+
+  .brand:hover .brand__mark {
+    transform: rotate(-8deg) scale(1.06);
+  }
+
+  .brand__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  .brand__text strong {
+    font-family: var(--font-display);
+    font-size: 1.02rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .brand__text small {
+    font-size: 0.68rem;
+    color: var(--c-muted);
+    letter-spacing: 0.02em;
+  }
+
+  /* ------------------------------------------------- Navegación escritorio */
+
+  .nav__list {
+    display: flex;
+    gap: 0.15rem;
+    align-items: center;
+  }
+
+  .nav__link {
+    position: relative;
+    display: inline-block;
+    padding: 0.5rem 0.9rem;
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--c-muted);
+    border-radius: var(--radius-full);
+    transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+  }
+
+  .nav__link:hover {
+    color: var(--c-ink);
+    background-color: rgb(124 58 237 / 8%);
+  }
+
+  .nav__link[aria-current='page'] {
+    color: var(--c-ink);
+    background-color: rgb(255 45 120 / 12%);
+  }
+
+  /* Punto de color bajo el enlace activo */
+  .nav__link[aria-current='page']::after {
+    position: absolute;
+    bottom: 0.2rem;
+    left: 50%;
+    width: 0.3rem;
+    height: 0.3rem;
+    content: '';
+    background: var(--c-pink);
+    border-radius: 50%;
+    transform: translateX(-50%);
+  }
+
+  .header__actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .header__cta {
+    padding: 0.7rem 1.35rem;
+    font-size: var(--fs-xs);
+  }
+
+  /* ------------------------------------------------ Botón hamburguesa (móvil) */
+
+  .burger {
+    display: none;
+    width: 2.9rem;
+    height: 2.9rem;
+    place-items: center;
+    background: var(--c-white);
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+  }
+
+  .burger__box {
+    display: flex;
+    flex-direction: column;
+    gap: 4.5px;
+    width: 1.15rem;
+  }
+
+  .burger__box span {
+    display: block;
+    height: 2px;
+    background: var(--c-ink);
+    border-radius: 2px;
+    transition: transform 0.32s var(--ease), opacity 0.2s var(--ease), width 0.32s var(--ease);
+  }
+
+  .burger__box span:nth-child(3) {
+    width: 70%;
+  }
+
+  /* Animación del botón al abrir */
+  .burger[aria-expanded='true'] .burger__box span:nth-child(1) {
+    transform: translateY(6.5px) rotate(45deg);
+  }
+
+  .burger[aria-expanded='true'] .burger__box span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0.3);
+  }
+
+  .burger[aria-expanded='true'] .burger__box span:nth-child(3) {
+    width: 100%;
+    transform: translateY(-6.5px) rotate(-45deg);
+  }
+
+  /* ------------------------------------------------------------- Menú móvil */
+
+  .mobile-menu {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-menu);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-lg);
+    padding: 5.5rem var(--gutter) var(--space-lg);
+    overflow-y: auto;
+    visibility: hidden;
+    background: var(--c-cream);
+    opacity: 0;
+    transition: opacity 0.32s var(--ease), visibility 0.32s var(--ease);
+  }
+
+  .mobile-menu[hidden] {
+    display: flex; /* anula el display:none de [hidden] para poder animarlo */
+  }
+
+  .mobile-menu.is-open {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .mobile-menu__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .mobile-menu__list a {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    border-radius: var(--radius);
+    transform: translateY(14px);
+    opacity: 0;
+    transition:
+      background-color var(--dur) var(--ease),
+      color var(--dur) var(--ease),
+      transform 0.45s var(--ease),
+      opacity 0.45s var(--ease);
+    transition-delay: calc(var(--i) * 55ms + 60ms);
+  }
+
+  .mobile-menu.is-open .mobile-menu__list a {
+    transform: none;
+    opacity: 1;
+  }
+
+  .mobile-menu__list a:hover,
+  .mobile-menu__list a[aria-current='page'] {
+    color: var(--c-white);
+    background: linear-gradient(100deg, var(--c-pink), var(--c-violet));
+  }
+
+  .mobile-menu__list a[aria-current='page'] {
+    background: linear-gradient(100deg, var(--c-violet), var(--c-cyan));
+  }
+
+  .mobile-menu__list svg {
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+
+  .mobile-menu__foot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    align-items: flex-start;
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--c-line);
+  }
+
+  .mobile-menu__mail {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: var(--fs-sm);
+    color: var(--c-muted);
+  }
+
+  .mobile-menu__mail:hover {
+    color: var(--c-violet);
+  }
+
+  /* ------------------------------------------------------ Adaptación a móvil */
+
+  @media (max-width: 62rem) {
+    .nav,
+    .header__cta {
+      display: none;
+    }
+
+    .burger {
+      display: grid;
+    }
+
+    .brand__text small {
+      display: none;
+    }
+  }
+
+  /* El menú móvil solo existe en pantallas pequeñas */
+  @media (min-width: 62.01rem) {
+    .mobile-menu {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Comportamiento del encabezado:
+   *  1. Añade .is-scrolled al bajar.
+   *  2. Abre y cierra el menú móvil con control de foco y de scroll.
+   */
+  const header = document.getElementById('site-header');
+  const burger = document.getElementById('burger') as HTMLButtonElement | null;
+  const menu = document.getElementById('mobile-menu') as HTMLElement | null;
+
+  // --- 1. Sombra al hacer scroll (con requestAnimationFrame para no saturar) ---
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      header?.classList.toggle('is-scrolled', window.scrollY > 12);
+      ticking = false;
+    });
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // --- 2. Menú móvil ---
+  if (burger && menu) {
+    const focusables = () =>
+      Array.from(menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
+
+    const open = () => {
+      menu.hidden = false;
+      // Un frame de espera para que la transición de opacidad se ejecute
+      requestAnimationFrame(() => menu.classList.add('is-open'));
+      burger.setAttribute('aria-expanded', 'true');
+      burger.setAttribute('aria-label', 'Cerrar menú de navegación');
+      document.body.style.overflow = 'hidden';
+      focusables()[0]?.focus();
+    };
+
+    const close = (returnFocus = true) => {
+      menu.classList.remove('is-open');
+      burger.setAttribute('aria-expanded', 'false');
+      burger.setAttribute('aria-label', 'Abrir menú de navegación');
+      document.body.style.overflow = '';
+      const after = () => {
+        menu.hidden = true;
+        menu.removeEventListener('transitionend', after);
+      };
+      menu.addEventListener('transitionend', after);
+      if (returnFocus) burger.focus();
+    };
+
+    burger.addEventListener('click', () => {
+      if (burger.getAttribute('aria-expanded') === 'true') close();
+      else open();
+    });
+
+    // Escape cierra; Tab se mantiene dentro del panel
+    menu.addEventListener('keydown', (event) => {
+      const ev = event as KeyboardEvent;
+      if (ev.key === 'Escape') {
+        close();
+        return;
+      }
+      if (ev.key !== 'Tab') return;
+
+      const items = focusables();
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+
+      if (ev.shiftKey && document.activeElement === first) {
+        ev.preventDefault();
+        last.focus();
+      } else if (!ev.shiftKey && document.activeElement === last) {
+        ev.preventDefault();
+        first.focus();
+      }
+    });
+
+    // Si la ventana crece a tamaño escritorio, cerramos el panel
+    window.matchMedia('(min-width: 62.01rem)').addEventListener('change', (e) => {
+      if (e.matches && burger.getAttribute('aria-expanded') === 'true') close(false);
+    });
+  }
+</script>

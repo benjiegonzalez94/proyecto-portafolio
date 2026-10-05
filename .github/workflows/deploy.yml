@@ -1,0 +1,78 @@
+# Flujo de trabajo para publicar el sitio en GitHub Pages.
+#
+# Se ejecuta solo cada vez que subes cambios a la rama "main".
+#
+# Antes de usarlo:
+#   1. Sube el proyecto a un repositorio en GitHub.
+#   2. En el repositorio entra en: Settings → Pages → Build and deployment
+#      y selecciona "GitHub Actions" como origen.
+#   3. Si tu repositorio NO es del tipo usuario.github.io (es decir, el sitio
+#      queda en usuario.github.io/nombre-del-repo), añade en astro.config.mjs:
+#         base: '/nombre-del-repo'
+#      y cambia también `site` por https://usuario.github.io/nombre-del-repo
+
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Permite lanzarlo a mano desde la pestaña Actions
+  workflow_dispatch:
+
+# Permisos que necesita el flujo para publicar
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Si subes dos cambios seguidos, se publica solo el último
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Compilar el sitio
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Compilar
+        run: pnpm build
+        env:
+          ASTRO_TELEMETRY_DISABLED: '1'
+
+      - name: Preparar la publicación
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Publicar
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Subir a GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,192 @@
+---
+/**
+ * 404.astro — Página de error.
+ *
+ * Astro genera dist/404.html, que Netlify, Vercel, Cloudflare Pages y GitHub
+ * Pages sirven automáticamente cuando alguien entra a una URL que no existe.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { site, featuredProjects } from '../data/site';
+
+// Enlaces útiles para que nadie se quede atascado
+const links = [
+  { href: '/portafolio', label: 'Ver el portafolio', icon: 'palette' as const },
+  { href: '/servicios', label: 'Conocer los servicios', icon: 'sparkles' as const },
+  { href: '/sobre-mi', label: 'Sobre mí', icon: 'star' as const },
+  { href: '/contacto', label: 'Escribirme', icon: 'send' as const },
+];
+
+const suggestions = featuredProjects.slice(0, 3);
+---
+
+<BaseLayout
+  title="Página no encontrada"
+  description="La página que buscas no existe o cambió de dirección. Explora el portafolio o vuelve al inicio."
+>
+  <section class="nf has-blobs">
+    <span class="blob nf__blob" aria-hidden="true"></span>
+
+    <div class="container nf__inner">
+      <p class="nf__code" aria-hidden="true">404</p>
+
+      <h1 class="nf__title">Esta página se perdió en el camino</h1>
+      <p class="nf__text">
+        La dirección que escribiste no existe o el enlace cambió. No pasa nada: aquí tienes por dónde
+        seguir.
+      </p>
+
+      <div class="nf__actions">
+        <a class="btn btn--primary" href="/">
+          Volver al inicio
+          <span class="btn__icon"><Icon name="arrow-right" size={18} /></span>
+        </a>
+        <a class="btn btn--outline" href="/contacto">Contactarme</a>
+      </div>
+
+      <!-- Accesos rápidos -->
+      <ul class="nf__links">
+        {
+          links.map((link) => (
+            <li>
+              <a href={link.href}>
+                <Icon name={link.icon} size={18} />
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- Proyectos sugeridos -->
+  <section class="section section--tight" aria-labelledby="nf-sug">
+    <div class="container">
+      <header class="section__head section__head--center">
+        <p class="section__eyebrow">Mientras tanto</p>
+        <h2 id="nf-sug">Algunos de mis trabajos</h2>
+      </header>
+
+      <div class="nf__grid">
+        {
+          suggestions.map((project) => (
+            <a class="nf__card card card--hover" href={`/portafolio/${project.slug}`}>
+              <strong>{project.title}</strong>
+              <small>{project.category}</small>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    padding-top: clamp(8rem, 16vw, 12rem);
+    padding-bottom: var(--space-xl);
+    text-align: center;
+  }
+
+  .nf__blob {
+    top: 2rem;
+    left: 50%;
+    width: 32rem;
+    height: 32rem;
+    background: var(--c-violet);
+    opacity: 0.28;
+    transform: translateX(-50%);
+  }
+
+  .nf__inner {
+    max-width: 44rem;
+  }
+
+  /* Número gigante con degradado */
+  .nf__code {
+    font-family: var(--font-display);
+    font-size: clamp(5rem, 20vw, 11rem);
+    font-weight: 800;
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+    background: linear-gradient(100deg, var(--c-pink), var(--c-violet) 50%, var(--c-cyan));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .nf__title {
+    margin-top: var(--space-sm);
+    font-size: var(--fs-3xl);
+  }
+
+  .nf__text {
+    margin-top: var(--space-sm);
+    font-size: var(--fs-lg);
+    color: var(--c-muted);
+  }
+
+  .nf__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    justify-content: center;
+    margin-top: var(--space-lg);
+  }
+
+  .nf__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: center;
+    margin-top: var(--space-lg);
+  }
+
+  .nf__links a {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.55rem 1.1rem;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    background: var(--c-white);
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius-full);
+    transition: transform var(--dur) var(--ease-bounce), border-color var(--dur) var(--ease);
+  }
+
+  .nf__links a:hover {
+    border-color: var(--c-violet);
+    transform: translateY(-3px);
+  }
+
+  .nf__links :global(svg) {
+    color: var(--c-violet);
+  }
+
+  .nf__grid {
+    display: grid;
+    gap: var(--space-md);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+
+  .nf__card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: var(--space-md);
+    border-radius: var(--radius-lg);
+  }
+
+  .nf__card strong {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+  }
+
+  .nf__card small {
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+</style>

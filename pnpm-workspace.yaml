@@ -1,0 +1,17 @@
+# Configuración de pnpm para este proyecto.
+#
+# nodeLinker: hoisted
+#   pnpm crea una carpeta node_modules plana, con carpetas reales en lugar de
+#   enlaces simbólicos. Es lo más compatible con cualquier versión de Node en
+#   Windows y además permite instalar el proyecto con "npm install" sin cambios.
+nodeLinker: hoisted
+
+# allowBuilds
+#   esbuild y sharp ya incluyen sus binarios nativos precompilados en paquetes
+#   opcionales según la plataforma (@esbuild/win32-x64, @img/sharp-win32-x64),
+#   así que sus scripts de post-instalación no son necesarios para compilar ni
+#   para desplegar este sitio. Se dejan desactivados a propósito, que es además
+#   la opción más segura: no se ejecuta código de dependencias al instalar.
+allowBuilds:
+  esbuild: false
+  sharp: false

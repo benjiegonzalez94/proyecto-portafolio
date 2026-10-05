@@ -1,0 +1,154 @@
+---
+/**
+ * BaseLayout.astro — Estructura común de todas las páginas.
+ *
+ * Se encarga de:
+ *  · El <head>: título, descripción, URL canónica y etiquetas para redes sociales.
+ *  · Los datos estructurados (JSON-LD) que usa Google para entender el negocio.
+ *  · Cargar las tipografías y los estilos globales.
+ *  · Montar el encabezado, el pie de página y el enlace "saltar al contenido".
+ */
+import '@fontsource-variable/outfit/wght.css';
+import '@fontsource-variable/plus-jakarta-sans/wght.css';
+import '../styles/global.css';
+
+import { site } from '../data/site';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+export interface Props {
+  /** Título de la pestaña. Se le añade el nombre del sitio automáticamente. */
+  title?: string;
+  description?: string;
+  /** Ruta de la imagen para compartir en redes. */
+  image?: string;
+  /** true en la página de inicio, para no repetir el nombre en el título. */
+  isHome?: boolean;
+}
+
+const {
+  title,
+  description = site.metaDescription,
+  image = '/og-image.svg',
+  isHome = false,
+} = Astro.props;
+
+const pageTitle = isHome ? `${site.name} — ${site.role}` : title ? `${title} | ${site.name}` : site.name;
+
+// URL canónica: sin barra final y sin index.html
+const canonical = new URL(Astro.url.pathname.replace(/\/index\.html$/, '/'), site.url).href;
+const ogImage = new URL(image, site.url).href;
+
+// --- Datos estructurados para buscadores ---
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  jobTitle: site.role,
+  description: site.metaDescription,
+  url: site.url,
+  email: `mailto:${site.email}`,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Manta',
+    addressRegion: 'Manabí',
+    addressCountry: 'EC',
+  },
+  knowsAbout: [
+    'Diseño gráfico',
+    'Identidad visual',
+    'Branding',
+    'Edición de video',
+    'Marketing digital',
+    'Creación de contenido',
+    'Ciencia de datos',
+  ],
+  sameAs: site.social.filter((s) => s.network !== 'email' && s.network !== 'whatsapp').map((s) => s.url),
+};
+
+const serviceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: `${site.name} — Diseño Gráfico`,
+  description: site.metaDescription,
+  url: site.url,
+  image: ogImage,
+  email: site.email,
+  telephone: site.phone,
+  priceRange: '$$',
+  areaServed: ['Ecuador', 'Latinoamérica'],
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Manta',
+    addressRegion: 'Manabí',
+    addressCountry: 'EC',
+  },
+  founder: { '@type': 'Person', name: site.name },
+};
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="keywords" content={site.keywords.join(', ')} />
+    <meta name="author" content={site.name} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Favicon dibujado con las iniciales: sin archivos externos -->
+    <link
+      rel="icon"
+      href={`data:image/svg+xml,${encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF2D78"/><stop offset="55%" stop-color="#7C3AED"/><stop offset="100%" stop-color="#06B6D4"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#g)"/><text x="32" y="43" font-family="Outfit,Segoe UI,sans-serif" font-size="30" font-weight="700" fill="#fff" text-anchor="middle">${site.initials}</text></svg>`
+      )}`}
+    />
+    <meta name="theme-color" content="#7C3AED" />
+
+    <!-- Cómo se ve el enlace al compartirlo en WhatsApp, Facebook, LinkedIn... -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:locale" content="es_EC" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${site.name} — ${site.role}`} />
+
+    <!-- Tarjeta grande en X/Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <meta name="robots" content="index, follow" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(personSchema)} is:inline />
+    <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} is:inline />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+    <Header />
+
+    <main id="contenido">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <!--
+      Animaciones de aparición al hacer scroll.
+      Es un archivo estático de public/scripts/: no pasa por el empaquetador, así
+      que se ejecuta solo en el navegador y no rompe la compilación del servidor.
+    -->
+    <script is:inline src="/scripts/animations.js" defer></script>
+  </body>
+</html>
