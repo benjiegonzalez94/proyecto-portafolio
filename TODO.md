@@ -16,4 +16,5 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
 - [x] Conexión de variables de entorno de Supabase (`.env` con URL y Anon Key).
 - [x] Ejecución del script `supabase/schema.sql` y migración automatizada vía API/Node (`scripts/apply-schema.mjs`).
 - [x] Inserción de proyectos, experiencias y servicios iniciales para Benjie y Nahomi en Supabase (`scripts/seed-data.mjs`).
-- [ ] Vinculación del repositorio en Vercel / Netlify para despliegue y CI/CD continuo automático.
+- [x] Creación de repositorio en GitHub y sincronización de ramas `main` y `develop` (Git Flow).
+- [ ] Conectar el repositorio a Vercel / Netlify para despliegue y CI/CD continuo automático.
