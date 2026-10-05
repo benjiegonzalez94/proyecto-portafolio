@@ -1,0 +1,806 @@
+---
+/**
+ * crear.astro — Onboarding y Generador de Portafolios Online (Portfolio Builder).
+ * Permite a cualquier nuevo usuario crear su cuenta, elegir su plantilla y publicar su portafolio.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { AVAILABLE_TEMPLATES, isSupabaseConfigured } from '../lib/supabase';
+---
+
+<BaseLayout
+  title="Crear mi Portafolio Gratis — Portfolio Builder"
+  description="Genera tu portafolio web profesional en menos de 1 minuto con plantillas modernas y administración completa."
+  hideHeader={true}
+  hideFooter={true}
+>
+  <div class="builder-page">
+    <div class="builder-container">
+      
+      <!-- NAVEGACIÓN SUPERIOR -->
+      <header class="builder-nav">
+        <a href="/" class="nav-back">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m15 18-6-6 6-6"/>
+          </svg>
+          <span>Volver al Portal</span>
+        </a>
+        <div class="nav-login">
+          <span>¿Ya tienes cuenta?</span>
+          <a href="/login" class="link-login">Inicia Sesión</a>
+        </div>
+      </header>
+
+      <!-- ENCABEZADO PRINCIPAL -->
+      <div class="builder-hero">
+        <span class="badge-pill">✨ Constructor de Portafolios</span>
+        <h1 class="hero-title">Crea tu Portafolio Profesional en 1 Minuto</h1>
+        <p class="hero-desc">
+          Elige una plantilla diseñada para impresionar, personaliza tu información y obtén tu enlace público listo para compartir con clientes y reclutadores.
+        </p>
+      </div>
+
+      <!-- ALERTA DE MENSAJES -->
+      <div id="status-alert" class="status-alert" style="display: none;"></div>
+
+      <!-- FORMULARIO BUILDER -->
+      <form id="portfolio-builder-form" class="builder-form">
+        
+        <!-- PASO 1: DATOS PERSONALES Y SLUG -->
+        <section class="form-card">
+          <div class="card-step-header">
+            <span class="step-number">1</span>
+            <div>
+              <h2 class="step-title">Tu Información Profesional</h2>
+              <p class="step-subtitle">Define tu identidad pública y el enlace web de tu portafolio.</p>
+            </div>
+          </div>
+
+          <div class="inputs-grid">
+            <div class="form-group">
+              <label for="fullName">Nombre Completo *</label>
+              <input 
+                type="text" 
+                id="fullName" 
+                name="fullName" 
+                placeholder="Ej: Carlos Mendoza" 
+                required 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="headline">Especialidad o Rol Principal *</label>
+              <input 
+                type="text" 
+                id="headline" 
+                name="headline" 
+                placeholder="Ej: Full Stack Developer & Cloud Engineer" 
+                required 
+              />
+            </div>
+
+            <div class="form-group full-width">
+              <label for="slug">Enlace Personal Único (Slug) *</label>
+              <div class="slug-input-wrapper">
+                <span class="slug-prefix">portafolio.com/</span>
+                <input 
+                  type="text" 
+                  id="slug" 
+                  name="slug" 
+                  placeholder="carlos-mendoza" 
+                  pattern="[a-z0-9_-]+" 
+                  required 
+                />
+              </div>
+              <small class="help-text">Solo minúsculas, números y guiones. Así accederán a tu portafolio público.</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- PASO 2: SELECCIÓN DE PLANTILLA VISUAL -->
+        <section class="form-card">
+          <div class="card-step-header">
+            <span class="step-number">2</span>
+            <div>
+              <h2 class="step-title">Selecciona tu Plantilla de Diseño</h2>
+              <p class="step-subtitle">Elige la estética visual que mejor se adapte a tu profesión. Podrás cambiarla luego.</p>
+            </div>
+          </div>
+
+          <div class="templates-grid">
+            {AVAILABLE_TEMPLATES.map((tmpl, idx) => (
+              <label class={`template-card ${idx === 0 ? 'selected' : ''}`} data-template-id={tmpl.id}>
+                <input 
+                  type="radio" 
+                  name="templateId" 
+                  value={tmpl.id} 
+                  checked={idx === 0} 
+                  class="sr-only"
+                />
+                <div class="template-preview" style={`background: ${tmpl.previewBg};`}>
+                  <div class="mockup-window">
+                    <div class="mockup-dots">
+                      <span></span><span></span><span></span>
+                    </div>
+                    <div class="mockup-content">
+                      <div class="mockup-bar" style={`background: ${tmpl.recommendedColor}; width: 60%;`}></div>
+                      <div class="mockup-line" style="width: 80%;"></div>
+                      <div class="mockup-line" style="width: 45%;"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="template-details">
+                  <div class="template-header">
+                    <h3 class="template-name">{tmpl.name}</h3>
+                    <span class="template-badge">{tmpl.badge}</span>
+                  </div>
+                  <p class="template-desc">{tmpl.description}</p>
+                  <div class="template-category">
+                    <span class="tag">{tmpl.category}</span>
+                  </div>
+                </div>
+              </label>
+            ))}
+          </div>
+        </section>
+
+        <!-- PASO 3: CUENTA DE ACCESO -->
+        <section class="form-card">
+          <div class="card-step-header">
+            <span class="step-number">3</span>
+            <div>
+              <h2 class="step-title">Crea tu Cuenta de Acceso</h2>
+              <p class="step-subtitle">Con estos datos podrás entrar a tu panel administrativo para editar tu contenido y subir imágenes.</p>
+            </div>
+          </div>
+
+          <div class="inputs-grid">
+            <div class="form-group">
+              <label for="email">Correo Electrónico *</label>
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                placeholder="tu@correo.com" 
+                required 
+                autocomplete="email"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Contraseña Segura *</label>
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                placeholder="Mínimo 6 caracteres" 
+                minlength="6" 
+                required 
+                autocomplete="new-password"
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- BOTÓN DE ENVÍO -->
+        <div class="form-actions-bar">
+          <button type="submit" id="btn-generate" class="btn-generate">
+            <span class="btn-text">🚀 Generar y Publicar mi Portafolio</span>
+            <span class="btn-spinner" style="display: none;">
+              <svg class="spinner" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+              </svg>
+              <span>Configurando tu portafolio...</span>
+            </span>
+          </button>
+          <p class="terms-note">
+            Al registrarte tendrás acceso a tu panel de edición gratuito sin costo de mantenimiento.
+          </p>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { supabase, isSupabaseConfigured, createNewPortfolio } from '../lib/supabase';
+
+  // Manejo de selección visual de plantillas
+  const templateCards = document.querySelectorAll('.template-card');
+  templateCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      templateCards.forEach((c) => c.classList.remove('selected'));
+      card.classList.add('selected');
+      const radio = card.querySelector('input[type="radio"]') as HTMLInputElement;
+      if (radio) radio.checked = true;
+    });
+  });
+
+  // Autogenerar slug sugerido a partir del nombre completo
+  const fullNameInput = document.getElementById('fullName') as HTMLInputElement;
+  const slugInput = document.getElementById('slug') as HTMLInputElement;
+  let userManuallyEditedSlug = false;
+
+  slugInput?.addEventListener('input', () => {
+    userManuallyEditedSlug = true;
+    slugInput.value = slugInput.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  });
+
+  fullNameInput?.addEventListener('input', () => {
+    if (!userManuallyEditedSlug && slugInput) {
+      slugInput.value = fullNameInput.value
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    }
+  });
+
+  // Envío del formulario
+  const form = document.getElementById('portfolio-builder-form') as HTMLFormElement;
+  const alertBox = document.getElementById('status-alert') as HTMLDivElement;
+  const btnSubmit = document.getElementById('btn-generate') as HTMLButtonElement;
+  const btnText = btnSubmit?.querySelector('.btn-text') as HTMLElement;
+  const btnSpinner = btnSubmit?.querySelector('.btn-spinner') as HTMLElement;
+
+  function showAlert(message: string, isError: boolean = true) {
+    if (!alertBox) return;
+    alertBox.textContent = message;
+    alertBox.className = `status-alert ${isError ? 'status-alert--error' : 'status-alert--success'}`;
+    alertBox.style.display = 'block';
+    alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function setLoading(loading: boolean) {
+    if (!btnSubmit) return;
+    btnSubmit.disabled = loading;
+    if (btnText) btnText.style.display = loading ? 'none' : 'inline';
+    if (btnSpinner) btnSpinner.style.display = loading ? 'inline-flex' : 'none';
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!supabase || !isSupabaseConfigured) {
+      showAlert('Supabase no está configurado en las variables de entorno.');
+      return;
+    }
+
+    const fullName = fullNameInput.value.trim();
+    const headline = (document.getElementById('headline') as HTMLInputElement).value.trim();
+    const slug = slugInput.value.trim().toLowerCase();
+    const email = (document.getElementById('email') as HTMLInputElement).value.trim();
+    const password = (document.getElementById('password') as HTMLInputElement).value;
+    const selectedTemplate = (document.querySelector('input[name="templateId"]:checked') as HTMLInputElement)?.value || 'tech-minimal';
+
+    if (!fullName || !headline || !slug || !email || !password) {
+      showAlert('Por favor llena todos los campos obligatorios.');
+      return;
+    }
+
+    if (password.length < 6) {
+      showAlert('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    setLoading(true);
+    if (alertBox) alertBox.style.display = 'none';
+
+    try {
+      // 1. Registrar usuario en Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            slug: slug,
+          }
+        }
+      });
+
+      if (authError) {
+        showAlert(`Error al registrar usuario: ${authError.message}`);
+        setLoading(false);
+        return;
+      }
+
+      const userId = authData.user?.id;
+      if (!userId) {
+        showAlert('No se pudo obtener el identificador de usuario. Intenta de nuevo.');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Crear portafolio inicial (perfil, proyectos de muestra, servicios)
+      const { profile, error: portError } = await createNewPortfolio({
+        userId,
+        slug,
+        fullName,
+        headline,
+        email,
+        templateId: selectedTemplate,
+      });
+
+      if (portError) {
+        showAlert(`Error al inicializar portafolio: ${portError}`);
+        setLoading(false);
+        return;
+      }
+
+      // 3. Éxito: Guardar slug en localStorage y redirigir
+      localStorage.setItem('active_portfolio_slug', slug);
+      showAlert(`¡Portafolio de ${fullName} creado con éxito! Redirigiendo a tu panel...`, false);
+
+      setTimeout(() => {
+        window.location.href = '/admin';
+      }, 1200);
+
+    } catch (err: any) {
+      showAlert(`Ocurrió un error inesperado: ${err?.message || err}`);
+      setLoading(false);
+    }
+  });
+</script>
+
+<style>
+  .builder-page {
+    min-height: 100vh;
+    background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 100% 50%, rgba(236, 72, 153, 0.08) 0%, transparent 40%),
+                #090d16;
+    color: #f8fafc;
+    padding: 2rem 1.5rem 5rem 1.5rem;
+    font-family: inherit;
+  }
+
+  .builder-container {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2.25rem;
+  }
+
+  /* BARRA SUPERIOR */
+  .builder-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .nav-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+  .nav-back:hover {
+    color: #ffffff;
+  }
+
+  .nav-login {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.875rem;
+    color: #94a3b8;
+  }
+
+  .link-login {
+    color: #60a5fa;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .link-login:hover {
+    text-decoration: underline;
+  }
+
+  /* HERO */
+  .builder-hero {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .badge-pill {
+    display: inline-block;
+    padding: 0.35rem 0.9rem;
+    background: rgba(37, 99, 235, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #60a5fa;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin: 0 0 1rem 0;
+    color: #ffffff;
+  }
+
+  @media (max-width: 640px) {
+    .hero-title {
+      font-size: 1.85rem;
+    }
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    color: #94a3b8;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ALERTA */
+  .status-alert {
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .status-alert--error {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+  }
+
+  .status-alert--success {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    color: #86efac;
+  }
+
+  /* FORMULARIO */
+  .builder-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .form-card {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 1.25rem;
+    padding: 2.25rem;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .card-step-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .step-number {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: #2563eb;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
+  }
+
+  .step-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .step-subtitle {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.875rem;
+    color: #94a3b8;
+  }
+
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .form-group label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #cbd5e1;
+  }
+
+  .form-group input {
+    padding: 0.85rem 1rem;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid #334155;
+    border-radius: 0.65rem;
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: all 0.2s ease;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: rgba(30, 41, 59, 0.9);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  }
+
+  .slug-input-wrapper {
+    display: flex;
+    align-items: stretch;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid #334155;
+    border-radius: 0.65rem;
+    overflow: hidden;
+  }
+
+  .slug-input-wrapper:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  }
+
+  .slug-prefix {
+    padding: 0.85rem 1rem;
+    background: rgba(15, 23, 42, 0.8);
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-right: 1px solid #334155;
+    user-select: none;
+    display: flex;
+    align-items: center;
+  }
+
+  .slug-input-wrapper input {
+    border: none;
+    background: transparent;
+    padding-left: 0.75rem;
+    border-radius: 0;
+  }
+  .slug-input-wrapper input:focus {
+    box-shadow: none;
+  }
+
+  .help-text {
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  /* PLANTILLAS */
+  .templates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .template-card {
+    background: rgba(30, 41, 59, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .template-card:hover {
+    border-color: rgba(59, 130, 246, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .template-card.selected {
+    border-color: #3b82f6;
+    background: rgba(37, 99, 235, 0.08);
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
+  }
+
+  .template-preview {
+    height: 120px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mockup-window {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 0.5rem;
+    width: 100%;
+    height: 100%;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .mockup-dots {
+    display: flex;
+    gap: 4px;
+  }
+  .mockup-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .mockup-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 0.2rem;
+  }
+
+  .mockup-bar {
+    height: 6px;
+    border-radius: 3px;
+  }
+
+  .mockup-line {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+  }
+
+  .template-details {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    flex: 1;
+  }
+
+  .template-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .template-name {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .template-badge {
+    font-size: 0.7rem;
+    color: #60a5fa;
+    font-weight: 600;
+  }
+
+  .template-desc {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: #94a3b8;
+    line-height: 1.45;
+  }
+
+  .template-category {
+    margin-top: auto;
+    padding-top: 0.5rem;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  /* BOTÓN DE ACCIÓN */
+  .form-actions-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .btn-generate {
+    width: 100%;
+    max-width: 480px;
+    padding: 1.15rem 2rem;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border: none;
+    border-radius: 0.75rem;
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .btn-generate:hover:not(:disabled) {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(37, 99, 235, 0.5);
+  }
+
+  .btn-generate:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-spinner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1rem;
+  }
+
+  .terms-note {
+    font-size: 0.8125rem;
+    color: #64748b;
+    text-align: center;
+    margin: 0;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  /* SPINNER */
+  .spinner {
+    animation: rotate 2s linear infinite;
+    width: 22px;
+    height: 22px;
+  }
+  .spinner .path {
+    stroke: #ffffff;
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+  }
+</style>

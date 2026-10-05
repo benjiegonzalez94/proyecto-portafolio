@@ -26,6 +26,7 @@ export const fallbackPortfolios: Record<string, FullPortfolio> = {
       email: 'contacto@benjiegonzalez.dev',
       location: 'Ecuador',
       theme_accent: '#2563eb', // Royal Blue
+      template_id: 'tech-minimal',
     },
     experiences: [
       {
@@ -120,6 +121,7 @@ export const fallbackPortfolios: Record<string, FullPortfolio> = {
       email: 'contacto@nahomimachuca.com',
       location: 'Manta, Manabí — Ecuador',
       theme_accent: '#ec4899', // Pink
+      template_id: 'creative-visual',
     },
     experiences: [
       {
@@ -288,4 +290,190 @@ export async function getPortfolioBySlug(slug: string): Promise<FullPortfolio | 
   }
 
   return null;
+}
+
+export interface TemplateInfo {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  badge: string;
+  recommendedColor: string;
+  previewBg: string;
+}
+
+export const AVAILABLE_TEMPLATES: TemplateInfo[] = [
+  {
+    id: 'tech-minimal',
+    name: 'Tech & Engineer',
+    category: 'TI, Desarrollo, Redes & Cloud',
+    description: 'Enfoque técnico de alto rendimiento con bloques de habilidades categorizadas, links a repositorios y métricas de proyectos.',
+    badge: 'Recomendado para Devs e IT',
+    recommendedColor: '#2563eb',
+    previewBg: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+  },
+  {
+    id: 'creative-visual',
+    name: 'Creative Studio',
+    category: 'Diseño, Video, Branding & Marketing',
+    description: 'Tarjetas de proyectos con alto impacto visual, paletas dinámicas y formato de galería para portafolios multimedia.',
+    badge: 'Recomendado para Diseñadores y Creadores',
+    recommendedColor: '#ec4899',
+    previewBg: 'linear-gradient(135deg, #18052e 0%, #3b0764 100%)',
+  },
+  {
+    id: 'modern-gradient',
+    name: 'Executive & Modern',
+    category: 'Consultoría, Liderazgo & Negocios',
+    description: 'Estilo sobrio y pulcro con sutiles acentos degradados, ideal para profesionales independientes, consultores y líderes de proyecto.',
+    badge: 'Corporativo y Elegante',
+    recommendedColor: '#0ea5e9',
+    previewBg: 'linear-gradient(135deg, #091e3a 0%, #0369a1 100%)',
+  },
+];
+
+/**
+ * Obtener el perfil asociado a un ID de usuario de Supabase Auth
+ */
+export async function getProfileByUserId(userId: string): Promise<Profile | null> {
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (!error && data) {
+      return data as Profile;
+    }
+  } catch (err) {
+    console.error('Error al buscar perfil por user_id:', err);
+  }
+
+  return null;
+}
+
+/**
+ * Asociar un perfil existente (por email o slug) a un user_id recién autenticado
+ */
+export async function linkProfileToUser(slug: string, userId: string): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ user_id: userId })
+      .eq('slug', slug);
+
+    return !error;
+  } catch (err) {
+    console.error('Error al vincular perfil con usuario:', err);
+    return false;
+  }
+}
+
+/**
+ * Crear un nuevo portafolio completo para un nuevo usuario registrado
+ */
+export async function createNewPortfolio(params: {
+  userId: string;
+  slug: string;
+  fullName: string;
+  headline: string;
+  email: string;
+  templateId: string;
+  themeAccent?: string;
+}): Promise<{ profile: Profile | null; error: string | null }> {
+  if (!supabase) {
+    return { profile: null, error: 'Supabase no está configurado.' };
+  }
+
+  try {
+    // 1. Validar que el slug no esté en uso
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('slug', params.slug)
+      .maybeSingle();
+
+    if (existing) {
+      return { profile: null, error: `El enlace personal /${params.slug} ya está ocupado. Elige otro.` };
+    }
+
+    // 2. Insertar perfil
+    const accent = params.themeAccent || (
+      params.templateId === 'creative-visual' ? '#ec4899' :
+      params.templateId === 'modern-gradient' ? '#0ea5e9' : '#2563eb'
+    );
+
+    const { data: profile, error: profileErr } = await supabase
+      .from('profiles')
+      .insert({
+        user_id: params.userId,
+        slug: params.slug,
+        full_name: params.fullName,
+        headline: params.headline,
+        email: params.email,
+        template_id: params.templateId,
+        theme_accent: accent,
+        hero_badge: 'Disponible para proyectos',
+        bio: `¡Hola! Soy ${params.fullName}, especialista en ${params.headline}. Bienvenido a mi portafolio online donde presento mis proyectos más destacados, experiencia y servicios.`,
+      })
+      .select()
+      .single();
+
+    if (profileErr || !profile) {
+      return { profile: null, error: profileErr?.message || 'Error al crear perfil.' };
+    }
+
+    // 3. Crear proyectos iniciales de muestra
+    const sampleProjects = [
+      {
+        profile_id: profile.id,
+        title: 'Mi Primer Proyecto Destacado',
+        description: 'Descripción del problema resuelto, metodología aplicada y resultados cuantificables alcanzados.',
+        category: 'Principal',
+        tags: ['Proyecto', 'Destacado', 'Innovación'],
+        featured: true,
+        order_index: 1,
+      },
+      {
+        profile_id: profile.id,
+        title: 'Proyecto Profesional & Consultoría',
+        description: 'Desarrollo e implementación de soluciones a medida orientadas a resolver necesidades de clientes.',
+        category: 'Consultoría',
+        tags: ['Estrategia', 'Solución', 'Resultados'],
+        featured: true,
+        order_index: 2,
+      },
+    ];
+
+    await supabase.from('projects').insert(sampleProjects);
+
+    // 4. Crear servicios iniciales
+    const sampleServices = [
+      {
+        profile_id: profile.id,
+        title: 'Servicio Especializado',
+        description: 'Asesoría y ejecución profesional adaptada a los objetivos de tu empresa o proyecto.',
+        icon: 'star',
+        order_index: 1,
+      },
+      {
+        profile_id: profile.id,
+        title: 'Consultoría & Soporte',
+        description: 'Acompañamiento continuo para asegurar la máxima calidad y éxito en cada entrega.',
+        icon: 'check',
+        order_index: 2,
+      },
+    ];
+
+    await supabase.from('services').insert(sampleServices);
+
+    return { profile: profile as Profile, error: null };
+  } catch (err: any) {
+    return { profile: null, error: err?.message || 'Error inesperado al crear portafolio.' };
+  }
 }

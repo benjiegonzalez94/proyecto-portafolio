@@ -34,7 +34,7 @@ const whatsappUrl = `https://wa.me/${whatsappCleanNumber}?text=${encodeURICompon
 ---
 
 <BaseLayout title={pageTitle} description={profile.bio} hideHeader={true} hideFooter={true}>
-  <main class="portfolio-page" style={`--profile-accent: ${profile.theme_accent || '#2563eb'};`}>
+  <main class={`portfolio-page template-${profile.template_id || 'tech-minimal'}`} style={`--profile-accent: ${profile.theme_accent || '#2563eb'};`}>
     
     <!-- BARRA SUPERIOR DE NAVEGACIÓN -->
     <nav class="top-nav" aria-label="Navegación del perfil">
@@ -62,7 +62,11 @@ const whatsappUrl = `https://wa.me/${whatsappCleanNumber}?text=${encodeURICompon
     <header class="hero-section">
       <div class="container hero-section__inner">
         <div class="hero-avatar">
-          {profile.slug === 'benjie' ? 'BG' : 'NM'}
+          {profile.avatar_url ? (
+            <img src={profile.avatar_url} alt={profile.full_name} class="hero-avatar-img" />
+          ) : (
+            <span>{profile.slug === 'benjie' ? 'BG' : (profile.slug === 'nahomi' ? 'NM' : profile.full_name.slice(0, 2).toUpperCase())}</span>
+          )}
         </div>
 
         <div class="hero-badge">
@@ -771,5 +775,65 @@ const whatsappUrl = `https://wa.me/${whatsappCleanNumber}?text=${encodeURICompon
   .floating-whatsapp:hover .whatsapp-tooltip {
     opacity: 1;
     transform: translateX(0);
+  }
+
+  /* AVATAR IMAGEN */
+  .hero-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+  }
+
+  /* ESTILOS ESPECÍFICOS DE PLANTILLAS */
+
+  /* 1. PLANTILLA: CREATIVE VISUAL */
+  .template-creative-visual .hero-section {
+    background: radial-gradient(circle at 50% 0%, rgba(236, 72, 153, 0.12) 0%, transparent 70%),
+                linear-gradient(180deg, #ffffff 0%, #fdf2f8 100%);
+  }
+  .template-creative-visual .hero-avatar {
+    border-radius: 50%;
+    box-shadow: 0 16px 32px -8px rgba(236, 72, 153, 0.4);
+  }
+  .template-creative-visual .project-card {
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+  }
+  .template-creative-visual .project-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(236, 72, 153, 0.15);
+  }
+  .template-creative-visual .service-card {
+    border-radius: 1.25rem;
+    background: #ffffff;
+    border: 1px solid #fce7f3;
+  }
+
+  /* 2. PLANTILLA: MODERN GRADIENT / EJECUTIVO */
+  .template-modern-gradient .hero-section {
+    background: radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.1) 0%, transparent 60%),
+                linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+  .template-modern-gradient .hero-avatar {
+    border-radius: 1rem;
+    box-shadow: 0 12px 28px -6px rgba(14, 165, 233, 0.4);
+  }
+  .template-modern-gradient .project-card {
+    border-radius: 0.85rem;
+    border: 1px solid #cbd5e1;
+  }
+  .template-modern-gradient .service-card {
+    border-radius: 0.85rem;
+    border: 1px solid #e2e8f0;
+  }
+
+  /* 3. PLANTILLA: TECH MINIMAL */
+  .template-tech-minimal .hero-avatar {
+    border-radius: 1rem;
+  }
+  .template-tech-minimal .project-card {
+    border-radius: 0.75rem;
   }
 </style>
