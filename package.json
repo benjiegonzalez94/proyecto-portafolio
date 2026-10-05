@@ -3,6 +3,7 @@
   "type": "module",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "npm@11.8.0",
   "description": "Portafolio web de Nahomi Machuca — Diseñadora Gráfica, Editora de Video y Creadora de Contenido (Manta, Ecuador).",
   "scripts": {
     "dev": "astro dev",
