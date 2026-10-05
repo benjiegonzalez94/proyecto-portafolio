@@ -25,7 +25,7 @@ const { profile, experiences, projects, services } = portfolioData;
 const pageTitle = `${profile.full_name} — ${profile.headline}`;
 ---
 
-<BaseLayout title={pageTitle} description={profile.bio}>
+<BaseLayout title={pageTitle} description={profile.bio} hideHeader={true} hideFooter={true}>
   <main class="portfolio-page" style={`--profile-accent: ${profile.theme_accent || '#2563eb'};`}>
     
     <!-- BARRA SUPERIOR DE NAVEGACIÓN Y CAMBIO DE PERFIL -->

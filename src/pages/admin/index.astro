@@ -9,7 +9,7 @@ import { isSupabaseConfigured, getAllProfiles } from '../../lib/supabase';
 const profiles = await getAllProfiles();
 ---
 
-<BaseLayout title="Panel de Administración — Portfolio CMS">
+<BaseLayout title="Panel de Administración — Portfolio CMS" hideHeader={true} hideFooter={true}>
   <div class="admin-wrapper" id="admin-app">
     
     <!-- BARRA SUPERIOR ADMIN -->
