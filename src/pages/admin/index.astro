@@ -96,6 +96,7 @@ const profiles = await getAllProfiles();
         <button class="tab-btn" data-tab="tab-projects">Proyectos</button>
         <button class="tab-btn" data-tab="tab-experiences">Experiencia</button>
         <button class="tab-btn" data-tab="tab-services">Servicios</button>
+        <button class="tab-btn" data-tab="tab-superadmin" id="btn-tab-superadmin" style="display: none;">🛡️ Super Admin</button>
       </div>
 
       <!-- TAB 1: DATOS PERSONALES -->
@@ -245,6 +246,58 @@ const profiles = await getAllProfiles();
         </div>
       </div>
 
+      <!-- TAB 6: SUPER ADMIN -->
+      <div class="tab-content" id="tab-superadmin">
+        <div class="card">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-title">Panel de Super Administrador</h2>
+              <p class="card-subtitle">Métricas en vivo, control de portafolios y gestión de usuarios registrados.</p>
+            </div>
+            <button class="btn btn-sm btn-outline" id="btn-refresh-admin-metrics">🔄 Actualizar Métricas</button>
+          </div>
+
+          <!-- TARJETAS DE MÉTRICAS -->
+          <div class="admin-metrics-grid">
+            <div class="metric-card">
+              <span class="metric-num" id="metric-total-portfolios">0</span>
+              <span class="metric-label">Portafolios Registrados</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-num" id="metric-total-projects">0</span>
+              <span class="metric-label">Proyectos Publicados</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-num" id="metric-active-users">0</span>
+              <span class="metric-label">Usuarios Autenticados</span>
+            </div>
+          </div>
+
+          <!-- TABLA DE USUARIOS Y PORTAFOLIOS -->
+          <div style="margin-top: 2rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #0f172a; margin-bottom: 1rem;">Directorio Global de Portafolios</h3>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Enlace (Slug)</th>
+                    <th>Plantilla</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-users-tbody">
+                  <tr>
+                    <td colspan="5" style="text-align: center; color: #64748b; padding: 2rem;">Cargando usuarios...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -347,6 +400,16 @@ const profiles = await getAllProfiles();
       displayUserEmail.textContent = session.user.email || 'Usuario';
     }
 
+    const isAdmin = session.user.email === 'admin@portafolio.dev' || session.user.app_metadata?.role === 'admin';
+    const btnSuperAdmin = document.getElementById('btn-tab-superadmin');
+
+    if (isAdmin) {
+      if (btnSuperAdmin) btnSuperAdmin.style.display = 'inline-block';
+      loadSuperAdminDashboard();
+    } else {
+      if (btnSuperAdmin) btnSuperAdmin.style.display = 'none';
+    }
+
     // Identificar si el usuario tiene un perfil propio
     const { data: userProfiles } = await supabase
       .from('profiles')
@@ -362,10 +425,82 @@ const profiles = await getAllProfiles();
       currentSlug = match.slug;
       if (selectProfile) {
         selectProfile.value = match.slug;
+        // Si no es admin, bloquear selector para que solo vea su propio perfil
+        if (!isAdmin) {
+          selectProfile.innerHTML = `<option value="${match.slug}">${match.full_name} (${match.slug})</option>`;
+        }
       }
       await loadProfileData(match.slug);
+    } else if (isAdmin) {
+      // Si es admin y no tiene perfil propio específico, cargar el primero por defecto
+      if (selectProfile && selectProfile.options.length > 0) {
+        currentSlug = selectProfile.value;
+        await loadProfileData(currentSlug);
+      }
     }
   }
+
+  // Carga de panel Super Admin
+  async function loadSuperAdminDashboard() {
+    if (!supabase || !isSupabaseConfigured) return;
+
+    try {
+      const [{ data: allProfiles }, { data: allProjects }] = await Promise.all([
+        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+        supabase.from('projects').select('id'),
+      ]);
+
+      const profCount = allProfiles?.length || 0;
+      const projCount = allProjects?.length || 0;
+
+      const mPortfolios = document.getElementById('metric-total-portfolios');
+      const mProjects = document.getElementById('metric-total-projects');
+      const mUsers = document.getElementById('metric-active-users');
+
+      if (mPortfolios) mPortfolios.textContent = String(profCount);
+      if (mProjects) mProjects.textContent = String(projCount);
+      if (mUsers) mUsers.textContent = String(profCount + 1); // +1 por el admin
+
+      const tbody = document.getElementById('admin-users-tbody');
+      if (tbody && allProfiles) {
+        tbody.innerHTML = allProfiles
+          .map(
+            (p) => `
+          <tr>
+            <td><strong>${p.full_name}</strong></td>
+            <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${p.email || 'Sin correo'}</code></td>
+            <td><a href="/${p.slug}" target="_blank" style="color: #2563eb; font-weight: 600; text-decoration: none;">/${p.slug} ↗</a></td>
+            <td><span class="status-badge status-badge--live">${p.template_id || 'tech-minimal'}</span></td>
+            <td>
+              <button class="btn btn-sm btn-outline btn-super-edit" data-edit-slug="${p.slug}">
+                Editar en CMS
+              </button>
+            </td>
+          </tr>
+        `
+          )
+          .join('');
+
+        tbody.querySelectorAll('.btn-super-edit').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const slug = (e.currentTarget as HTMLElement).getAttribute('data-edit-slug');
+            if (slug && selectProfile) {
+              selectProfile.value = slug;
+              loadProfileData(slug);
+              // Cambiar a la pestaña de perfil
+              document.querySelector('.tab-btn[data-tab="tab-profile"]')?.dispatchEvent(new Event('click'));
+            }
+          });
+        });
+      }
+    } catch (err) {
+      console.error('Error cargando super admin dashboard:', err);
+    }
+  }
+
+  document.getElementById('btn-refresh-admin-metrics')?.addEventListener('click', () => {
+    loadSuperAdminDashboard();
+  });
 
   // 2. LOGOUT
   btnLogout?.addEventListener('click', async () => {
@@ -1449,5 +1584,63 @@ const profiles = await getAllProfiles();
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
     border: 0;
+  }
+
+  /* ESTILOS SUPER ADMIN */
+  .admin-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .metric-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .metric-num {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #2563eb;
+    line-height: 1;
+  }
+  .metric-label {
+    font-size: 0.8125rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+  }
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    text-align: left;
+  }
+  .admin-table th {
+    background: #f1f5f9;
+    padding: 0.85rem 1rem;
+    color: #475569;
+    font-weight: 700;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .admin-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: middle;
+  }
+  .admin-table tr:hover td {
+    background: #f8fafc;
   }
 </style>

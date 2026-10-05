@@ -37,7 +37,9 @@ const {
   hideFooter = false,
 } = Astro.props;
 
-const pageTitle = isHome ? `${site.name} — ${site.role}` : title ? `${title} | ${site.name}` : site.name;
+const pageTitle = title 
+  ? (title.includes('—') || title.includes('|') || hideHeader ? title : `${title} | Portafolio`)
+  : (isHome ? 'Portfolio Builder — Plataforma de Portafolios Online' : site.name);
 
 // URL canónica: sin barra final y sin index.html
 const canonical = new URL(Astro.url.pathname.replace(/\/index\.html$/, '/'), site.url).href;
