@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Raíces de Manabí — DOCUMENTAL">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="scrim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.28"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="900" fill="url(#g)"/>
+  
+    <circle cx="900" cy="240" r="160" fill="#FFFFFF" opacity="0.16"/>
+    <circle cx="900" cy="240" r="112" fill="#FFFFFF" opacity="0.24"/>
+    <path d="M868 182 L980 240 L868 298 Z" fill="#FFFFFF" opacity="0.92"/>
+    <circle cx="250" cy="180" r="80" fill="#FFFFFF" opacity="0.14"/>
+  <rect width="1200" height="900" fill="url(#scrim)"/>
+
+  <!-- Texto del cartel -->
+  <g font-family="Outfit, 'Segoe UI', system-ui, sans-serif" fill="#FFFFFF">
+    <text x="90" y="612" font-size="24" font-weight="600" letter-spacing="6" opacity="0.88">DOCUMENTAL</text>
+    <text x="90" y="694" font-size="50" font-weight="700" letter-spacing="-1.5">Raíces de Manabí</text>
+    <rect x="90" y="730" width="130" height="8" rx="4" fill="#FFFFFF" opacity="0.8"/>
+  </g>
+</svg>

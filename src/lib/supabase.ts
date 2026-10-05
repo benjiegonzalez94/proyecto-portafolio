@@ -205,11 +205,51 @@ export async function getAllProfiles(): Promise<Profile[]> {
   return Object.values(fallbackPortfolios).map((p) => p.profile);
 }
 
+export const defaultSkillsBySlug: Record<string, { title: string; skills: string[] }[]> = {
+  benjie: [
+    {
+      title: 'Desarrollo Web & Software',
+      skills: ['Astro', 'TypeScript', 'JavaScript', 'Python', 'Node.js', 'React', 'HTML5 & CSS3', 'Git / GitHub'],
+    },
+    {
+      title: 'Bases de Datos & Backend',
+      skills: ['PostgreSQL', 'Supabase', 'MySQL', 'REST APIs', 'SQL Server', 'JSON / Webhooks'],
+    },
+    {
+      title: 'Infraestructura & Servidores',
+      skills: ['Linux (Ubuntu/Debian)', 'Windows Server', 'Docker', 'Nginx', 'Apache', 'Cloud Hosting'],
+    },
+    {
+      title: 'Redes & Seguridad TI',
+      skills: ['MikroTik', 'Cisco', 'TCP/IP & Subnetting', 'VLANs', 'VPNs', 'Helpdesk Corporativo', 'Seguridad TI'],
+    },
+  ],
+  nahomi: [
+    {
+      title: 'Identidad Visual & Branding',
+      skills: ['Manual de Marca', 'Diseño de Logotipos', 'Sistemas Visuales', 'Tipografía', 'Diseño de Empaques'],
+    },
+    {
+      title: 'Software de Diseño Profesional',
+      skills: ['Adobe Illustrator', 'Adobe Photoshop', 'Figma', 'Adobe InDesign', 'Canva Pro'],
+    },
+    {
+      title: 'Producción & Edición Audiovisual',
+      skills: ['Adobe Premiere Pro', 'After Effects', 'CapCut Pro', 'Motion Graphics', 'Reels & TikToks'],
+    },
+    {
+      title: 'Marketing & Estrategia Digital',
+      skills: ['Estrategia de Contenido', 'Storytelling Visual', 'Copywriting', 'Gestión de Campañas', 'SEO Redes'],
+    },
+  ],
+};
+
 /**
  * Obtener la información completa de un portafolio por su slug ('benjie' o 'nahomi')
  */
 export async function getPortfolioBySlug(slug: string): Promise<FullPortfolio | null> {
   const normalizedSlug = slug.toLowerCase().trim();
+  const skills = defaultSkillsBySlug[normalizedSlug] || [];
 
   if (supabase) {
     try {
@@ -231,6 +271,7 @@ export async function getPortfolioBySlug(slug: string): Promise<FullPortfolio | 
           experiences: (expRes.data as Experience[]) || [],
           projects: (projRes.data as Project[]) || [],
           services: (srvRes.data as Service[]) || [],
+          skillCategories: skills,
         };
       }
     } catch (e) {
@@ -238,5 +279,13 @@ export async function getPortfolioBySlug(slug: string): Promise<FullPortfolio | 
     }
   }
 
-  return fallbackPortfolios[normalizedSlug] || null;
+  const fallback = fallbackPortfolios[normalizedSlug];
+  if (fallback) {
+    return {
+      ...fallback,
+      skillCategories: skills,
+    };
+  }
+
+  return null;
 }

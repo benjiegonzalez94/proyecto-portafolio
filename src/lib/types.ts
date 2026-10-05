@@ -8,10 +8,20 @@ export interface Profile {
   hero_badge?: string;
   email?: string;
   phone?: string;
+  whatsapp?: string;
+  linkedin_url?: string;
+  github_url?: string;
+  behance_url?: string;
+  instagram_url?: string;
   location?: string;
   resume_url?: string;
   theme_accent?: string;
   created_at?: string;
+}
+
+export interface SkillCategory {
+  title: string;
+  skills: string[];
 }
 
 export interface Experience {
@@ -52,4 +62,5 @@ export interface FullPortfolio {
   experiences: Experience[];
   projects: Project[];
   services: Service[];
+  skillCategories?: SkillCategory[];
 }
