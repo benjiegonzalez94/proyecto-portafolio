@@ -6,7 +6,7 @@
 
 [build]
   # Comando que genera el sitio
-  command = "pnpm build"
+  command = "npm run build"
   # Carpeta con el resultado que se publica
   publish = "dist"
 
