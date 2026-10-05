@@ -17,4 +17,9 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
 - [x] Ejecución del script `supabase/schema.sql` y migración automatizada vía API/Node (`scripts/apply-schema.mjs`).
 - [x] Inserción de proyectos, experiencias y servicios iniciales para Benjie y Nahomi en Supabase (`scripts/seed-data.mjs`).
 - [x] Creación de repositorio en GitHub y sincronización de ramas `main` y `develop` (Git Flow).
-- [ ] Conectar el repositorio a Vercel / Netlify para despliegue y CI/CD continuo automático.
+- [x] Conexión y despliegue continuo en Vercel (Sitio publicado en internet).
+- [x] Fase 1 UX/UI: Integración de Stack Tecnológico categorizado para TI y Diseño.
+- [x] Fase 1 UX/UI: Botón flotante y directo de WhatsApp con mensaje personalizado.
+- [x] Fase 1 UX/UI: Tarjetas visuales de proyectos con imágenes SVG optimizadas.
+- [ ] Fase 2: Configurar Supabase Storage para carga de imágenes desde el panel administrativo.
+- [ ] Fase 3: Proteger el acceso al panel `/admin` con autenticación (Supabase Auth).
