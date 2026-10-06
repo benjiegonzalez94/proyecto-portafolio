@@ -1,5 +1,8 @@
+export type TemplateId = 'tech-minimal' | 'creative-visual' | 'modern-gradient';
+
 export interface Profile {
   id: string;
+  user_id?: string;
   slug: string;
   full_name: string;
   headline: string;
@@ -16,7 +19,10 @@ export interface Profile {
   location?: string;
   resume_url?: string;
   theme_accent?: string;
+  theme_mode?: 'dark' | 'light' | string;
+  template_id?: TemplateId | string;
   created_at?: string;
+  updated_at?: string;
 }
 
 export interface SkillCategory {

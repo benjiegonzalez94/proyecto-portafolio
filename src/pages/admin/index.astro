@@ -1,15 +1,15 @@
 ---
 /**
- * admin/index.astro — Panel de Administración (CMS) de Portafolios.
- * Permite gestionar perfiles, proyectos, experiencias y servicios con Supabase.
+ * admin/index.astro — Panel de Administración (CMS) del Portfolio Builder.
+ * Gestiona perfiles, proyectos, experiencias, servicios, plantillas y carga de imágenes a Supabase Storage.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { isSupabaseConfigured, getAllProfiles } from '../../lib/supabase';
+import { isSupabaseConfigured, getAllProfiles, AVAILABLE_TEMPLATES } from '../../lib/supabase';
 
 const profiles = await getAllProfiles();
 ---
 
-<BaseLayout title="Panel de Administración — Portfolio CMS" hideHeader={true} hideFooter={true}>
+<BaseLayout title="Panel de Control — Portfolio CMS" hideHeader={true} hideFooter={true}>
   <div class="admin-wrapper" id="admin-app">
     
     <!-- BARRA SUPERIOR ADMIN -->
@@ -20,16 +20,28 @@ const profiles = await getAllProfiles();
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="m15 18-6-6 6-6"/>
             </svg>
-            <span>Ver Sitio Web</span>
+            <span>Folio Portal</span>
           </a>
           <span class="divider">/</span>
-          <span class="current-section">Gestor de Portafolios</span>
+          <span class="current-section">Folio CMS</span>
         </div>
 
-        <div class="admin-topbar__status">
+        <div class="admin-topbar__user">
           <div class={`status-badge ${isSupabaseConfigured ? 'status-badge--live' : 'status-badge--local'}`}>
             <span class="status-indicator"></span>
-            <span>{isSupabaseConfigured ? 'Supabase Conectado' : 'Modo Demo / Local'}</span>
+            <span>{isSupabaseConfigured ? 'Supabase Conectado' : 'Modo Demo'}</span>
+          </div>
+
+          <div id="user-session-bar" class="user-session-bar" style="display: none;">
+            <span class="user-email" id="display-user-email">usuario@correo.com</span>
+            <button id="btn-logout" class="btn btn-sm btn-logout" title="Cerrar Sesión">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              <span>Salir</span>
+            </button>
           </div>
         </div>
       </div>
@@ -37,54 +49,76 @@ const profiles = await getAllProfiles();
 
     <div class="container admin-body">
       
-      <!-- ALERTA SI NO HAY CREDENCIALES CONFIGURADAS -->
-      {!isSupabaseConfigured && (
-        <div class="notice-box">
-          <div class="notice-box__icon">💡</div>
-          <div class="notice-box__content">
-            <h4>Supabase no está conectado todavía</h4>
-            <p>
-              Para que los cambios se guarden en la base de datos en la nube de forma persistente, crea un proyecto gratuito en <a href="https://supabase.com" target="_blank" rel="noopener">Supabase</a>, copia tus credenciales en el archivo <code>.env</code> y ejecuta el script <code>supabase/schema.sql</code>. Mientras tanto, puedes explorar la interfaz del panel.
-            </p>
+      <!-- NOTIFICACIÓN DE ESTADO O VINCULACIÓN -->
+      <div id="admin-notification" class="notice-box" style="display: none;"></div>
+
+      <!-- SELECTOR DE PERFIL Y BOTÓN VER PORTAFOLIO -->
+      <section class="profile-header-banner">
+        <div class="profile-info-main">
+          <div class="avatar-preview-wrap">
+            <img id="avatar-preview-img" src="/images/avatar-placeholder.svg" alt="Avatar" class="avatar-preview" />
+            <label for="input-avatar-file" class="avatar-upload-btn" title="Subir nueva foto">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </label>
+            <input type="file" id="input-avatar-file" accept="image/*" style="display: none;" />
+          </div>
+          <div>
+            <div class="selector-row">
+              <select id="select-profile-active" class="custom-select">
+                {profiles.map((p) => (
+                  <option value={p.slug}>{p.full_name} ({p.slug})</option>
+                ))}
+              </select>
+            </div>
+            <p class="profile-status-sub" id="profile-status-text">Cargando portafolio...</p>
           </div>
         </div>
-      )}
 
-      <!-- SELECTOR DE PERFIL -->
-      <section class="profile-selector-section">
-        <label for="select-profile-active" class="label-bold">Selecciona el Portafolio a Administrar:</label>
-        <div class="selector-row">
-          <select id="select-profile-active" class="custom-select">
-            {profiles.map((p) => (
-              <option value={p.slug}>{p.full_name} ({p.slug})</option>
-            ))}
-          </select>
-          <a id="btn-view-live" href="/benjie" target="_blank" class="btn btn-outline">
-            Ver Portafolio en Vivo ↗
+        <div class="profile-actions-header">
+          <button id="btn-quick-preview" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.45rem;">
+            <span>👁️ Vista Previa</span>
+          </button>
+          <a id="btn-view-live" href="/benjie" target="_blank" class="btn btn-live">
+            <span>Ver Portafolio en Vivo</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
           </a>
         </div>
       </section>
 
+      <!-- TOAST NOTIFICATION CONTAINER -->
+      <div id="toast-container" class="toast-container"></div>
+
       <!-- PESTAÑAS DE NAVEGACIÓN -->
       <div class="tabs-nav">
         <button class="tab-btn active" data-tab="tab-profile">Datos Personales</button>
+        <button class="tab-btn" data-tab="tab-template">Plantilla Visual</button>
         <button class="tab-btn" data-tab="tab-projects">Proyectos</button>
         <button class="tab-btn" data-tab="tab-experiences">Experiencia</button>
         <button class="tab-btn" data-tab="tab-services">Servicios</button>
+        <button class="tab-btn" data-tab="tab-superadmin" id="btn-tab-superadmin" style="display: none;">🛡️ Super Admin</button>
       </div>
 
       <!-- TAB 1: DATOS PERSONALES -->
       <div class="tab-content active" id="tab-profile">
         <div class="card">
           <h2 class="card-title">Información Principal</h2>
+          <p class="card-subtitle">Personaliza tus datos de contacto, presentación y biografía.</p>
+          
           <form id="form-profile" class="admin-form">
             <div class="form-grid">
               <div class="form-group">
-                <label for="prof-fullname">Nombre Completo</label>
+                <label for="prof-fullname">Nombre Completo *</label>
                 <input type="text" id="prof-fullname" required placeholder="Ej: Benjie González" />
               </div>
               <div class="form-group">
-                <label for="prof-headline">Título Profesional / Headline</label>
+                <label for="prof-headline">Título Profesional / Especialidad *</label>
                 <input type="text" id="prof-headline" required placeholder="Ej: Ingeniero en TI" />
               </div>
             </div>
@@ -96,19 +130,30 @@ const profiles = await getAllProfiles();
 
             <div class="form-grid">
               <div class="form-group">
-                <label for="prof-email">Correo Electrónico</label>
+                <label for="prof-email">Correo Electrónico de Contacto</label>
                 <input type="email" id="prof-email" placeholder="tu-correo@ejemplo.com" />
               </div>
               <div class="form-group">
-                <label for="prof-location">Ubicación</label>
-                <input type="text" id="prof-location" placeholder="Ciudad, País" />
+                <label for="prof-phone">Teléfono / WhatsApp</label>
+                <input type="text" id="prof-phone" placeholder="Ej: +593 99 999 9999" />
               </div>
             </div>
 
             <div class="form-grid">
               <div class="form-group">
+                <label for="prof-location">Ubicación</label>
+                <input type="text" id="prof-location" placeholder="Ciudad, País" />
+              </div>
+              <div class="form-group">
                 <label for="prof-badge">Badge de Disponibilidad</label>
                 <input type="text" id="prof-badge" placeholder="Disponible para proyectos" />
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="prof-avatar">URL de Foto de Perfil (Avatar)</label>
+                <input type="text" id="prof-avatar" placeholder="https://... o sube una imagen arriba" />
               </div>
               <div class="form-group">
                 <label for="prof-theme">Color de Acento (Hex)</label>
@@ -126,15 +171,69 @@ const profiles = await getAllProfiles();
         </div>
       </div>
 
-      <!-- TAB 2: PROYECTOS -->
+      <!-- TAB 2: PLANTILLA VISUAL -->
+      <!-- TAB 2: PLANTILLA VISUAL Y MODO -->
+      <div class="tab-content" id="tab-template">
+        <div class="card">
+          <h2 class="card-title">Selección de Plantilla Visual</h2>
+          <p class="card-subtitle">Alterna entre los diseños predefinidos para cambiar la personalidad estética de tu portafolio.</p>
+
+          <div class="templates-admin-grid">
+            {AVAILABLE_TEMPLATES.map((tmpl) => (
+              <div class="tmpl-select-card" data-tmpl-id={tmpl.id}>
+                <div class="tmpl-preview" style={`background: ${tmpl.previewBg};`}>
+                  <span class="tmpl-badge-tag">{tmpl.badge}</span>
+                </div>
+                <div class="tmpl-body">
+                  <h3 class="tmpl-title">{tmpl.name}</h3>
+                  <p class="tmpl-cat">{tmpl.category}</p>
+                  <p class="tmpl-desc">{tmpl.description}</p>
+                  <button type="button" class="btn btn-sm btn-outline btn-activate-tmpl" data-set-tmpl={tmpl.id}>
+                    Activar esta plantilla
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <!-- SELECCIÓN DE MODO OSCURO / CLARO -->
+          <div class="admin-theme-mode-section">
+            <h3 class="admin-section-subtitle">Preferencia de Modo Visual (Tema)</h3>
+            <p class="card-subtitle">Define si tu portafolio público se presentará en modo oscuro o modo claro para tus visitantes.</p>
+
+            <div class="admin-modes-grid">
+              <button type="button" class="admin-mode-card" id="btn-mode-dark" data-set-mode="dark">
+                <span class="admin-mode-icon">🌙</span>
+                <div class="admin-mode-info">
+                  <strong class="admin-mode-title">Modo Oscuro</strong>
+                  <span class="admin-mode-desc">Fondo profundo elegante, acentos vibrantes y alto impacto visual.</span>
+                </div>
+                <span class="admin-mode-pill" id="badge-mode-dark">Activo</span>
+              </button>
+
+              <button type="button" class="admin-mode-card" id="btn-mode-light" data-set-mode="light">
+                <span class="admin-mode-icon">☀️</span>
+                <div class="admin-mode-info">
+                  <strong class="admin-mode-title">Modo Claro</strong>
+                  <span class="admin-mode-desc">Fondo blanco pulcro, estilo diáfano y máxima legibilidad editorial.</span>
+                </div>
+                <span class="admin-mode-pill" id="badge-mode-light">Activar</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 3: PROYECTOS -->
       <div class="tab-content" id="tab-projects">
         <div class="card">
           <div class="card-header-flex">
             <div>
               <h2 class="card-title">Proyectos del Portafolio</h2>
-              <p class="card-subtitle">Administra los trabajos que se mostrarán en la galería.</p>
+              <p class="card-subtitle">Administra los trabajos destacados que se mostrarán en la vitrina.</p>
             </div>
-            <button class="btn btn-primary" id="btn-add-project">+ Añadir Proyecto</button>
+            <button class="btn btn-primary" id="btn-open-project-modal">+ Nuevo Proyecto</button>
           </div>
 
           <div class="items-list" id="projects-list-container">
@@ -143,7 +242,7 @@ const profiles = await getAllProfiles();
         </div>
       </div>
 
-      <!-- TAB 3: EXPERIENCIAS -->
+      <!-- TAB 4: EXPERIENCIAS -->
       <div class="tab-content" id="tab-experiences">
         <div class="card">
           <div class="card-header-flex">
@@ -160,13 +259,13 @@ const profiles = await getAllProfiles();
         </div>
       </div>
 
-      <!-- TAB 4: SERVICIOS -->
+      <!-- TAB 5: SERVICIOS -->
       <div class="tab-content" id="tab-services">
         <div class="card">
           <div class="card-header-flex">
             <div>
-              <h2 class="card-title">Servicios Ofrecidos</h2>
-              <p class="card-subtitle">Especialidades y soluciones que ofreces a clientes.</p>
+              <h2 class="card-title">Servicios y Especialidades</h2>
+              <p class="card-subtitle">Soluciones profesionales que ofreces a tus clientes.</p>
             </div>
             <button class="btn btn-primary" id="btn-add-srv">+ Añadir Servicio</button>
           </div>
@@ -177,23 +276,347 @@ const profiles = await getAllProfiles();
         </div>
       </div>
 
+      <!-- TAB 6: SUPER ADMIN -->
+      <div class="tab-content" id="tab-superadmin">
+        <div class="card">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-title">Panel de Super Administrador</h2>
+              <p class="card-subtitle">Métricas en vivo, control de portafolios y gestión de usuarios registrados.</p>
+            </div>
+            <button class="btn btn-sm btn-outline" id="btn-refresh-admin-metrics">🔄 Actualizar Métricas</button>
+          </div>
+
+          <!-- TARJETAS DE MÉTRICAS -->
+          <div class="admin-metrics-grid">
+            <div class="metric-card">
+              <span class="metric-num" id="metric-total-portfolios">0</span>
+              <span class="metric-label">Portafolios Registrados</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-num" id="metric-total-projects">0</span>
+              <span class="metric-label">Proyectos Publicados</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-num" id="metric-active-users">0</span>
+              <span class="metric-label">Usuarios Autenticados</span>
+            </div>
+          </div>
+
+          <!-- TABLA DE USUARIOS Y PORTAFOLIOS -->
+          <div style="margin-top: 2rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #0f172a; margin-bottom: 1rem;">Directorio Global de Portafolios</h3>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Enlace (Slug)</th>
+                    <th>Plantilla</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-users-tbody">
+                  <tr>
+                    <td colspan="5" style="text-align: center; color: #64748b; padding: 2rem;">Cargando usuarios...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL PARA AGREGAR / EDITAR PROYECTO -->
+  <div id="project-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modal-project-title">Nuevo Proyecto</h3>
+        <button id="modal-project-close" class="modal-close">&times;</button>
+      </div>
+      <form id="project-form" class="modal-body">
+        <div class="form-group">
+          <label for="proj-title">Título del Proyecto *</label>
+          <input type="text" id="proj-title" required placeholder="Ej: Rediseño de Plataforma Web" />
+        </div>
+        <div class="form-group">
+          <label for="proj-desc">Descripción Breve</label>
+          <textarea id="proj-desc" rows="3" placeholder="Objetivo, tecnologías aplicadas y solución entregada..."></textarea>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="proj-category">Categoría</label>
+            <input type="text" id="proj-category" placeholder="Ej: Web, TI, Branding, Video" />
+          </div>
+          <div class="form-group">
+            <label for="proj-tags">Etiquetas / Tags (separados por coma)</label>
+            <input type="text" id="proj-tags" placeholder="Astro, PostgreSQL, Docker" />
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="proj-live">Enlace en Vivo (Demo / Web)</label>
+            <input type="url" id="proj-live" placeholder="https://ejemplo.com" />
+          </div>
+          <div class="form-group">
+            <label for="proj-repo">Enlace Repositorio (GitHub)</label>
+            <input type="url" id="proj-repo" placeholder="https://github.com/..." />
+          </div>
+        </div>
+
+        <!-- SUBIDA DE IMAGEN CON SUPABASE STORAGE -->
+        <div class="form-group">
+          <label>Imagen del Proyecto (Supabase Storage)</label>
+          <div class="upload-image-box">
+            <input type="file" id="proj-image-file" accept="image/*" class="sr-only" />
+            <div class="upload-actions">
+              <label for="proj-image-file" class="btn btn-sm btn-outline">
+                📁 Seleccionar Imagen de mi Equipo
+              </label>
+              <span id="proj-file-status" class="file-status-text">Ningún archivo subido</span>
+            </div>
+            <input type="text" id="proj-image-url" placeholder="O pega la URL directa de la imagen" style="margin-top: 0.5rem;" />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="btn-cancel-project" class="btn btn-outline">Cancelar</button>
+          <button type="submit" id="btn-save-project" class="btn btn-primary">Guardar Proyecto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL VISTA PREVIA RÁPIDA -->
+  <div id="preview-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-dialog preview-dialog">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <h3 style="margin: 0;">Vista Previa del Portafolio</h3>
+          <div class="device-toggle-group">
+            <button type="button" class="device-btn active" data-device="desktop">💻 Desktop</button>
+            <button type="button" class="device-btn" data-device="mobile">📱 Móvil</button>
+          </div>
+        </div>
+        <button id="modal-preview-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body preview-modal-body">
+        <iframe id="preview-iframe" src="/benjie" class="preview-iframe"></iframe>
+      </div>
     </div>
   </div>
 </BaseLayout>
 
 <script>
   import { fallbackPortfolios, supabase, isSupabaseConfigured } from '../../lib/supabase';
-  import type { FullPortfolio } from '../../lib/types';
+  import { uploadMediaFile } from '../../lib/storage';
+  import type { FullPortfolio, Project } from '../../lib/types';
 
+  // Elementos DOM
   const selectProfile = document.getElementById('select-profile-active') as HTMLSelectElement;
   const btnViewLive = document.getElementById('btn-view-live') as HTMLAnchorElement;
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
+  const userSessionBar = document.getElementById('user-session-bar');
+  const displayUserEmail = document.getElementById('display-user-email');
+  const btnLogout = document.getElementById('btn-logout');
+  const adminNotification = document.getElementById('admin-notification');
+  const avatarPreviewImg = document.getElementById('avatar-preview-img') as HTMLImageElement;
+  const inputAvatarFile = document.getElementById('input-avatar-file') as HTMLInputElement;
 
   let currentSlug = selectProfile ? selectProfile.value : 'benjie';
   let currentPortfolio: FullPortfolio | null = fallbackPortfolios[currentSlug];
+  let currentUserSession: any = null;
 
-  // Cambio de pestañas
+  // FUNCIÓN TOAST NOTIFICATIONS
+  function showToast(message: string, type: 'success' | 'error' | 'info' = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast-item toast-item--${type}`;
+    const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+    toast.innerHTML = `
+      <span class="toast-icon">${icon}</span>
+      <span class="toast-msg">${message}</span>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add('toast-visible');
+    }, 10);
+
+    setTimeout(() => {
+      toast.classList.remove('toast-visible');
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+
+  // GESTIÓN DE VISTA PREVIA RÁPIDA
+  const btnQuickPreview = document.getElementById('btn-quick-preview');
+  const previewModal = document.getElementById('preview-modal');
+  const previewIframe = document.getElementById('preview-iframe') as HTMLIFrameElement;
+  const modalPreviewClose = document.getElementById('modal-preview-close');
+  const deviceBtns = document.querySelectorAll('.device-btn');
+
+  btnQuickPreview?.addEventListener('click', () => {
+    if (previewModal && previewIframe) {
+      previewIframe.src = `/${currentSlug}?preview=${Date.now()}`;
+      previewModal.style.display = 'flex';
+    }
+  });
+
+  modalPreviewClose?.addEventListener('click', () => {
+    if (previewModal) previewModal.style.display = 'none';
+  });
+
+  deviceBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      deviceBtns.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      const device = btn.getAttribute('data-device');
+      if (previewIframe) {
+        if (device === 'mobile') {
+          previewIframe.style.width = '375px';
+        } else {
+          previewIframe.style.width = '100%';
+        }
+      }
+    });
+  });
+
+  // 1. VERIFICAR AUTENTICACIÓN
+  async function checkAuthSession() {
+    if (!supabase || !isSupabaseConfigured) return;
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      // Si no hay sesión en producción, redirigir a login
+      window.location.href = '/login';
+      return;
+    }
+
+    currentUserSession = session;
+    if (userSessionBar && displayUserEmail) {
+      userSessionBar.style.display = 'inline-flex';
+      displayUserEmail.textContent = session.user.email || 'Usuario';
+    }
+
+    const isAdmin = session.user.email === 'admin@portafolio.dev' || session.user.app_metadata?.role === 'admin';
+    const btnSuperAdmin = document.getElementById('btn-tab-superadmin');
+
+    if (isAdmin) {
+      if (btnSuperAdmin) btnSuperAdmin.style.display = 'inline-block';
+      loadSuperAdminDashboard();
+    } else {
+      if (btnSuperAdmin) btnSuperAdmin.style.display = 'none';
+    }
+
+    // Identificar si el usuario tiene un perfil propio
+    const { data: userProfiles } = await supabase
+      .from('profiles')
+      .select('*')
+      .or(`user_id.eq.${session.user.id},email.eq.${session.user.email}`);
+
+    if (userProfiles && userProfiles.length > 0) {
+      const match = userProfiles[0];
+      // Si no tenía user_id asignado, asociarlo
+      if (!match.user_id) {
+        await supabase.from('profiles').update({ user_id: session.user.id }).eq('id', match.id);
+      }
+      currentSlug = match.slug;
+      if (selectProfile) {
+        selectProfile.value = match.slug;
+        // Si no es admin, bloquear selector para que solo vea su propio perfil
+        if (!isAdmin) {
+          selectProfile.innerHTML = `<option value="${match.slug}">${match.full_name} (${match.slug})</option>`;
+        }
+      }
+      await loadProfileData(match.slug);
+    } else if (isAdmin) {
+      // Si es admin y no tiene perfil propio específico, cargar el primero por defecto
+      if (selectProfile && selectProfile.options.length > 0) {
+        currentSlug = selectProfile.value;
+        await loadProfileData(currentSlug);
+      }
+    }
+  }
+
+  // Carga de panel Super Admin
+  async function loadSuperAdminDashboard() {
+    if (!supabase || !isSupabaseConfigured) return;
+
+    try {
+      const [{ data: allProfiles }, { data: allProjects }] = await Promise.all([
+        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+        supabase.from('projects').select('id'),
+      ]);
+
+      const profCount = allProfiles?.length || 0;
+      const projCount = allProjects?.length || 0;
+
+      const mPortfolios = document.getElementById('metric-total-portfolios');
+      const mProjects = document.getElementById('metric-total-projects');
+      const mUsers = document.getElementById('metric-active-users');
+
+      if (mPortfolios) mPortfolios.textContent = String(profCount);
+      if (mProjects) mProjects.textContent = String(projCount);
+      if (mUsers) mUsers.textContent = String(profCount + 1); // +1 por el admin
+
+      const tbody = document.getElementById('admin-users-tbody');
+      if (tbody && allProfiles) {
+        tbody.innerHTML = allProfiles
+          .map(
+            (p) => `
+          <tr>
+            <td><strong>${p.full_name}</strong></td>
+            <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${p.email || 'Sin correo'}</code></td>
+            <td><a href="/${p.slug}" target="_blank" style="color: #2563eb; font-weight: 600; text-decoration: none;">/${p.slug} ↗</a></td>
+            <td><span class="status-badge status-badge--live">${p.template_id || 'tech-minimal'}</span></td>
+            <td>
+              <button class="btn btn-sm btn-outline btn-super-edit" data-edit-slug="${p.slug}">
+                Editar en CMS
+              </button>
+            </td>
+          </tr>
+        `
+          )
+          .join('');
+
+        tbody.querySelectorAll('.btn-super-edit').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const slug = (e.currentTarget as HTMLElement).getAttribute('data-edit-slug');
+            if (slug && selectProfile) {
+              selectProfile.value = slug;
+              loadProfileData(slug);
+              // Cambiar a la pestaña de perfil
+              document.querySelector('.tab-btn[data-tab="tab-profile"]')?.dispatchEvent(new Event('click'));
+            }
+          });
+        });
+      }
+    } catch (err) {
+      console.error('Error cargando super admin dashboard:', err);
+    }
+  }
+
+  document.getElementById('btn-refresh-admin-metrics')?.addEventListener('click', () => {
+    loadSuperAdminDashboard();
+  });
+
+  // 2. LOGOUT
+  btnLogout?.addEventListener('click', async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+      window.location.href = '/login';
+    }
+  });
+
+  // 3. CAMBIO DE PESTAÑAS
   tabBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       tabBtns.forEach((b) => b.classList.remove('active'));
@@ -207,7 +630,51 @@ const profiles = await getAllProfiles();
     });
   });
 
-  // Cargar datos en el formulario
+  // 4. CARGA DE DATOS DE UN PERFIL
+  async function loadProfileData(slug: string) {
+    currentSlug = slug;
+    const profileStatusText = document.getElementById('profile-status-text');
+    if (profileStatusText) profileStatusText.textContent = `Cargando datos de /${slug}...`;
+
+    if (supabase && isSupabaseConfigured) {
+      try {
+        const { data: pData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('slug', slug)
+          .single();
+
+        if (pData) {
+          const [expRes, projRes, srvRes] = await Promise.all([
+            supabase.from('experiences').select('*').eq('profile_id', pData.id).order('order_index'),
+            supabase.from('projects').select('*').eq('profile_id', pData.id).order('order_index'),
+            supabase.from('services').select('*').eq('profile_id', pData.id).order('order_index'),
+          ]);
+
+          currentPortfolio = {
+            profile: pData,
+            experiences: expRes.data || [],
+            projects: projRes.data || [],
+            services: srvRes.data || [],
+          };
+          populateProfileForm(currentPortfolio);
+          if (profileStatusText) profileStatusText.textContent = `Administrando /${slug}`;
+          return;
+        }
+      } catch (err) {
+        console.warn('Error cargando de Supabase:', err);
+      }
+    }
+
+    // Fallback local
+    currentPortfolio = fallbackPortfolios[slug] || fallbackPortfolios['benjie'];
+    if (currentPortfolio) {
+      populateProfileForm(currentPortfolio);
+      if (profileStatusText) profileStatusText.textContent = `Modo local /${slug}`;
+    }
+  }
+
+  // 5. RELLENAR FORMULARIOS
   function populateProfileForm(portfolio: FullPortfolio) {
     const p = portfolio.profile;
     (document.getElementById('prof-fullname') as HTMLInputElement).value = p.full_name || '';
@@ -215,21 +682,260 @@ const profiles = await getAllProfiles();
     (document.getElementById('prof-bio') as HTMLTextAreaElement).value = p.bio || '';
     (document.getElementById('prof-email') as HTMLInputElement).value = p.email || '';
     (document.getElementById('prof-location') as HTMLInputElement).value = p.location || '';
+    (document.getElementById('prof-phone') as HTMLInputElement).value = p.phone || '';
     (document.getElementById('prof-badge') as HTMLInputElement).value = p.hero_badge || '';
+    (document.getElementById('prof-avatar') as HTMLInputElement).value = p.avatar_url || '';
     (document.getElementById('prof-theme') as HTMLInputElement).value = p.theme_accent || '#2563eb';
+
+    if (avatarPreviewImg) {
+      avatarPreviewImg.src = p.avatar_url || '/images/avatar-placeholder.svg';
+    }
+
     if (btnViewLive) {
       btnViewLive.href = `/${p.slug}`;
     }
+
+    // Marcar plantilla activa
+    const activeTmpl = p.template_id || 'tech-minimal';
+    document.querySelectorAll('.tmpl-select-card').forEach((card) => {
+      const id = card.getAttribute('data-tmpl-id');
+      if (id === activeTmpl) {
+        card.classList.add('tmpl-active');
+        const btn = card.querySelector('.btn-activate-tmpl');
+        if (btn) btn.textContent = '✓ Plantilla Activa';
+      } else {
+        card.classList.remove('tmpl-active');
+        const btn = card.querySelector('.btn-activate-tmpl');
+        if (btn) btn.textContent = 'Activar esta plantilla';
+      }
+    });
+
+    // Marcar modo visual activo (dark vs light)
+    const activeMode = p.theme_mode || 'dark';
+    const btnModeDark = document.getElementById('btn-mode-dark');
+    const btnModeLight = document.getElementById('btn-mode-light');
+    const badgeModeDark = document.getElementById('badge-mode-dark');
+    const badgeModeLight = document.getElementById('badge-mode-light');
+
+    if (activeMode === 'light') {
+      btnModeLight?.classList.add('admin-mode-active');
+      btnModeDark?.classList.remove('admin-mode-active');
+      if (badgeModeLight) badgeModeLight.textContent = '✓ Activo';
+      if (badgeModeDark) badgeModeDark.textContent = 'Activar';
+    } else {
+      btnModeDark?.classList.add('admin-mode-active');
+      btnModeLight?.classList.remove('admin-mode-active');
+      if (badgeModeDark) badgeModeDark.textContent = '✓ Activo';
+      if (badgeModeLight) badgeModeLight.textContent = 'Activar';
+    }
+
     renderProjects(portfolio);
     renderExperiences(portfolio);
     renderServices(portfolio);
   }
 
+  // 6. SUBIDA DE AVATAR A SUPABASE STORAGE
+  inputAvatarFile?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file || !currentPortfolio) return;
+
+    const statusIndicator = document.getElementById('profile-save-status');
+    if (statusIndicator) {
+      statusIndicator.textContent = 'Subiendo foto de perfil a Supabase Storage...';
+      statusIndicator.style.color = '#3b82f6';
+    }
+
+    const { url, error } = await uploadMediaFile(file, 'avatars', currentPortfolio.profile.slug);
+
+    if (error || !url) {
+      showToast(`Error al subir imagen: ${error}`, 'error');
+      return;
+    }
+
+    // Actualizar campos
+    currentPortfolio.profile.avatar_url = url;
+    (document.getElementById('prof-avatar') as HTMLInputElement).value = url;
+    if (avatarPreviewImg) avatarPreviewImg.src = url;
+
+    // Guardar en Supabase
+    if (supabase && isSupabaseConfigured) {
+      await supabase
+        .from('profiles')
+        .update({ avatar_url: url })
+        .eq('id', currentPortfolio.profile.id);
+    }
+
+    showToast('Foto de perfil actualizada con éxito en Supabase', 'success');
+  });
+
+  // 7. GESTIÓN DE PLANTILLAS
+  document.querySelectorAll('.btn-activate-tmpl').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const tmplId = (e.currentTarget as HTMLElement).getAttribute('data-set-tmpl');
+      if (!tmplId || !currentPortfolio) return;
+
+      currentPortfolio.profile.template_id = tmplId;
+      populateProfileForm(currentPortfolio);
+
+      if (supabase && isSupabaseConfigured) {
+        await supabase
+          .from('profiles')
+          .update({ template_id: tmplId })
+          .eq('id', currentPortfolio.profile.id);
+      }
+
+      showToast(`Plantilla "${tmplId}" activada para /${currentPortfolio.profile.slug}`, 'success');
+    });
+  });
+
+  // 8. GUARDAR DATOS DE PERFIL
+  const formProfile = document.getElementById('form-profile');
+  formProfile?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentPortfolio) return;
+
+    currentPortfolio.profile.full_name = (document.getElementById('prof-fullname') as HTMLInputElement).value;
+    currentPortfolio.profile.headline = (document.getElementById('prof-headline') as HTMLInputElement).value;
+    currentPortfolio.profile.bio = (document.getElementById('prof-bio') as HTMLTextAreaElement).value;
+    currentPortfolio.profile.email = (document.getElementById('prof-email') as HTMLInputElement).value;
+    currentPortfolio.profile.location = (document.getElementById('prof-location') as HTMLInputElement).value;
+    currentPortfolio.profile.phone = (document.getElementById('prof-phone') as HTMLInputElement).value;
+    currentPortfolio.profile.hero_badge = (document.getElementById('prof-badge') as HTMLInputElement).value;
+    currentPortfolio.profile.avatar_url = (document.getElementById('prof-avatar') as HTMLInputElement).value;
+    currentPortfolio.profile.theme_accent = (document.getElementById('prof-theme') as HTMLInputElement).value;
+
+    if (supabase && isSupabaseConfigured) {
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            full_name: currentPortfolio.profile.full_name,
+            headline: currentPortfolio.profile.headline,
+            bio: currentPortfolio.profile.bio,
+            email: currentPortfolio.profile.email,
+            location: currentPortfolio.profile.location,
+            phone: currentPortfolio.profile.phone,
+            hero_badge: currentPortfolio.profile.hero_badge,
+            avatar_url: currentPortfolio.profile.avatar_url,
+            theme_accent: currentPortfolio.profile.theme_accent,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', currentPortfolio.profile.id);
+
+        if (error) throw error;
+        showToast('Perfil guardado exitosamente en Supabase', 'success');
+      } catch (err: any) {
+        showToast(`Error al guardar: ${err.message}`, 'error');
+      }
+    } else {
+      showToast('Guardado en memoria de sesión local', 'info');
+    }
+  });
+
+  // 9. MODAL DE PROYECTOS & SUPABASE STORAGE
+  const projectModal = document.getElementById('project-modal');
+  const btnOpenModal = document.getElementById('btn-open-project-modal');
+  const btnCloseModal = document.getElementById('modal-project-close');
+  const btnCancelModal = document.getElementById('btn-cancel-project');
+  const formProject = document.getElementById('project-form');
+  const inputProjFile = document.getElementById('proj-image-file') as HTMLInputElement;
+  const inputProjUrl = document.getElementById('proj-image-url') as HTMLInputElement;
+  const projFileStatus = document.getElementById('proj-file-status');
+
+  btnOpenModal?.addEventListener('click', () => {
+    if (projectModal) {
+      (document.getElementById('proj-title') as HTMLInputElement).value = '';
+      (document.getElementById('proj-desc') as HTMLTextAreaElement).value = '';
+      (document.getElementById('proj-category') as HTMLInputElement).value = '';
+      (document.getElementById('proj-tags') as HTMLInputElement).value = '';
+      (document.getElementById('proj-live') as HTMLInputElement).value = '';
+      (document.getElementById('proj-repo') as HTMLInputElement).value = '';
+      inputProjUrl.value = '';
+      if (projFileStatus) projFileStatus.textContent = 'Ningún archivo subido';
+      projectModal.style.display = 'flex';
+    }
+  });
+
+  btnCloseModal?.addEventListener('click', () => { if (projectModal) projectModal.style.display = 'none'; });
+  btnCancelModal?.addEventListener('click', () => { if (projectModal) projectModal.style.display = 'none'; });
+
+  // Subir imagen del proyecto al bucket
+  inputProjFile?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file || !currentPortfolio) return;
+
+    if (projFileStatus) projFileStatus.textContent = '⏳ Subiendo a Supabase Storage...';
+
+    const { url, error } = await uploadMediaFile(file, 'projects', currentPortfolio.profile.slug);
+
+    if (error || !url) {
+      alert(`Error al subir imagen: ${error}`);
+      if (projFileStatus) projFileStatus.textContent = 'Error al subir';
+      return;
+    }
+
+    inputProjUrl.value = url;
+    if (projFileStatus) projFileStatus.textContent = '✓ Imagen subida a Supabase';
+  });
+
+  // Guardar proyecto
+  formProject?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentPortfolio) return;
+
+    const title = (document.getElementById('proj-title') as HTMLInputElement).value.trim();
+    const description = (document.getElementById('proj-desc') as HTMLTextAreaElement).value.trim();
+    const category = (document.getElementById('proj-category') as HTMLInputElement).value.trim() || 'General';
+    const tagsStr = (document.getElementById('proj-tags') as HTMLInputElement).value.trim();
+    const live_url = (document.getElementById('proj-live') as HTMLInputElement).value.trim();
+    const repo_url = (document.getElementById('proj-repo') as HTMLInputElement).value.trim();
+    const image_url = inputProjUrl.value.trim();
+    const tags = tagsStr ? tagsStr.split(',').map((t) => t.trim()) : [];
+
+    const newProj: Project = {
+      id: `proj-${Date.now()}`,
+      profile_id: currentPortfolio.profile.id,
+      title,
+      description,
+      category,
+      tags,
+      live_url,
+      repo_url,
+      image_url,
+      featured: true,
+      order_index: currentPortfolio.projects.length + 1,
+    };
+
+    if (supabase && isSupabaseConfigured) {
+      const { data, error } = await supabase.from('projects').insert({
+        profile_id: currentPortfolio.profile.id,
+        title,
+        description,
+        category,
+        tags,
+        live_url,
+        repo_url,
+        image_url,
+        featured: true,
+        order_index: newProj.order_index,
+      }).select().single();
+
+      if (!error && data) {
+        newProj.id = data.id;
+      }
+    }
+
+    currentPortfolio.projects.push(newProj);
+    renderProjects(currentPortfolio);
+    if (projectModal) projectModal.style.display = 'none';
+  });
+
+  // 10. RENDER LISTAS
   function renderProjects(portfolio: FullPortfolio) {
     const container = document.getElementById('projects-list-container');
     if (!container) return;
     if (portfolio.projects.length === 0) {
-      container.innerHTML = '<p class="empty-text">No hay proyectos agregados.</p>';
+      container.innerHTML = '<p class="empty-text">No hay proyectos agregados todavía.</p>';
       return;
     }
 
@@ -237,9 +943,10 @@ const profiles = await getAllProfiles();
       .map(
         (proj, idx) => `
       <div class="item-row">
+        ${proj.image_url ? `<img src="${proj.image_url}" alt="${proj.title}" class="item-thumb" />` : ''}
         <div class="item-info">
           <strong>${proj.title}</strong>
-          <span class="item-sub">${proj.category || 'Sin categoría'}</span>
+          <span class="item-sub">${proj.category || 'General'}</span>
           <p class="item-desc">${proj.description}</p>
         </div>
         <div class="item-actions">
@@ -250,10 +957,13 @@ const profiles = await getAllProfiles();
       )
       .join('');
 
-    // Listener para eliminar
     container.querySelectorAll('[data-del-proj]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-proj'));
+        const proj = portfolio.projects[idx];
+        if (proj && supabase && isSupabaseConfigured) {
+          await supabase.from('projects').delete().eq('id', proj.id);
+        }
         portfolio.projects.splice(idx, 1);
         renderProjects(portfolio);
       });
@@ -273,7 +983,8 @@ const profiles = await getAllProfiles();
         (exp, idx) => `
       <div class="item-row">
         <div class="item-info">
-          <strong>${exp.role}</strong> — <span class="item-company">${exp.company}</span>
+          <strong>${exp.role}</strong>
+          <span class="item-company">${exp.company}</span>
           <span class="item-sub">${exp.period}</span>
           <p class="item-desc">${exp.description}</p>
         </div>
@@ -286,8 +997,12 @@ const profiles = await getAllProfiles();
       .join('');
 
     container.querySelectorAll('[data-del-exp]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-exp'));
+        const exp = portfolio.experiences[idx];
+        if (exp && supabase && isSupabaseConfigured) {
+          await supabase.from('experiences').delete().eq('id', exp.id);
+        }
         portfolio.experiences.splice(idx, 1);
         renderExperiences(portfolio);
       });
@@ -298,7 +1013,7 @@ const profiles = await getAllProfiles();
     const container = document.getElementById('srv-list-container');
     if (!container) return;
     if (portfolio.services.length === 0) {
-      container.innerHTML = '<p class="empty-text">No hay servicios agregados.</p>';
+      container.innerHTML = '<p class="empty-text">No hay servicios registrados.</p>';
       return;
     }
 
@@ -319,138 +1034,147 @@ const profiles = await getAllProfiles();
       .join('');
 
     container.querySelectorAll('[data-del-srv]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-srv'));
+        const srv = portfolio.services[idx];
+        if (srv && supabase && isSupabaseConfigured) {
+          await supabase.from('services').delete().eq('id', srv.id);
+        }
         portfolio.services.splice(idx, 1);
         renderServices(portfolio);
       });
     });
   }
 
-  // Cambio de perfil en el select
-  selectProfile?.addEventListener('change', async () => {
-    currentSlug = selectProfile.value;
-    currentPortfolio = fallbackPortfolios[currentSlug];
-    if (currentPortfolio) {
-      populateProfileForm(currentPortfolio);
-    }
-  });
-
-  // Guardar perfil
-  const formProfile = document.getElementById('form-profile');
-  const statusIndicator = document.getElementById('profile-save-status');
-
-  formProfile?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!currentPortfolio) return;
-
-    currentPortfolio.profile.full_name = (document.getElementById('prof-fullname') as HTMLInputElement).value;
-    currentPortfolio.profile.headline = (document.getElementById('prof-headline') as HTMLInputElement).value;
-    currentPortfolio.profile.bio = (document.getElementById('prof-bio') as HTMLTextAreaElement).value;
-    currentPortfolio.profile.email = (document.getElementById('prof-email') as HTMLInputElement).value;
-    currentPortfolio.profile.location = (document.getElementById('prof-location') as HTMLInputElement).value;
-    currentPortfolio.profile.hero_badge = (document.getElementById('prof-badge') as HTMLInputElement).value;
-    currentPortfolio.profile.theme_accent = (document.getElementById('prof-theme') as HTMLInputElement).value;
-
-    if (statusIndicator) {
-      statusIndicator.textContent = 'Guardando...';
-      statusIndicator.style.color = '#3b82f6';
-    }
-
-    if (supabase && isSupabaseConfigured) {
-      try {
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            full_name: currentPortfolio.profile.full_name,
-            headline: currentPortfolio.profile.headline,
-            bio: currentPortfolio.profile.bio,
-            email: currentPortfolio.profile.email,
-            location: currentPortfolio.profile.location,
-            hero_badge: currentPortfolio.profile.hero_badge,
-            theme_accent: currentPortfolio.profile.theme_accent,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('slug', currentSlug);
-
-        if (error) throw error;
-        if (statusIndicator) {
-          statusIndicator.textContent = '✓ Guardado en Supabase';
-          statusIndicator.style.color = '#16a34a';
-        }
-      } catch (err) {
-        console.error(err);
-        if (statusIndicator) {
-          statusIndicator.textContent = '⚠️ Guardado en memoria local (revisa Supabase)';
-          statusIndicator.style.color = '#eab308';
-        }
-      }
-    } else {
-      setTimeout(() => {
-        if (statusIndicator) {
-          statusIndicator.textContent = '✓ Guardado localmente en sesión';
-          statusIndicator.style.color = '#16a34a';
-        }
-      }, 400);
-    }
-  });
-
-  // Agregar nuevo proyecto
-  document.getElementById('btn-add-project')?.addEventListener('click', () => {
-    if (!currentPortfolio) return;
-    const title = prompt('Título del nuevo proyecto:');
-    if (!title) return;
-    const description = prompt('Descripción breve del proyecto:') || '';
-    const category = prompt('Categoría (ej: Web, Redes, Diseño):') || 'General';
-
-    currentPortfolio.projects.push({
-      id: `new-${Date.now()}`,
-      profile_id: currentPortfolio.profile.id,
-      title,
-      description,
-      category,
-      tags: [category],
-    });
-    renderProjects(currentPortfolio);
-  });
-
-  // Agregar nueva experiencia
-  document.getElementById('btn-add-exp')?.addEventListener('click', () => {
+  // Agregar experiencia
+  document.getElementById('btn-add-exp')?.addEventListener('click', async () => {
     if (!currentPortfolio) return;
     const role = prompt('Cargo / Rol:');
     if (!role) return;
     const company = prompt('Empresa o entidad:') || '';
     const period = prompt('Periodo (ej: 2023 - Presente):') || '2024';
 
-    currentPortfolio.experiences.push({
+    const newExp = {
       id: `exp-${Date.now()}`,
       profile_id: currentPortfolio.profile.id,
       role,
       company,
       period,
       description: 'Responsabilidades y logros principales.',
-    });
+      order_index: currentPortfolio.experiences.length + 1,
+    };
+
+    if (supabase && isSupabaseConfigured) {
+      const { data } = await supabase.from('experiences').insert({
+        profile_id: currentPortfolio.profile.id,
+        role,
+        company,
+        period,
+        description: newExp.description,
+        order_index: newExp.order_index,
+      }).select().single();
+      if (data) newExp.id = data.id;
+    }
+
+    currentPortfolio.experiences.push(newExp);
     renderExperiences(currentPortfolio);
   });
 
-  // Agregar nuevo servicio
-  document.getElementById('btn-add-srv')?.addEventListener('click', () => {
+  // Agregar servicio
+  document.getElementById('btn-add-srv')?.addEventListener('click', async () => {
     if (!currentPortfolio) return;
     const title = prompt('Título del servicio:');
     if (!title) return;
     const description = prompt('Descripción del servicio:') || '';
 
-    currentPortfolio.services.push({
+    const newSrv = {
       id: `srv-${Date.now()}`,
       profile_id: currentPortfolio.profile.id,
       title,
       description,
       icon: 'code',
-    });
+      order_index: currentPortfolio.services.length + 1,
+    };
+
+    if (supabase && isSupabaseConfigured) {
+      const { data } = await supabase.from('services').insert({
+        profile_id: currentPortfolio.profile.id,
+        title,
+        description,
+        icon: 'code',
+        order_index: newSrv.order_index,
+      }).select().single();
+      if (data) newSrv.id = data.id;
+    }
+
+    currentPortfolio.services.push(newSrv);
     renderServices(currentPortfolio);
   });
 
-  // Carga inicial
+  // Selector de perfil cambio
+  selectProfile?.addEventListener('change', (e) => {
+    const slug = (e.target as HTMLSelectElement).value;
+    loadProfileData(slug);
+  });
+
+  // 10. ACTIVAR PLANTILLAS VISUALES DESDE EL CMS
+  document.querySelectorAll('.btn-activate-tmpl').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const tmplId = (e.currentTarget as HTMLElement).getAttribute('data-set-tmpl');
+      if (!tmplId || !currentPortfolio) return;
+
+      currentPortfolio.profile.template_id = tmplId;
+
+      if (supabase && isSupabaseConfigured) {
+        try {
+          const { error } = await supabase
+            .from('profiles')
+            .update({ template_id: tmplId, updated_at: new Date().toISOString() })
+            .eq('id', currentPortfolio.profile.id);
+
+          if (error) throw error;
+          showToast(`Plantilla "${tmplId}" activada con éxito`, 'success');
+        } catch (err: any) {
+          showToast(`Error al cambiar plantilla: ${err.message}`, 'error');
+        }
+      } else {
+        showToast(`Plantilla "${tmplId}" cambiada localmente`, 'info');
+      }
+
+      populateProfileForm(currentPortfolio);
+    });
+  });
+
+  // 11. CAMBIAR PREFERENCIA DE MODO (OSCURO / CLARO)
+  document.querySelectorAll('.admin-mode-card').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const mode = (e.currentTarget as HTMLElement).getAttribute('data-set-mode') || 'dark';
+      if (!currentPortfolio) return;
+
+      currentPortfolio.profile.theme_mode = mode;
+
+      if (supabase && isSupabaseConfigured) {
+        try {
+          const { error } = await supabase
+            .from('profiles')
+            .update({ theme_mode: mode, updated_at: new Date().toISOString() })
+            .eq('id', currentPortfolio.profile.id);
+
+          if (error) throw error;
+          showToast(`Preferencia de ${mode === 'dark' ? 'Modo Oscuro' : 'Modo Claro'} guardada`, 'success');
+        } catch (err: any) {
+          showToast(`Error al guardar modo: ${err.message}`, 'error');
+        }
+      } else {
+        showToast(`Modo cambiado a ${mode} localmente`, 'info');
+      }
+
+      populateProfileForm(currentPortfolio);
+    });
+  });
+
+  // Inicializar
+  checkAuthSession();
   if (currentPortfolio) {
     populateProfileForm(currentPortfolio);
   }
@@ -462,9 +1186,10 @@ const profiles = await getAllProfiles();
     background: #f8fafc;
     color: #1e293b;
     padding-bottom: 5rem;
+    font-family: inherit;
   }
   .container {
-    max-width: 1000px;
+    max-width: 1060px;
     margin: 0 auto;
     padding: 0 1.5rem;
   }
@@ -506,6 +1231,36 @@ const profiles = await getAllProfiles();
     color: #f8fafc;
   }
 
+  .admin-topbar__user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .user-session-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .user-email {
+    font-size: 0.8125rem;
+    color: #cbd5e1;
+    font-weight: 500;
+  }
+  .btn-logout {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .btn-logout:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+  }
+
   /* STATUS BADGE */
   .status-badge {
     display: inline-flex;
@@ -539,75 +1294,96 @@ const profiles = await getAllProfiles();
     border-radius: 50%;
   }
 
-  /* ALERTA NOTICE */
-  .notice-box {
-    margin-top: 2rem;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 0.85rem;
-    padding: 1.25rem 1.5rem;
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-  .notice-box__icon {
-    font-size: 1.5rem;
-  }
-  .notice-box__content h4 {
-    margin: 0 0 0.25rem 0;
-    font-size: 1rem;
-    color: #1e3a8a;
-  }
-  .notice-box__content p {
-    margin: 0;
-    font-size: 0.875rem;
-    color: #1e40af;
-    line-height: 1.5;
-  }
-  .notice-box__content code {
-    background: rgba(255, 255, 255, 0.8);
-    padding: 0.15rem 0.4rem;
-    border-radius: 4px;
-    font-weight: 600;
-  }
-
-  /* SELECTOR DE PERFIL */
-  .profile-selector-section {
+  /* BANNER DE PERFIL */
+  .profile-header-banner {
     margin-top: 2rem;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 0.85rem;
-    padding: 1.25rem 1.5rem;
-  }
-  .label-bold {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: #475569;
-    margin-bottom: 0.5rem;
-  }
-  .selector-row {
+    border-radius: 1rem;
+    padding: 1.5rem 1.75rem;
     display: flex;
-    gap: 1rem;
+    justify-content: space-between;
     align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     flex-wrap: wrap;
   }
+
+  .profile-info-main {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .avatar-preview-wrap {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+  }
+  .avatar-preview {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #3b82f6;
+    background: #f1f5f9;
+  }
+  .avatar-upload-btn {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 26px;
+    height: 26px;
+    background: #2563eb;
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+  }
+  .avatar-upload-btn:hover {
+    transform: scale(1.1);
+  }
+
   .custom-select {
-    padding: 0.65rem 1rem;
+    padding: 0.6rem 1rem;
     border-radius: 0.5rem;
     border: 1px solid #cbd5e1;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.05rem;
+    font-weight: 700;
     color: #0f172a;
     background: #ffffff;
-    min-width: 260px;
+    min-width: 240px;
+  }
+
+  .profile-status-sub {
+    margin: 0.35rem 0 0 0;
+    font-size: 0.8125rem;
+    color: #64748b;
+  }
+
+  .btn-live {
+    background: #0f172a;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+  }
+  .btn-live:hover {
+    background: #1e293b;
+    color: #38bdf8;
   }
 
   /* PESTAÑAS */
   .tabs-nav {
     display: flex;
     gap: 0.5rem;
-    margin-top: 2rem;
+    margin-top: 1.75rem;
     border-bottom: 2px solid #e2e8f0;
     padding-bottom: 1px;
     overflow-x: auto;
@@ -623,6 +1399,7 @@ const profiles = await getAllProfiles();
     border-bottom: 2px solid transparent;
     margin-bottom: -3px;
     transition: all 0.2s ease;
+    white-space: nowrap;
   }
   .tab-btn:hover {
     color: #0f172a;
@@ -632,7 +1409,7 @@ const profiles = await getAllProfiles();
     border-bottom-color: #2563eb;
   }
 
-  /* TAB CONTENTS */
+  /* CONTENIDO DE TABS */
   .tab-content {
     display: none;
     margin-top: 1.5rem;
@@ -641,7 +1418,6 @@ const profiles = await getAllProfiles();
     display: block;
   }
 
-  /* CARD */
   .card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -653,10 +1429,10 @@ const profiles = await getAllProfiles();
     font-size: 1.35rem;
     font-weight: 700;
     color: #0f172a;
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.4rem 0;
   }
   .card-subtitle {
-    margin: 0;
+    margin: 0 0 1.5rem 0;
     font-size: 0.875rem;
     color: #64748b;
   }
@@ -671,7 +1447,7 @@ const profiles = await getAllProfiles();
 
   /* FORMS */
   .admin-form {
-    margin-top: 1.5rem;
+    margin-top: 1rem;
   }
   .form-grid {
     display: grid;
@@ -704,17 +1480,169 @@ const profiles = await getAllProfiles();
     padding: 0.2rem 0.4rem !important;
     cursor: pointer;
   }
+
   .form-actions {
     display: flex;
     align-items: center;
     gap: 1.25rem;
-    margin-top: 2rem;
-    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
     border-top: 1px solid #f1f5f9;
   }
   .save-indicator {
     font-size: 0.875rem;
     font-weight: 600;
+  }
+
+  /* PLANTILLAS ADMIN GRID */
+  .templates-admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+  .tmpl-select-card {
+    border: 2px solid #e2e8f0;
+    border-radius: 0.85rem;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .tmpl-select-card.tmpl-active {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  .tmpl-preview {
+    height: 90px;
+    padding: 0.75rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+  }
+  .tmpl-badge-tag {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+  }
+  .tmpl-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+  }
+  .tmpl-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .tmpl-cat {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #2563eb;
+    font-weight: 600;
+  }
+  .tmpl-desc {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: #64748b;
+    line-height: 1.45;
+  }
+  .tmpl-body .btn {
+    margin-top: auto;
+  }
+  .tmpl-active .btn-activate-tmpl {
+    background: #eff6ff;
+    color: #2563eb;
+    border-color: #2563eb;
+    font-weight: 700;
+  }
+
+  /* SELECTOR DE MODO EN CMS */
+  .admin-theme-mode-section {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e2e8f0;
+  }
+  .admin-section-subtitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.35rem 0;
+  }
+  .admin-modes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+  }
+  .admin-mode-card {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .admin-mode-card:hover {
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.08);
+  }
+  .admin-mode-card.admin-mode-active {
+    border-color: #2563eb;
+    background: #eff6ff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  .admin-mode-icon {
+    font-size: 1.75rem;
+    line-height: 1;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 0.6rem;
+    flex-shrink: 0;
+  }
+  .admin-mode-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .admin-mode-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .admin-mode-desc {
+    font-size: 0.8125rem;
+    color: #64748b;
+    line-height: 1.4;
+  }
+  .admin-mode-pill {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+  }
+  .admin-mode-card.admin-mode-active .admin-mode-pill {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
   }
 
   /* BOTONES */
@@ -747,7 +1675,7 @@ const profiles = await getAllProfiles();
     background: #f8fafc;
   }
   .btn-sm {
-    padding: 0.4rem 0.75rem;
+    padding: 0.45rem 0.85rem;
     font-size: 0.8125rem;
   }
   .btn-delete {
@@ -767,36 +1695,280 @@ const profiles = await getAllProfiles();
   .item-row {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     padding: 1.25rem;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 0.75rem;
-    gap: 1rem;
+    gap: 1.25rem;
+  }
+  .item-thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: 0.5rem;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid #e2e8f0;
+  }
+  .item-info {
+    flex: 1;
   }
   .item-info strong {
     font-size: 1.05rem;
     color: #0f172a;
+    display: block;
   }
   .item-company {
     color: #2563eb;
     font-weight: 600;
+    display: inline-block;
+    margin-right: 0.5rem;
   }
   .item-sub {
-    display: block;
     font-size: 0.8125rem;
     color: #64748b;
-    margin-top: 0.15rem;
   }
   .item-desc {
-    margin: 0.5rem 0 0 0;
+    margin: 0.35rem 0 0 0;
     font-size: 0.875rem;
     color: #475569;
-    line-height: 1.5;
+    line-height: 1.45;
   }
   .empty-text {
     text-align: center;
     color: #94a3b8;
-    padding: 2rem;
+    padding: 2.5rem;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 1000;
+  }
+  .modal-dialog {
+    background: #ffffff;
+    border-radius: 1rem;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #0f172a;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #64748b;
+  }
+  .modal-body {
+    padding: 1.5rem;
+  }
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .upload-image-box {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 0.5rem;
+    padding: 1rem;
+  }
+  .upload-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .file-status-text {
+    font-size: 0.8125rem;
+    color: #64748b;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  /* ESTILOS SUPER ADMIN */
+  .admin-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .metric-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .metric-num {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #2563eb;
+    line-height: 1;
+  }
+  .metric-label {
+    font-size: 0.8125rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+  }
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    text-align: left;
+  }
+  .admin-table th {
+    background: #f1f5f9;
+    padding: 0.85rem 1rem;
+    color: #475569;
+    font-weight: 700;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .admin-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: middle;
+  }
+  .admin-table tr:hover td {
+    background: #f8fafc;
+  }
+
+  /* TOAST NOTIFICATIONS */
+  .toast-container {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+  }
+  .toast-item {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .toast-item.toast-visible {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  .toast-item--success {
+    border-left: 4px solid #22c55e;
+    color: #15803d;
+  }
+  .toast-item--error {
+    border-left: 4px solid #ef4444;
+    color: #b91c1c;
+  }
+  .toast-item--info {
+    border-left: 4px solid #3b82f6;
+    color: #1d4ed8;
+  }
+  .toast-icon {
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  /* QUICK PREVIEW MODAL */
+  .preview-dialog {
+    max-width: 1000px !important;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .preview-modal-body {
+    flex: 1;
+    padding: 0 !important;
+    display: flex;
+    justify-content: center;
+    background: #0f172a;
+    overflow: hidden;
+  }
+  .preview-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    transition: width 0.3s ease;
+    background: #ffffff;
+  }
+  .device-toggle-group {
+    display: inline-flex;
+    background: #f1f5f9;
+    padding: 2px;
+    border-radius: 6px;
+    gap: 2px;
+  }
+  .device-btn {
+    border: none;
+    background: none;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .device-btn.active {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 </style>

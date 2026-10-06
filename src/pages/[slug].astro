@@ -31,30 +31,23 @@ const whatsappDefaultMsg = isBenjie
   ? 'Hola Benjie, vi tu portafolio y me gustaría cotizar un proyecto de TI.'
   : 'Hola Nahomi, vi tu portafolio y me gustaría cotizar un proyecto creativo.';
 const whatsappUrl = `https://wa.me/${whatsappCleanNumber}?text=${encodeURIComponent(whatsappDefaultMsg)}`;
+
+const rawCategories = projects.map((p) => p.category?.trim()).filter(Boolean) as string[];
+const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new Set(rawCategories))] : [];
 ---
 
 <BaseLayout title={pageTitle} description={profile.bio} hideHeader={true} hideFooter={true}>
-  <main class="portfolio-page" style={`--profile-accent: ${profile.theme_accent || '#2563eb'};`}>
+  <main class={`portfolio-page template-${profile.template_id || 'tech-minimal'} mode-${profile.theme_mode || 'dark'}`} style={`--profile-accent: ${profile.theme_accent || '#2563eb'};`}>
     
     <!-- BARRA SUPERIOR DE NAVEGACIÓN -->
     <nav class="top-nav" aria-label="Navegación del perfil">
       <div class="container top-nav__inner">
-        <a href="/" class="top-nav__back" title="Volver al Portal Principal">
+        <a href="/" class="top-nav__back" title="Volver al Portal Folio">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="m15 18-6-6 6-6"/>
           </svg>
-          <span>Portal Principal</span>
+          <span class="portal-brand-tag">Folio</span>
         </a>
-
-        <div class="top-nav__actions">
-          <a href="/admin" class="btn-admin" title="Panel de Administración">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-            <span>Gestionar datos</span>
-          </a>
-        </div>
       </div>
     </nav>
 
@@ -62,7 +55,11 @@ const whatsappUrl = `https://wa.me/${whatsappCleanNumber}?text=${encodeURICompon
     <header class="hero-section">
       <div class="container hero-section__inner">
         <div class="hero-avatar">
-          {profile.slug === 'benjie' ? 'BG' : 'NM'}
+          {profile.avatar_url ? (
+            <img src={profile.avatar_url} alt={profile.full_name} class="hero-avatar-img" />
+          ) : (
+            <span>{profile.slug === 'benjie' ? 'BG' : (profile.slug === 'nahomi' ? 'NM' : profile.full_name.slice(0, 2).toUpperCase())}</span>
+          )}
         </div>
 
         <div class="hero-badge">
@@ -139,9 +136,21 @@ const whatsappUrl = `https://wa.me/${whatsappCleanNumber}?text=${encodeURICompon
             <p class="section-tag">Portafolio</p>
             <h2 class="section-title">Trabajos y Proyectos Destacados</h2>
           </div>
-          <div class="projects-grid">
+
+          <!-- FILTRO POR CATEGORÍAS -->
+          {projectCategories.length > 2 && (
+            <div class="project-filter-bar" id="project-filters">
+              {projectCategories.map((cat, idx) => (
+                <button class={`filter-pill ${idx === 0 ? 'active' : ''}`} data-filter={cat}>
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div class="projects-grid" id="projects-grid-container">
             {projects.map((proj) => (
-              <article class="project-card">
+              <article class="project-card" data-category={proj.category || 'General'}>
                 {proj.image_url && (
                   <div class="project-card__image-wrap">
                     <img src={proj.image_url} alt={proj.title} class="project-card__img" loading="lazy" />
@@ -305,23 +314,6 @@ const whatsappUrl = `https://wa.me/${whatsappCleanNumber}?text=${encodeURICompon
   }
   .top-nav__back:hover {
     color: var(--profile-accent);
-  }
-  .btn-admin {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #64748b;
-    padding: 0.4rem 0.85rem;
-    border-radius: 9999px;
-    background: #f1f5f9;
-    text-decoration: none;
-    transition: all 0.2s ease;
-  }
-  .btn-admin:hover {
-    background: #e2e8f0;
-    color: #0f172a;
   }
 
   /* HERO */
@@ -772,4 +764,279 @@ const whatsappUrl = `https://wa.me/${whatsappCleanNumber}?text=${encodeURICompon
     opacity: 1;
     transform: translateX(0);
   }
+
+  /* AVATAR IMAGEN */
+  .hero-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+  }
+
+  /* ESTILOS ESPECÍFICOS DE PLANTILLAS */
+
+  /* 1. PLANTILLA: CREATIVE VISUAL */
+  .template-creative-visual .hero-section {
+    background: radial-gradient(circle at 50% 0%, rgba(236, 72, 153, 0.12) 0%, transparent 70%),
+                linear-gradient(180deg, #ffffff 0%, #fdf2f8 100%);
+  }
+  .template-creative-visual .hero-avatar {
+    border-radius: 50%;
+    box-shadow: 0 16px 32px -8px rgba(236, 72, 153, 0.4);
+  }
+  .template-creative-visual .project-card {
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+  }
+  .template-creative-visual .project-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(236, 72, 153, 0.15);
+  }
+  .template-creative-visual .service-card {
+    border-radius: 1.25rem;
+    background: #ffffff;
+    border: 1px solid #fce7f3;
+  }
+
+  /* 2. PLANTILLA: MODERN GRADIENT / EJECUTIVO */
+  .template-modern-gradient .hero-section {
+    background: radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.1) 0%, transparent 60%),
+                linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+  .template-modern-gradient .hero-avatar {
+    border-radius: 1rem;
+    box-shadow: 0 12px 28px -6px rgba(14, 165, 233, 0.4);
+  }
+  .template-modern-gradient .project-card {
+    border-radius: 0.85rem;
+    border: 1px solid #cbd5e1;
+  }
+  .template-modern-gradient .service-card {
+    border-radius: 0.85rem;
+    border: 1px solid #e2e8f0;
+  }
+
+  /* 3. PLANTILLA: TECH MINIMAL */
+  .template-tech-minimal .hero-avatar {
+    border-radius: 1rem;
+  }
+  .template-tech-minimal .project-card {
+    border-radius: 0.75rem;
+  }
+
+  /* BARRA DE FILTRO DE PROYECTOS */
+  .project-filter-bar {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+  .filter-pill {
+    padding: 0.45rem 1rem;
+    border-radius: 9999px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .filter-pill:hover {
+    border-color: var(--profile-accent);
+    color: var(--profile-accent);
+  }
+  .filter-pill.active {
+    background: var(--profile-accent);
+    border-color: var(--profile-accent);
+    color: #ffffff;
+    box-shadow: 0 4px 12px -2px var(--profile-accent);
+  }
+
+  .portal-brand-tag {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #2563eb, #38bdf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* MODO OSCURO (portfolio-page.mode-dark) */
+  .portfolio-page.mode-dark {
+    background: #090d16;
+    color: #f8fafc;
+  }
+  .portfolio-page.mode-dark .top-nav {
+    background: rgba(9, 13, 22, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .portfolio-page.mode-dark .top-nav__back {
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .top-nav__back:hover {
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .hero-section {
+    background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.15) 0%, transparent 60%), #0b1120;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .portfolio-page.mode-dark .hero-title {
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .hero-bio {
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .hero-meta {
+    color: #64748b;
+  }
+  .portfolio-page.mode-dark .btn--secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+  .portfolio-page.mode-dark .btn--secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  .portfolio-page.mode-dark .skills-section {
+    background: #090d16;
+  }
+  .portfolio-page.mode-dark .section-title {
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .section-tag {
+    color: var(--profile-accent);
+  }
+  .portfolio-page.mode-dark .skill-category-card {
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .portfolio-page.mode-dark .skill-category-title {
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .skill-pill {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+  }
+  .portfolio-page.mode-dark .skill-pill:hover {
+    border-color: var(--profile-accent);
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .projects-section {
+    background: #0b1120;
+  }
+  .portfolio-page.mode-dark .project-card {
+    background: #0f172a;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .portfolio-page.mode-dark .project-title {
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .project-desc {
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .tag-pill {
+    background: #1e293b;
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .services-section {
+    background: #090d16;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .portfolio-page.mode-dark .service-card {
+    background: #0f172a;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .portfolio-page.mode-dark .service-card__title {
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .service-card__desc {
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .experience-section {
+    background: #0b1120;
+  }
+  .portfolio-page.mode-dark .timeline {
+    border-left-color: #334155;
+  }
+  .portfolio-page.mode-dark .timeline-marker {
+    background: #0f172a;
+  }
+  .portfolio-page.mode-dark .timeline-role {
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .timeline-company {
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .timeline-desc {
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .filter-pill {
+    background: #0f172a;
+    border-color: #334155;
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .filter-pill:hover {
+    border-color: var(--profile-accent);
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .filter-pill.active {
+    background: var(--profile-accent);
+    color: #ffffff;
+    border-color: var(--profile-accent);
+  }
+
+  /* PLANTILLA CREATIVE VISUAL EN MODO OSCURO */
+  .portfolio-page.template-creative-visual.mode-dark .hero-section {
+    background: radial-gradient(circle at 50% 0%, rgba(236, 72, 153, 0.18) 0%, transparent 70%),
+                linear-gradient(180deg, #130e1c 0%, #090d16 100%);
+  }
+  .portfolio-page.template-creative-visual.mode-dark .service-card {
+    background: #141122;
+    border-color: rgba(236, 72, 153, 0.2);
+  }
+
+  /* PLANTILLA MODERN GRADIENT EN MODO OSCURO */
+  .portfolio-page.template-modern-gradient.mode-dark .hero-section {
+    background: radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.18) 0%, transparent 60%),
+                linear-gradient(180deg, #0d1527 0%, #090d16 100%);
+  }
 </style>
+
+<script>
+  // Filtrado dinámico de proyectos por categoría
+  const filterBtns = document.querySelectorAll('[data-filter]');
+  const projectCards = document.querySelectorAll('.project-card');
+
+  filterBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const selectedCat = btn.getAttribute('data-filter');
+
+      projectCards.forEach((card) => {
+        const cardEl = card as HTMLElement;
+        const cardCat = cardEl.getAttribute('data-category');
+
+        if (selectedCat === 'Todos' || cardCat === selectedCat) {
+          cardEl.style.display = 'flex';
+          setTimeout(() => {
+            cardEl.style.opacity = '1';
+            cardEl.style.transform = 'translateY(0)';
+          }, 10);
+        } else {
+          cardEl.style.opacity = '0';
+          cardEl.style.transform = 'translateY(10px)';
+          setTimeout(() => {
+            cardEl.style.display = 'none';
+          }, 200);
+        }
+      });
+    });
+  });
+</script>
+
