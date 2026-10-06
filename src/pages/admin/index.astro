@@ -102,6 +102,7 @@ const profiles = await getAllProfiles();
         <button class="tab-btn" data-tab="tab-projects">Proyectos</button>
         <button class="tab-btn" data-tab="tab-experiences">Experiencia</button>
         <button class="tab-btn" data-tab="tab-services">Servicios</button>
+        <button class="tab-btn" data-tab="tab-skills">Habilidades</button>
         <button class="tab-btn" data-tab="tab-superadmin" id="btn-tab-superadmin" style="display: none;">🛡️ Super Admin</button>
       </div>
 
@@ -147,6 +148,41 @@ const profiles = await getAllProfiles();
               <div class="form-group">
                 <label for="prof-badge">Badge de Disponibilidad</label>
                 <input type="text" id="prof-badge" placeholder="Disponible para proyectos" />
+              </div>
+            </div>
+
+            <!-- ENLACES Y REDES SOCIALES -->
+            <h3 style="font-size: 1.05rem; font-weight: 700; margin: 1.25rem 0 0.5rem; color: #0f172a;">Redes Sociales & Enlaces Profesionales</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="prof-github">GitHub URL</label>
+                <input type="url" id="prof-github" placeholder="https://github.com/tu-usuario" />
+              </div>
+              <div class="form-group">
+                <label for="prof-linkedin">LinkedIn URL</label>
+                <input type="url" id="prof-linkedin" placeholder="https://linkedin.com/in/tu-perfil" />
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="prof-instagram">Instagram URL</label>
+                <input type="url" id="prof-instagram" placeholder="https://instagram.com/tu-cuenta" />
+              </div>
+              <div class="form-group">
+                <label for="prof-behance">Behance URL</label>
+                <input type="url" id="prof-behance" placeholder="https://behance.net/tu-portafolio" />
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="prof-twitter">X (Twitter) URL</label>
+                <input type="url" id="prof-twitter" placeholder="https://x.com/tu-usuario" />
+              </div>
+              <div class="form-group">
+                <label for="prof-website">Sitio Web Personal / Blog</label>
+                <input type="url" id="prof-website" placeholder="https://tu-dominio.com" />
               </div>
             </div>
 
@@ -276,7 +312,31 @@ const profiles = await getAllProfiles();
         </div>
       </div>
 
-      <!-- TAB 6: SUPER ADMIN -->
+      <!-- TAB 6: HABILIDADES (CATEGORÍAS Y STACK) -->
+      <div class="tab-content" id="tab-skills">
+        <div class="card">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-title">Categorías de Habilidades & Stack Tecnológico</h2>
+              <p class="card-subtitle">Personaliza tus grupos de destrezas (ej: Frontend, Backend, UI/UX, Cloud) y las herramientas de cada una.</p>
+            </div>
+            <button class="btn btn-primary" id="btn-add-skill-category">+ Nueva Categoría</button>
+          </div>
+
+          <div class="items-list" id="skills-list-container">
+            <p class="empty-text">Cargando categorías de habilidades...</p>
+          </div>
+
+          <div class="form-actions" style="margin-top: 2rem;">
+            <button type="button" class="btn btn-primary" id="btn-save-skills">
+              Guardar Cambios de Habilidades
+            </button>
+            <span class="save-indicator" id="skills-save-status"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 7: SUPER ADMIN -->
       <div class="tab-content" id="tab-superadmin">
         <div class="card">
           <div class="card-header-flex">
@@ -406,6 +466,44 @@ const profiles = await getAllProfiles();
       </div>
       <div class="modal-body preview-modal-body">
         <iframe id="preview-iframe" src="/benjie" class="preview-iframe"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL HERRAMIENTA DE RECORTE Y OPTIMIZACIÓN (CROPPER TOOL) -->
+  <div id="crop-modal" class="modal-overlay" style="display: none; z-index: 1100;">
+    <div class="modal-dialog" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="crop-modal-title">Ajustar y Optimizar Imagen</h3>
+        <button type="button" id="crop-modal-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+        <p style="font-size: 0.875rem; color: #64748b; margin-top: 0; margin-bottom: 1rem;">
+          Arrastra para centrar o ajusta el zoom. La imagen se optimizará automáticamente en formato WebP de alta velocidad.
+        </p>
+
+        <!-- Canvas de recorte -->
+        <div class="crop-canvas-wrapper" style="position: relative; display: inline-block; background: #0f172a; border-radius: 1rem; overflow: hidden; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5); cursor: grab;">
+          <canvas id="crop-canvas" width="400" height="400" style="display: block; max-width: 100%; height: auto;"></canvas>
+          <div id="crop-frame-guide" class="crop-guide-circle" style="position: absolute; inset: 20px; border: 2px dashed rgba(255,255,255,0.7); border-radius: 50%; pointer-events: none; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);"></div>
+        </div>
+
+        <!-- Controles de Zoom -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1.25rem;">
+          <span style="font-size: 0.875rem; color: #64748b;">Zoom:</span>
+          <input type="range" id="crop-zoom-range" min="1" max="3" step="0.05" value="1" style="width: 220px; accent-color: #2563eb;" />
+          <button type="button" class="btn btn-sm btn-outline" id="crop-btn-reset">Reiniciar</button>
+        </div>
+
+        <div id="crop-file-info" style="font-size: 0.8rem; color: #64748b; margin-top: 0.75rem;">
+          Tamaño original: <span id="crop-orig-size">0 KB</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="crop-btn-cancel" class="btn btn-outline">Cancelar</button>
+        <button type="button" id="crop-btn-confirm" class="btn btn-primary">
+          <span id="crop-btn-text">Optimizar y Subir</span>
+        </button>
       </div>
     </div>
   </div>
@@ -687,6 +785,14 @@ const profiles = await getAllProfiles();
     (document.getElementById('prof-avatar') as HTMLInputElement).value = p.avatar_url || '';
     (document.getElementById('prof-theme') as HTMLInputElement).value = p.theme_accent || '#2563eb';
 
+    // Redes Sociales
+    (document.getElementById('prof-github') as HTMLInputElement).value = p.github_url || '';
+    (document.getElementById('prof-linkedin') as HTMLInputElement).value = p.linkedin_url || '';
+    (document.getElementById('prof-instagram') as HTMLInputElement).value = p.instagram_url || '';
+    (document.getElementById('prof-behance') as HTMLInputElement).value = p.behance_url || '';
+    (document.getElementById('prof-twitter') as HTMLInputElement).value = p.twitter_url || '';
+    (document.getElementById('prof-website') as HTMLInputElement).value = p.website_url || '';
+
     if (avatarPreviewImg) {
       avatarPreviewImg.src = p.avatar_url || '/images/avatar-placeholder.svg';
     }
@@ -732,40 +838,49 @@ const profiles = await getAllProfiles();
     renderProjects(portfolio);
     renderExperiences(portfolio);
     renderServices(portfolio);
+    renderSkillsList(portfolio);
   }
 
-  // 6. SUBIDA DE AVATAR A SUPABASE STORAGE
+  // 6. SUBIDA DE AVATAR A SUPABASE STORAGE CON RECORTADOR Y OPTIMIZACIÓN
   inputAvatarFile?.addEventListener('change', async (e) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file || !currentPortfolio) return;
 
-    const statusIndicator = document.getElementById('profile-save-status');
-    if (statusIndicator) {
-      statusIndicator.textContent = 'Subiendo foto de perfil a Supabase Storage...';
-      statusIndicator.style.color = '#3b82f6';
-    }
+    // Abrir herramienta de recorte interactivo
+    openCropTool(file, 'avatar', async (optimizedFile) => {
+      const statusIndicator = document.getElementById('profile-save-status');
+      if (statusIndicator) {
+        statusIndicator.textContent = 'Subiendo foto de perfil optimizada a Supabase Storage...';
+        statusIndicator.style.color = '#3b82f6';
+      }
 
-    const { url, error } = await uploadMediaFile(file, 'avatars', currentPortfolio.profile.slug);
+      const { url, error } = await uploadMediaFile(optimizedFile, 'avatars', currentPortfolio.profile.slug);
 
-    if (error || !url) {
-      showToast(`Error al subir imagen: ${error}`, 'error');
-      return;
-    }
+      if (error || !url) {
+        showToast(`Error al subir imagen: ${error}`, 'error');
+        if (statusIndicator) statusIndicator.textContent = '';
+        return;
+      }
 
-    // Actualizar campos
-    currentPortfolio.profile.avatar_url = url;
-    (document.getElementById('prof-avatar') as HTMLInputElement).value = url;
-    if (avatarPreviewImg) avatarPreviewImg.src = url;
+      // Actualizar campos
+      currentPortfolio.profile.avatar_url = url;
+      (document.getElementById('prof-avatar') as HTMLInputElement).value = url;
+      if (avatarPreviewImg) avatarPreviewImg.src = url;
 
-    // Guardar en Supabase
-    if (supabase && isSupabaseConfigured) {
-      await supabase
-        .from('profiles')
-        .update({ avatar_url: url })
-        .eq('id', currentPortfolio.profile.id);
-    }
+      // Guardar en Supabase
+      if (supabase && isSupabaseConfigured) {
+        await supabase
+          .from('profiles')
+          .update({ avatar_url: url })
+          .eq('id', currentPortfolio.profile.id);
+      }
 
-    showToast('Foto de perfil actualizada con éxito en Supabase', 'success');
+      if (statusIndicator) statusIndicator.textContent = 'Foto guardada';
+      showToast('Foto de perfil optimizada y actualizada con éxito en Supabase', 'success');
+    });
+
+    // Resetear valor para permitir seleccionar la misma imagen
+    (e.target as HTMLInputElement).value = '';
   });
 
   // 7. GESTIÓN DE PLANTILLAS
@@ -804,6 +919,14 @@ const profiles = await getAllProfiles();
     currentPortfolio.profile.avatar_url = (document.getElementById('prof-avatar') as HTMLInputElement).value;
     currentPortfolio.profile.theme_accent = (document.getElementById('prof-theme') as HTMLInputElement).value;
 
+    // Redes Sociales
+    currentPortfolio.profile.github_url = (document.getElementById('prof-github') as HTMLInputElement).value.trim() || undefined;
+    currentPortfolio.profile.linkedin_url = (document.getElementById('prof-linkedin') as HTMLInputElement).value.trim() || undefined;
+    currentPortfolio.profile.instagram_url = (document.getElementById('prof-instagram') as HTMLInputElement).value.trim() || undefined;
+    currentPortfolio.profile.behance_url = (document.getElementById('prof-behance') as HTMLInputElement).value.trim() || undefined;
+    currentPortfolio.profile.twitter_url = (document.getElementById('prof-twitter') as HTMLInputElement).value.trim() || undefined;
+    currentPortfolio.profile.website_url = (document.getElementById('prof-website') as HTMLInputElement).value.trim() || undefined;
+
     if (supabase && isSupabaseConfigured) {
       try {
         const { error } = await supabase
@@ -818,6 +941,12 @@ const profiles = await getAllProfiles();
             hero_badge: currentPortfolio.profile.hero_badge,
             avatar_url: currentPortfolio.profile.avatar_url,
             theme_accent: currentPortfolio.profile.theme_accent,
+            github_url: currentPortfolio.profile.github_url || null,
+            linkedin_url: currentPortfolio.profile.linkedin_url || null,
+            instagram_url: currentPortfolio.profile.instagram_url || null,
+            behance_url: currentPortfolio.profile.behance_url || null,
+            twitter_url: currentPortfolio.profile.twitter_url || null,
+            website_url: currentPortfolio.profile.website_url || null,
             updated_at: new Date().toISOString(),
           })
           .eq('id', currentPortfolio.profile.id);
@@ -859,23 +988,28 @@ const profiles = await getAllProfiles();
   btnCloseModal?.addEventListener('click', () => { if (projectModal) projectModal.style.display = 'none'; });
   btnCancelModal?.addEventListener('click', () => { if (projectModal) projectModal.style.display = 'none'; });
 
-  // Subir imagen del proyecto al bucket
+  // Subir imagen del proyecto al bucket con recorte y compresión WebP
   inputProjFile?.addEventListener('change', async (e) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file || !currentPortfolio) return;
 
-    if (projFileStatus) projFileStatus.textContent = '⏳ Subiendo a Supabase Storage...';
+    openCropTool(file, 'project', async (optimizedFile) => {
+      if (projFileStatus) projFileStatus.textContent = '⏳ Subiendo a Supabase Storage...';
 
-    const { url, error } = await uploadMediaFile(file, 'projects', currentPortfolio.profile.slug);
+      const { url, error } = await uploadMediaFile(optimizedFile, 'projects', currentPortfolio.profile.slug);
 
-    if (error || !url) {
-      alert(`Error al subir imagen: ${error}`);
-      if (projFileStatus) projFileStatus.textContent = 'Error al subir';
-      return;
-    }
+      if (error || !url) {
+        alert(`Error al subir imagen: ${error}`);
+        if (projFileStatus) projFileStatus.textContent = 'Error al subir';
+        return;
+      }
 
-    inputProjUrl.value = url;
-    if (projFileStatus) projFileStatus.textContent = '✓ Imagen subida a Supabase';
+      inputProjUrl.value = url;
+      if (projFileStatus) projFileStatus.textContent = '✓ Imagen optimizada y subida a Supabase';
+      showToast('Captura de proyecto optimizada y subida con éxito', 'success');
+    });
+
+    (e.target as HTMLInputElement).value = '';
   });
 
   // Guardar proyecto
@@ -1171,6 +1305,331 @@ const profiles = await getAllProfiles();
 
       populateProfileForm(currentPortfolio);
     });
+  });
+
+  // ==========================================
+  // 12. HERRAMIENTA DE RECORTE & OPTIMIZACIÓN
+  // ==========================================
+  const cropModal = document.getElementById('crop-modal');
+  const cropCanvas = document.getElementById('crop-canvas') as HTMLCanvasElement;
+  const cropFrameGuide = document.getElementById('crop-frame-guide');
+  const cropZoomRange = document.getElementById('crop-zoom-range') as HTMLInputElement;
+  const cropOrigSize = document.getElementById('crop-orig-size');
+  const cropBtnConfirm = document.getElementById('crop-btn-confirm');
+  const cropBtnCancel = document.getElementById('crop-btn-cancel');
+  const cropModalClose = document.getElementById('crop-modal-close');
+  const cropBtnReset = document.getElementById('crop-btn-reset');
+  const cropModalTitle = document.getElementById('crop-modal-title');
+
+  let cropSourceImage: HTMLImageElement | null = null;
+  let cropType: 'avatar' | 'project' = 'avatar';
+  let cropCallback: ((file: File) => void) | null = null;
+  let cropOriginalFileName: string = 'image.png';
+
+  let cropState = {
+    zoom: 1,
+    offsetX: 0,
+    offsetY: 0,
+    isDragging: false,
+    dragStartX: 0,
+    dragStartY: 0,
+  };
+
+  function openCropTool(file: File, type: 'avatar' | 'project', onConfirm: (optimizedFile: File) => void) {
+    if (!cropModal || !cropCanvas) return;
+    cropType = type;
+    cropCallback = onConfirm;
+    cropOriginalFileName = file.name;
+
+    if (cropModalTitle) {
+      cropModalTitle.textContent = type === 'avatar' ? 'Recortar Foto de Perfil' : 'Ajustar Imagen de Proyecto';
+    }
+
+    if (cropFrameGuide) {
+      if (type === 'avatar') {
+        cropFrameGuide.style.borderRadius = '50%';
+        cropFrameGuide.style.inset = '20px';
+      } else {
+        cropFrameGuide.style.borderRadius = '0.75rem';
+        cropFrameGuide.style.inset = '20px';
+      }
+    }
+
+    if (cropOrigSize) {
+      cropOrigSize.textContent = `${Math.round(file.size / 1024)} KB (${file.type})`;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        cropSourceImage = img;
+        cropState = {
+          zoom: 1,
+          offsetX: 0,
+          offsetY: 0,
+          isDragging: false,
+          dragStartX: 0,
+          dragStartY: 0,
+        };
+        if (cropZoomRange) cropZoomRange.value = '1';
+        drawCropCanvas();
+        cropModal.style.display = 'flex';
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function drawCropCanvas() {
+    if (!cropCanvas || !cropSourceImage) return;
+    const ctx = cropCanvas.getContext('2d');
+    if (!ctx) return;
+
+    const cw = cropCanvas.width;
+    const ch = cropCanvas.height;
+
+    ctx.clearRect(0, 0, cw, ch);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, cw, ch);
+
+    // Calcular escala base para cubrir canvas
+    const imgRatio = cropSourceImage.width / cropSourceImage.height;
+    const canvasRatio = cw / ch;
+
+    let baseW = cw;
+    let baseH = ch;
+    if (imgRatio > canvasRatio) {
+      baseH = ch;
+      baseW = ch * imgRatio;
+    } else {
+      baseW = cw;
+      baseH = cw / imgRatio;
+    }
+
+    const finalW = baseW * cropState.zoom;
+    const finalH = baseH * cropState.zoom;
+
+    const x = (cw - finalW) / 2 + cropState.offsetX;
+    const y = (ch - finalH) / 2 + cropState.offsetY;
+
+    ctx.drawImage(cropSourceImage, x, y, finalW, finalH);
+  }
+
+  // Eventos de arrastre en Canvas
+  cropCanvas?.addEventListener('mousedown', (e) => {
+    cropState.isDragging = true;
+    cropState.dragStartX = e.clientX - cropState.offsetX;
+    cropState.dragStartY = e.clientY - cropState.offsetY;
+    cropCanvas.style.cursor = 'grabbing';
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!cropState.isDragging) return;
+    cropState.offsetX = e.clientX - cropState.dragStartX;
+    cropState.offsetY = e.clientY - cropState.dragStartY;
+    drawCropCanvas();
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (cropState.isDragging) {
+      cropState.isDragging = false;
+      if (cropCanvas) cropCanvas.style.cursor = 'grab';
+    }
+  });
+
+  // Zoom
+  cropZoomRange?.addEventListener('input', (e) => {
+    cropState.zoom = parseFloat((e.target as HTMLInputElement).value);
+    drawCropCanvas();
+  });
+
+  cropBtnReset?.addEventListener('click', () => {
+    cropState = {
+      zoom: 1,
+      offsetX: 0,
+      offsetY: 0,
+      isDragging: false,
+      dragStartX: 0,
+      dragStartY: 0,
+    };
+    if (cropZoomRange) cropZoomRange.value = '1';
+    drawCropCanvas();
+  });
+
+  function closeCropModal() {
+    if (cropModal) cropModal.style.display = 'none';
+    cropSourceImage = null;
+    cropCallback = null;
+  }
+
+  cropBtnCancel?.addEventListener('click', closeCropModal);
+  cropModalClose?.addEventListener('click', closeCropModal);
+
+  // Confirmar recorte y exportar a WebP
+  cropBtnConfirm?.addEventListener('click', () => {
+    if (!cropCanvas || !cropSourceImage || !cropCallback) return;
+
+    // Crear canvas de salida de alta resolución optimizada
+    const outCanvas = document.createElement('canvas');
+    const outSize = cropType === 'avatar' ? 600 : 1200;
+    outCanvas.width = outSize;
+    outCanvas.height = cropType === 'avatar' ? 600 : 800;
+    const outCtx = outCanvas.getContext('2d');
+
+    if (!outCtx) return;
+
+    // Dibujar lo que está en el canvas principal escalado a resolución nítida
+    outCtx.drawImage(cropCanvas, 0, 0, cropCanvas.width, cropCanvas.height, 0, 0, outCanvas.width, outCanvas.height);
+
+    outCanvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          showToast('Error al optimizar imagen', 'error');
+          return;
+        }
+
+        const cleanName = cropOriginalFileName.replace(/\.[^/.]+$/, '');
+        const optimizedFile = new File([blob], `${cleanName}.webp`, { type: 'image/webp' });
+
+        if (cropCallback) {
+          cropCallback(optimizedFile);
+        }
+        closeCropModal();
+      },
+      'image/webp',
+      0.88
+    );
+  });
+
+  // ==========================================
+  // 13. GESTIÓN DE HABILIDADES Y STACK TÉCNICO
+  // ==========================================
+  function renderSkillsList(portfolio: FullPortfolio) {
+    const container = document.getElementById('skills-list-container');
+    if (!container) return;
+
+    const skillsData = portfolio.profile.skills_data || [];
+
+    if (skillsData.length === 0) {
+      container.innerHTML = '<p class="empty-text">No hay categorías de habilidades registradas. Pulsa "+ Nueva Categoría" para añadir una.</p>';
+      return;
+    }
+
+    container.innerHTML = skillsData
+      .map(
+        (cat, catIdx) => `
+      <div class="item-row" style="flex-direction: column; align-items: stretch; gap: 0.75rem;" data-cat-idx="${catIdx}">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+          <input 
+            type="text" 
+            class="cat-title-input" 
+            data-cat-edit="${catIdx}" 
+            value="${cat.category}" 
+            placeholder="Nombre de Categoría (ej: Frontend, Backend, UI/UX)"
+            style="font-size: 1.1rem; font-weight: 700; color: #0f172a; padding: 0.4rem 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; flex: 1;"
+          />
+          <button class="btn btn-sm btn-delete" data-del-cat="${catIdx}">Eliminar Categoría</button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+          <label style="font-size: 0.825rem; font-weight: 600; color: #64748b;">
+            Habilidades / Tecnologías (separadas por coma):
+          </label>
+          <input 
+            type="text" 
+            class="cat-skills-input" 
+            data-skills-edit="${catIdx}" 
+            value="${cat.skills.join(', ')}" 
+            placeholder="Ej: TypeScript, React, Astro, Node.js"
+            style="padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.925rem;"
+          />
+        </div>
+      </div>
+    `
+      )
+      .join('');
+
+    // Listeners para editar en tiempo real
+    container.querySelectorAll('.cat-title-input').forEach((input) => {
+      input.addEventListener('input', (e) => {
+        const idx = Number((e.target as HTMLElement).getAttribute('data-cat-edit'));
+        if (portfolio.profile.skills_data?.[idx]) {
+          portfolio.profile.skills_data[idx].category = (e.target as HTMLInputElement).value;
+        }
+      });
+    });
+
+    container.querySelectorAll('.cat-skills-input').forEach((input) => {
+      input.addEventListener('input', (e) => {
+        const idx = Number((e.target as HTMLElement).getAttribute('data-skills-edit'));
+        if (portfolio.profile.skills_data?.[idx]) {
+          const raw = (e.target as HTMLInputElement).value;
+          portfolio.profile.skills_data[idx].skills = raw.split(',').map((s) => s.trim()).filter(Boolean);
+        }
+      });
+    });
+
+    // Listeners para eliminar categoría
+    container.querySelectorAll('[data-del-cat]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-cat'));
+        if (portfolio.profile.skills_data) {
+          portfolio.profile.skills_data.splice(idx, 1);
+          renderSkillsList(portfolio);
+        }
+      });
+    });
+  }
+
+  // Añadir nueva categoría
+  document.getElementById('btn-add-skill-category')?.addEventListener('click', () => {
+    if (!currentPortfolio) return;
+    if (!currentPortfolio.profile.skills_data) {
+      currentPortfolio.profile.skills_data = [];
+    }
+
+    currentPortfolio.profile.skills_data.push({
+      category: 'Nueva Categoría',
+      skills: ['Herramienta 1', 'Herramienta 2'],
+    });
+
+    renderSkillsList(currentPortfolio);
+  });
+
+  // Guardar habilidades en Supabase
+  document.getElementById('btn-save-skills')?.addEventListener('click', async () => {
+    if (!currentPortfolio) return;
+
+    const skillsStatus = document.getElementById('skills-save-status');
+    if (skillsStatus) {
+      skillsStatus.textContent = 'Guardando habilidades en Supabase...';
+      skillsStatus.style.color = '#3b82f6';
+    }
+
+    const skillsData = currentPortfolio.profile.skills_data || [];
+
+    if (supabase && isSupabaseConfigured) {
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            skills_data: skillsData,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', currentPortfolio.profile.id);
+
+        if (error) throw error;
+        if (skillsStatus) skillsStatus.textContent = 'Guardado';
+        showToast('Categorías de habilidades guardadas con éxito en Supabase', 'success');
+      } catch (err: any) {
+        showToast(`Error al guardar habilidades: ${err.message}`, 'error');
+        if (skillsStatus) skillsStatus.textContent = 'Error';
+      }
+    } else {
+      showToast('Habilidades guardadas localmente', 'info');
+      if (skillsStatus) skillsStatus.textContent = 'Guardado local';
+    }
   });
 
   // Inicializar

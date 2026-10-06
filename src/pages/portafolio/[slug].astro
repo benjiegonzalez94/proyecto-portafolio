@@ -13,6 +13,8 @@ import ProjectCard from '../../components/ProjectCard.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import { site } from '../../data/site';
 
+export const prerender = true;
+
 export function getStaticPaths() {
   return site.projects.map((project) => ({
     params: { slug: project.slug },
