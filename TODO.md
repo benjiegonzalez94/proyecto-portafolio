@@ -47,7 +47,27 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
     2. Selección de plantilla visual con previsualización.
     3. Credenciales de acceso (Email + Contraseña).
   - [x] Auto-generación de registros iniciales (semilla con proyectos y servicios de muestra) y redirección inmediata a `/admin` para empezar a editar.
-- [x] **Fase 2.6 - Landing / Hub (`/`) como vitrina del Portfolio Builder**:
-  - [x] Añadir botón prominente "Crea tu Portafolio Gratis" y botón "Iniciar Sesión".
-  - [x] Sección de portafolios destacados y características de la plataforma.
+- [x] **Fase 2.6 - Landing / Hub (`/`) como vitrina de Folio**:
+  - [x] Rebranding oficial a **Folio** con identidad visual, badges y llamadas a la acción.
+  - [x] Botones de acceso directo "Crea tu Portafolio Gratis" y "Iniciar Sesión".
+  - [x] Vitrina de portafolios de ejemplo (Benjie TI & Nahomi Creativa).
+
+---
+
+## 🎨 Fase 3: Experiencia Folio, Preferencia de Tema & Vista Pública Impecable
+- [x] **Identidad Oficial & Multi-tenant**:
+  - [x] Nombre de marca fijado como **Folio**.
+  - [x] Dashboard de Super Admin (`admin@portafolio.dev`) con métricas en tiempo real y directorio de usuarios registrados.
+  - [x] Separación de accesos: Benjie (`benjiegonzalez94@gmail.com`) y Nahomi (`nahomimachuca@gmail.com`) gestionan sus respectivos perfiles.
+- [x] **Preferencia de Modo Oscuro / Claro en Onboarding (`/crear`)**:
+  - [x] Selección dual en Paso 2: Plantilla Visual + Preferencia de Tema (🌙 Modo Oscuro vs ☀️ Modo Claro).
+  - [x] Mockup interactivo en miniatura (*Live Mini Browser Preview*) que reacciona en tiempo real al nombre, iniciales, plantilla y modo seleccionado antes de generar.
+  - [x] Persistencia de `theme_mode` en Supabase `public.profiles`.
+- [x] **Personalización de Tema en CMS (`/admin`)**:
+  - [x] Selector interactivo en la pestaña *Plantilla Visual* para alternar y guardar `theme_mode` (Oscuro / Claro) en Supabase con toasts animados.
+  - [x] Activación instantánea de plantillas con feedback visual.
+- [x] **Vista Pública Limpia (`/[slug]`)**:
+  - [x] Eliminación de botones administrativos públicos ("Gestionar datos") para visitantes externos.
+  - [x] Eliminación de botones flotantes o desalineados de tema: el portafolio se renderiza puramente con la preferencia del autor (`mode-dark` o `mode-light`).
+  - [x] Filtrado interactivo de proyectos por pills de categoría.
 

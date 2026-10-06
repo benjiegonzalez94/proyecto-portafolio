@@ -385,6 +385,7 @@ export async function createNewPortfolio(params: {
   email: string;
   templateId: string;
   themeAccent?: string;
+  themeMode?: string;
 }): Promise<{ profile: Profile | null; error: string | null }> {
   if (!supabase) {
     return { profile: null, error: 'Supabase no está configurado.' };
@@ -408,6 +409,8 @@ export async function createNewPortfolio(params: {
       params.templateId === 'modern-gradient' ? '#0ea5e9' : '#2563eb'
     );
 
+    const mode = params.themeMode || 'dark';
+
     const { data: profile, error: profileErr } = await supabase
       .from('profiles')
       .insert({
@@ -418,6 +421,7 @@ export async function createNewPortfolio(params: {
         email: params.email,
         template_id: params.templateId,
         theme_accent: accent,
+        theme_mode: mode,
         hero_badge: 'Disponible para proyectos',
         bio: `¡Hola! Soy ${params.fullName}, especialista en ${params.headline}. Bienvenido a mi portafolio online donde presento mis proyectos más destacados, experiencia y servicios.`,
       })

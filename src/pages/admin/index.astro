@@ -172,6 +172,7 @@ const profiles = await getAllProfiles();
       </div>
 
       <!-- TAB 2: PLANTILLA VISUAL -->
+      <!-- TAB 2: PLANTILLA VISUAL Y MODO -->
       <div class="tab-content" id="tab-template">
         <div class="card">
           <h2 class="card-title">Selección de Plantilla Visual</h2>
@@ -195,9 +196,32 @@ const profiles = await getAllProfiles();
             ))}
           </div>
 
-          <div class="form-actions" style="margin-top: 1.5rem;">
-            <span class="save-indicator" id="template-save-status"></span>
+          <!-- SELECCIÓN DE MODO OSCURO / CLARO -->
+          <div class="admin-theme-mode-section">
+            <h3 class="admin-section-subtitle">Preferencia de Modo Visual (Tema)</h3>
+            <p class="card-subtitle">Define si tu portafolio público se presentará en modo oscuro o modo claro para tus visitantes.</p>
+
+            <div class="admin-modes-grid">
+              <button type="button" class="admin-mode-card" id="btn-mode-dark" data-set-mode="dark">
+                <span class="admin-mode-icon">🌙</span>
+                <div class="admin-mode-info">
+                  <strong class="admin-mode-title">Modo Oscuro</strong>
+                  <span class="admin-mode-desc">Fondo profundo elegante, acentos vibrantes y alto impacto visual.</span>
+                </div>
+                <span class="admin-mode-pill" id="badge-mode-dark">Activo</span>
+              </button>
+
+              <button type="button" class="admin-mode-card" id="btn-mode-light" data-set-mode="light">
+                <span class="admin-mode-icon">☀️</span>
+                <div class="admin-mode-info">
+                  <strong class="admin-mode-title">Modo Claro</strong>
+                  <span class="admin-mode-desc">Fondo blanco pulcro, estilo diáfano y máxima legibilidad editorial.</span>
+                </div>
+                <span class="admin-mode-pill" id="badge-mode-light">Activar</span>
+              </button>
+            </div>
           </div>
+
         </div>
       </div>
 
@@ -686,6 +710,25 @@ const profiles = await getAllProfiles();
       }
     });
 
+    // Marcar modo visual activo (dark vs light)
+    const activeMode = p.theme_mode || 'dark';
+    const btnModeDark = document.getElementById('btn-mode-dark');
+    const btnModeLight = document.getElementById('btn-mode-light');
+    const badgeModeDark = document.getElementById('badge-mode-dark');
+    const badgeModeLight = document.getElementById('badge-mode-light');
+
+    if (activeMode === 'light') {
+      btnModeLight?.classList.add('admin-mode-active');
+      btnModeDark?.classList.remove('admin-mode-active');
+      if (badgeModeLight) badgeModeLight.textContent = '✓ Activo';
+      if (badgeModeDark) badgeModeDark.textContent = 'Activar';
+    } else {
+      btnModeDark?.classList.add('admin-mode-active');
+      btnModeLight?.classList.remove('admin-mode-active');
+      if (badgeModeDark) badgeModeDark.textContent = '✓ Activo';
+      if (badgeModeLight) badgeModeLight.textContent = 'Activar';
+    }
+
     renderProjects(portfolio);
     renderExperiences(portfolio);
     renderServices(portfolio);
@@ -1072,6 +1115,62 @@ const profiles = await getAllProfiles();
   selectProfile?.addEventListener('change', (e) => {
     const slug = (e.target as HTMLSelectElement).value;
     loadProfileData(slug);
+  });
+
+  // 10. ACTIVAR PLANTILLAS VISUALES DESDE EL CMS
+  document.querySelectorAll('.btn-activate-tmpl').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const tmplId = (e.currentTarget as HTMLElement).getAttribute('data-set-tmpl');
+      if (!tmplId || !currentPortfolio) return;
+
+      currentPortfolio.profile.template_id = tmplId;
+
+      if (supabase && isSupabaseConfigured) {
+        try {
+          const { error } = await supabase
+            .from('profiles')
+            .update({ template_id: tmplId, updated_at: new Date().toISOString() })
+            .eq('id', currentPortfolio.profile.id);
+
+          if (error) throw error;
+          showToast(`Plantilla "${tmplId}" activada con éxito`, 'success');
+        } catch (err: any) {
+          showToast(`Error al cambiar plantilla: ${err.message}`, 'error');
+        }
+      } else {
+        showToast(`Plantilla "${tmplId}" cambiada localmente`, 'info');
+      }
+
+      populateProfileForm(currentPortfolio);
+    });
+  });
+
+  // 11. CAMBIAR PREFERENCIA DE MODO (OSCURO / CLARO)
+  document.querySelectorAll('.admin-mode-card').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const mode = (e.currentTarget as HTMLElement).getAttribute('data-set-mode') || 'dark';
+      if (!currentPortfolio) return;
+
+      currentPortfolio.profile.theme_mode = mode;
+
+      if (supabase && isSupabaseConfigured) {
+        try {
+          const { error } = await supabase
+            .from('profiles')
+            .update({ theme_mode: mode, updated_at: new Date().toISOString() })
+            .eq('id', currentPortfolio.profile.id);
+
+          if (error) throw error;
+          showToast(`Preferencia de ${mode === 'dark' ? 'Modo Oscuro' : 'Modo Claro'} guardada`, 'success');
+        } catch (err: any) {
+          showToast(`Error al guardar modo: ${err.message}`, 'error');
+        }
+      } else {
+        showToast(`Modo cambiado a ${mode} localmente`, 'info');
+      }
+
+      populateProfileForm(currentPortfolio);
+    });
   });
 
   // Inicializar
@@ -1462,6 +1561,88 @@ const profiles = await getAllProfiles();
     color: #2563eb;
     border-color: #2563eb;
     font-weight: 700;
+  }
+
+  /* SELECTOR DE MODO EN CMS */
+  .admin-theme-mode-section {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e2e8f0;
+  }
+  .admin-section-subtitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.35rem 0;
+  }
+  .admin-modes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+  }
+  .admin-mode-card {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .admin-mode-card:hover {
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.08);
+  }
+  .admin-mode-card.admin-mode-active {
+    border-color: #2563eb;
+    background: #eff6ff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  .admin-mode-icon {
+    font-size: 1.75rem;
+    line-height: 1;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 0.6rem;
+    flex-shrink: 0;
+  }
+  .admin-mode-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .admin-mode-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .admin-mode-desc {
+    font-size: 0.8125rem;
+    color: #64748b;
+    line-height: 1.4;
+  }
+  .admin-mode-pill {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+  }
+  .admin-mode-card.admin-mode-active .admin-mode-pill {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
   }
 
   /* BOTONES */

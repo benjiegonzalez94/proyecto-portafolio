@@ -62,6 +62,7 @@ Crear una plataforma SaaS web escalable y de costo $0 que permita:
 - `location` (TEXT)
 - `resume_url` (TEXT)
 - `theme_accent` (TEXT)
+- `theme_mode` (VARCHAR(20) DEFAULT 'dark' — 'dark' | 'light')
 - `template_id` (VARCHAR(50) DEFAULT 'tech-minimal')
 - `created_at` (TIMESTAMPTZ)
 - `updated_at` (TIMESTAMPTZ)

@@ -19,6 +19,7 @@ export interface Profile {
   location?: string;
   resume_url?: string;
   theme_accent?: string;
+  theme_mode?: 'dark' | 'light' | string;
   template_id?: TemplateId | string;
   created_at?: string;
   updated_at?: string;

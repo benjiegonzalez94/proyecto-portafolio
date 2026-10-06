@@ -37,32 +37,17 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
 ---
 
 <BaseLayout title={pageTitle} description={profile.bio} hideHeader={true} hideFooter={true}>
-  <main class={`portfolio-page template-${profile.template_id || 'tech-minimal'}`} style={`--profile-accent: ${profile.theme_accent || '#2563eb'};`}>
+  <main class={`portfolio-page template-${profile.template_id || 'tech-minimal'} mode-${profile.theme_mode || 'dark'}`} style={`--profile-accent: ${profile.theme_accent || '#2563eb'};`}>
     
     <!-- BARRA SUPERIOR DE NAVEGACIÓN -->
     <nav class="top-nav" aria-label="Navegación del perfil">
       <div class="container top-nav__inner">
-        <a href="/" class="top-nav__back" title="Volver al Portal Principal">
+        <a href="/" class="top-nav__back" title="Volver al Portal Folio">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="m15 18-6-6 6-6"/>
           </svg>
           <span class="portal-brand-tag">Folio</span>
         </a>
-
-        <div class="top-nav__actions">
-          <button id="theme-toggle-btn" class="theme-toggle-btn" title="Alternar modo claro / oscuro" aria-label="Alternar tema">
-            <span class="icon-moon">🌙</span>
-            <span class="icon-sun" style="display: none;">☀️</span>
-          </button>
-
-          <a href="/admin" class="btn-admin" title="Panel de Administración">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-            <span>Gestionar datos</span>
-          </a>
-        </div>
       </div>
     </nav>
 
@@ -329,23 +314,6 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
   }
   .top-nav__back:hover {
     color: var(--profile-accent);
-  }
-  .btn-admin {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #64748b;
-    padding: 0.4rem 0.85rem;
-    border-radius: 9999px;
-    background: #f1f5f9;
-    text-decoration: none;
-    transition: all 0.2s ease;
-  }
-  .btn-admin:hover {
-    background: #e2e8f0;
-    color: #0f172a;
   }
 
   /* HERO */
@@ -887,25 +855,6 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
     box-shadow: 0 4px 12px -2px var(--profile-accent);
   }
 
-  /* THEME TOGGLE BUTTON */
-  .theme-toggle-btn {
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .theme-toggle-btn:hover {
-    background: #e2e8f0;
-    transform: scale(1.05);
-  }
-
   .portal-brand-tag {
     font-weight: 800;
     letter-spacing: -0.02em;
@@ -914,66 +863,151 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
     -webkit-text-fill-color: transparent;
   }
 
-  /* MODO OSCURO (DATA-THEME="DARK") */
-  :global(body[data-theme='dark']) .portfolio-page {
+  /* MODO OSCURO (portfolio-page.mode-dark) */
+  .portfolio-page.mode-dark {
     background: #090d16;
     color: #f8fafc;
   }
-  :global(body[data-theme='dark']) .top-nav {
-    background: rgba(15, 23, 42, 0.8);
-    border-bottom-color: rgba(255, 255, 255, 0.08);
+  .portfolio-page.mode-dark .top-nav {
+    background: rgba(9, 13, 22, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
-  :global(body[data-theme='dark']) .top-nav__back {
+  .portfolio-page.mode-dark .top-nav__back {
     color: #94a3b8;
   }
-  :global(body[data-theme='dark']) .btn-admin {
-    background: rgba(255, 255, 255, 0.08);
-    color: #cbd5e1;
+  .portfolio-page.mode-dark .top-nav__back:hover {
+    color: #ffffff;
   }
-  :global(body[data-theme='dark']) .theme-toggle-btn {
-    background: rgba(255, 255, 255, 0.1);
+  .portfolio-page.mode-dark .hero-section {
+    background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.15) 0%, transparent 60%), #0b1120;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .portfolio-page.mode-dark .hero-title {
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .hero-bio {
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .hero-meta {
+    color: #64748b;
+  }
+  .portfolio-page.mode-dark .btn--secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f8fafc;
     border-color: rgba(255, 255, 255, 0.15);
   }
-  :global(body[data-theme='dark']) .hero-section {
-    background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.12) 0%, transparent 60%), #0f172a;
-    border-bottom-color: rgba(255, 255, 255, 0.08);
+  .portfolio-page.mode-dark .btn--secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
   }
-  :global(body[data-theme='dark']) .hero-title {
+  .portfolio-page.mode-dark .skills-section {
+    background: #090d16;
+  }
+  .portfolio-page.mode-dark .section-title {
     color: #ffffff;
   }
-  :global(body[data-theme='dark']) .hero-bio {
-    color: #94a3b8;
+  .portfolio-page.mode-dark .section-tag {
+    color: var(--profile-accent);
   }
-  :global(body[data-theme='dark']) .section-title {
+  .portfolio-page.mode-dark .skill-category-card {
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .portfolio-page.mode-dark .skill-category-title {
     color: #ffffff;
   }
-  :global(body[data-theme='dark']) .project-card,
-  :global(body[data-theme='dark']) .service-card,
-  :global(body[data-theme='dark']) .skill-category-card,
-  :global(body[data-theme='dark']) .timeline-content {
+  .portfolio-page.mode-dark .skill-pill {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+  }
+  .portfolio-page.mode-dark .skill-pill:hover {
+    border-color: var(--profile-accent);
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .projects-section {
+    background: #0b1120;
+  }
+  .portfolio-page.mode-dark .project-card {
     background: #0f172a;
     border-color: rgba(255, 255, 255, 0.08);
   }
-  :global(body[data-theme='dark']) .project-title,
-  :global(body[data-theme='dark']) .service-card__title,
-  :global(body[data-theme='dark']) .skill-category-title,
-  :global(body[data-theme='dark']) .timeline-role {
+  .portfolio-page.mode-dark .project-title {
     color: #ffffff;
   }
-  :global(body[data-theme='dark']) .project-desc,
-  :global(body[data-theme='dark']) .service-card__desc,
-  :global(body[data-theme='dark']) .timeline-desc {
+  .portfolio-page.mode-dark .project-desc {
     color: #94a3b8;
   }
-  :global(body[data-theme='dark']) .filter-pill {
+  .portfolio-page.mode-dark .tag-pill {
+    background: #1e293b;
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .services-section {
+    background: #090d16;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .portfolio-page.mode-dark .service-card {
+    background: #0f172a;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .portfolio-page.mode-dark .service-card__title {
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .service-card__desc {
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .experience-section {
+    background: #0b1120;
+  }
+  .portfolio-page.mode-dark .timeline {
+    border-left-color: #334155;
+  }
+  .portfolio-page.mode-dark .timeline-marker {
+    background: #0f172a;
+  }
+  .portfolio-page.mode-dark .timeline-role {
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .timeline-company {
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .timeline-desc {
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .filter-pill {
     background: #0f172a;
     border-color: #334155;
     color: #94a3b8;
   }
+  .portfolio-page.mode-dark .filter-pill:hover {
+    border-color: var(--profile-accent);
+    color: #ffffff;
+  }
+  .portfolio-page.mode-dark .filter-pill.active {
+    background: var(--profile-accent);
+    color: #ffffff;
+    border-color: var(--profile-accent);
+  }
+
+  /* PLANTILLA CREATIVE VISUAL EN MODO OSCURO */
+  .portfolio-page.template-creative-visual.mode-dark .hero-section {
+    background: radial-gradient(circle at 50% 0%, rgba(236, 72, 153, 0.18) 0%, transparent 70%),
+                linear-gradient(180deg, #130e1c 0%, #090d16 100%);
+  }
+  .portfolio-page.template-creative-visual.mode-dark .service-card {
+    background: #141122;
+    border-color: rgba(236, 72, 153, 0.2);
+  }
+
+  /* PLANTILLA MODERN GRADIENT EN MODO OSCURO */
+  .portfolio-page.template-modern-gradient.mode-dark .hero-section {
+    background: radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.18) 0%, transparent 60%),
+                linear-gradient(180deg, #0d1527 0%, #090d16 100%);
+  }
 </style>
 
 <script>
-  // 1. Filtrado dinámico de proyectos
+  // Filtrado dinámico de proyectos por categoría
   const filterBtns = document.querySelectorAll('[data-filter]');
   const projectCards = document.querySelectorAll('.project-card');
 
@@ -1003,32 +1037,6 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
         }
       });
     });
-  });
-
-  // 2. Alternador de Modo Claro / Oscuro
-  const themeBtn = document.getElementById('theme-toggle-btn');
-  const iconMoon = themeBtn?.querySelector('.icon-moon') as HTMLElement;
-  const iconSun = themeBtn?.querySelector('.icon-sun') as HTMLElement;
-
-  const savedTheme = localStorage.getItem('folio_theme') || 'light';
-  applyTheme(savedTheme);
-
-  function applyTheme(theme: string) {
-    document.body.setAttribute('data-theme', theme);
-    if (theme === 'dark') {
-      if (iconMoon) iconMoon.style.display = 'none';
-      if (iconSun) iconSun.style.display = 'inline';
-    } else {
-      if (iconMoon) iconMoon.style.display = 'inline';
-      if (iconSun) iconSun.style.display = 'none';
-    }
-  }
-
-  themeBtn?.addEventListener('click', () => {
-    const current = document.body.getAttribute('data-theme') || 'light';
-    const next = current === 'dark' ? 'light' : 'dark';
-    applyTheme(next);
-    localStorage.setItem('folio_theme', next);
   });
 </script>
 
