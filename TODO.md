@@ -59,6 +59,8 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
   - [x] Nombre de marca fijado como **Folio**.
   - [x] Dashboard de Super Admin (`admin@portafolio.dev`) con métricas en tiempo real y directorio de usuarios registrados.
   - [x] Separación de accesos: Benjie (`benjiegonzalez94@gmail.com`) y Nahomi (`nahomimachuca@gmail.com`) gestionan sus respectivos perfiles.
+  - [x] Título limpio de la pestaña establecido como `Folio` (removido texto concatenado redundante).
+  - [x] Favicon oficial de **Folio** en SVG vectorial de alta resolución (`public/favicon.svg`) con isotipo `F` y gradiente azul-cian, reemplazando el antiguo `NM`.
 - [x] **Preferencia de Modo Oscuro / Claro en Onboarding (`/crear`)**:
   - [x] Selección dual en Paso 2: Plantilla Visual + Preferencia de Tema (🌙 Modo Oscuro vs ☀️ Modo Claro).
   - [x] Mockup interactivo en miniatura (*Live Mini Browser Preview*) que reacciona en tiempo real al nombre, iniciales, plantilla y modo seleccionado antes de generar.
@@ -70,4 +72,40 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
   - [x] Eliminación de botones administrativos públicos ("Gestionar datos") para visitantes externos.
   - [x] Eliminación de botones flotantes o desalineados de tema: el portafolio se renderiza puramente con la preferencia del autor (`mode-dark` o `mode-light`).
   - [x] Filtrado interactivo de proyectos por pills de categoría.
+- [x] **Despliegue a Producción**:
+  - [x] Fusión limpia de `develop` a `main` y despliegue automático exitoso en Vercel.
+
+---
+
+## 🌟 Fase 4: Optimización Multimedia, Hero Visual (Opción 4) & CMS Dinámico
+- [x] **Arquitectura Dinámica SSR en Vercel**:
+  - [x] Configuración de `@astrojs/vercel` con `output: 'server'` en `astro.config.mjs` para reflejar instantáneamente cambios de base de datos en `/[slug]` sin necesidad de redeploy.
+  - [x] Rutas de casos de estudio estáticas prerenderizadas con `prerender = true`.
+- [x] **Hero Split Card Visual (Opción 4)**:
+  - [x] Implementación de tarjeta de impacto visual en `src/pages/[slug].astro` dividida en dos columnas: marco de foto de perfil con badge en vivo a la izquierda y bio, CTA y redes a la derecha.
+  - [x] Renderizado de avatar subido por el usuario con bordes redondeados y glow sutil, fallback a iniciales si no hay foto.
+  - [x] Integración de barra social profesional (GitHub, LinkedIn, Instagram, Behance, X/Twitter, Sitio Web) con íconos SVG vectoriales.
+  - [x] Soporte completo de temas en modo oscuro (`mode-dark`) y claro (`mode-light`).
+- [x] **Optimización de Imágenes & Herramienta de Recorte (Cropper Tool)**:
+  - [x] Motor de compresión y redimensionado del lado del cliente (`src/lib/storage.ts`) con HTML5 Canvas convirtiendo a WebP (~80KB - 250KB) antes de subir a Supabase Storage.
+  - [x] Modal interactivo de recorte en `/admin`: ajuste de posición (arrastrar y soltar), zoom interactivo y marcos circulares (avatar) o rectangulares (proyectos).
+  - [x] Alivio dramático en tiempos de subida y ahorro de almacenamiento en Supabase.
+- [x] **Gestión Dinámica de Habilidades & Redes en `/admin`**:
+  - [x] Creación de columna `skills_data` (JSONB) y campos de redes sociales en tabla `public.profiles`.
+  - [x] Nueva pestaña **"Habilidades"** en `/admin` para crear, editar, ordenar y eliminar categorías y etiquetas de herramientas en tiempo real.
+  - [x] Nuevos campos de redes sociales en la pestaña "Datos Personales" vinculados al perfil.
+
+---
+
+## 🔮 Próxima Sesión: Mejoras y Nuevas Funcionalidades (Fase 5)
+- [ ] **Dominio & Presencia**:
+  - [ ] Asignar subdominio definitivo en Vercel (ej: `folio-app.vercel.app`) o vincular dominio personalizado propio.
+  - [ ] Generación de códigos QR descargables en `/admin` para compartir el enlace del portafolio en tarjetas de presentación o CVs.
+- [ ] **Experiencia del CMS / Editor**:
+  - [ ] Reordenamiento interactivo (Drag & Drop o flechas arriba/abajo) para proyectos, experiencias y servicios.
+  - [ ] Galería de imágenes múltiples por proyecto (soporte de carrusel/slideshow en el modal de detalle).
+  - [ ] Soporte para personalizar el mensaje predeterminado de WhatsApp desde el perfil.
+- [ ] **Métricas & Crecimiento**:
+  - [ ] Contador de visitas o clics en el botón de WhatsApp y enlaces externos de cada portafolio.
+  - [ ] Tarjetas Open Graph (OG Images) personalizadas dinámicamente con el nombre y avatar de cada usuario al compartir en redes sociales.
 

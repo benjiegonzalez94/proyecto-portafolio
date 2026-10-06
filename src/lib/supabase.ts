@@ -268,12 +268,16 @@ export async function getPortfolioBySlug(slug: string): Promise<FullPortfolio | 
           supabase.from('services').select('*').eq('profile_id', profile.id).order('order_index'),
         ]);
 
+        const userSkills = (profile.skills_data && Array.isArray(profile.skills_data) && profile.skills_data.length > 0)
+          ? profile.skills_data
+          : skills;
+
         return {
           profile: profile as Profile,
           experiences: (expRes.data as Experience[]) || [],
           projects: (projRes.data as Project[]) || [],
           services: (srvRes.data as Service[]) || [],
-          skillCategories: skills,
+          skillCategories: userSkills,
         };
       }
     } catch (e) {

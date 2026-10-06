@@ -21,6 +21,9 @@ export interface Profile {
   theme_accent?: string;
   theme_mode?: 'dark' | 'light' | string;
   template_id?: TemplateId | string;
+  twitter_url?: string;
+  website_url?: string;
+  skills_data?: SkillCategory[];
   created_at?: string;
   updated_at?: string;
 }
