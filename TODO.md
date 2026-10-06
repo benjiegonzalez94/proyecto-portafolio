@@ -59,6 +59,8 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
   - [x] Nombre de marca fijado como **Folio**.
   - [x] Dashboard de Super Admin (`admin@portafolio.dev`) con métricas en tiempo real y directorio de usuarios registrados.
   - [x] Separación de accesos: Benjie (`benjiegonzalez94@gmail.com`) y Nahomi (`nahomimachuca@gmail.com`) gestionan sus respectivos perfiles.
+  - [x] Título limpio de la pestaña establecido como `Folio` (removido texto concatenado redundante).
+  - [x] Favicon oficial de **Folio** en SVG vectorial de alta resolución (`public/favicon.svg`) con isotipo `F` y gradiente azul-cian, reemplazando el antiguo `NM`.
 - [x] **Preferencia de Modo Oscuro / Claro en Onboarding (`/crear`)**:
   - [x] Selección dual en Paso 2: Plantilla Visual + Preferencia de Tema (🌙 Modo Oscuro vs ☀️ Modo Claro).
   - [x] Mockup interactivo en miniatura (*Live Mini Browser Preview*) que reacciona en tiempo real al nombre, iniciales, plantilla y modo seleccionado antes de generar.
@@ -70,4 +72,20 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
   - [x] Eliminación de botones administrativos públicos ("Gestionar datos") para visitantes externos.
   - [x] Eliminación de botones flotantes o desalineados de tema: el portafolio se renderiza puramente con la preferencia del autor (`mode-dark` o `mode-light`).
   - [x] Filtrado interactivo de proyectos por pills de categoría.
+- [x] **Despliegue a Producción**:
+  - [x] Fusión limpia de `develop` a `main` y despliegue automático exitoso en Vercel.
+
+---
+
+## 🔮 Próxima Sesión: Mejoras y Nuevas Funcionalidades (Fase 4)
+- [ ] **Dominio & Presencia**:
+  - [ ] Asignar subdominio definitivo en Vercel (ej: `folio-app.vercel.app`) o vincular dominio personalizado propio.
+  - [ ] Generación de códigos QR descargables en `/admin` para compartir el enlace del portafolio en tarjetas de presentación o CVs.
+- [ ] **Experiencia del CMS / Editor**:
+  - [ ] Reordenamiento interactivo (Drag & Drop o flechas arriba/abajo) para proyectos, experiencias y servicios.
+  - [ ] Galería de imágenes múltiples por proyecto (soporte de carrusel/slideshow en el modal de detalle).
+  - [ ] Soporte para personalizar el mensaje predeterminado de WhatsApp desde el perfil.
+- [ ] **Métricas & Crecimiento**:
+  - [ ] Contador de visitas o clics en el botón de WhatsApp y enlaces externos de cada portafolio.
+  - [ ] Tarjetas Open Graph (OG Images) personalizadas dinámicamente con el nombre y avatar de cada usuario al compartir en redes sociales.
 
