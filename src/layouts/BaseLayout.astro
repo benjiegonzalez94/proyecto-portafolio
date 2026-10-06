@@ -38,8 +38,8 @@ const {
 } = Astro.props;
 
 const pageTitle = title 
-  ? (title.includes('—') || title.includes('|') || hideHeader ? title : `${title} | Portafolio`)
-  : (isHome ? 'Portfolio Builder — Plataforma de Portafolios Online' : site.name);
+  ? (title === 'Folio' || title.includes('—') || title.includes('|') || hideHeader ? title : `${title} | Folio`)
+  : (isHome ? 'Folio' : site.name);
 
 // URL canónica: sin barra final y sin index.html
 const canonical = new URL(Astro.url.pathname.replace(/\/index\.html$/, '/'), site.url).href;
@@ -106,14 +106,9 @@ const serviceSchema = {
     <meta name="author" content={site.name} />
     <link rel="canonical" href={canonical} />
 
-    <!-- Favicon dibujado con las iniciales: sin archivos externos -->
-    <link
-      rel="icon"
-      href={`data:image/svg+xml,${encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF2D78"/><stop offset="55%" stop-color="#7C3AED"/><stop offset="100%" stop-color="#06B6D4"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#g)"/><text x="32" y="43" font-family="Outfit,Segoe UI,sans-serif" font-size="30" font-weight="700" fill="#fff" text-anchor="middle">${site.initials}</text></svg>`
-      )}`}
-    />
-    <meta name="theme-color" content="#7C3AED" />
+    <!-- Favicon oficial de Folio -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#2563eb" />
 
     <!-- Cómo se ve el enlace al compartirlo en WhatsApp, Facebook, LinkedIn... -->
     <meta property="og:type" content="website" />
