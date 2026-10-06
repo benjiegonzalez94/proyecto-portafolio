@@ -15,7 +15,7 @@ import sitemap from '@astrojs/sitemap';
  * Documentación: https://docs.astro.build/es/reference/configuration-reference/
  */
 export default defineConfig({
-  site: 'https://nahomimachuca.com',
+  site: 'https://proyecto-portafolio-steel.vercel.app',
 
   // Salida 100% estática: se puede alojar gratis en Netlify, Vercel,
   // Cloudflare Pages o GitHub Pages sin necesidad de servidor Node.

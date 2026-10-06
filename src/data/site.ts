@@ -75,40 +75,40 @@ export const site = {
   /* ------------------------------------------------------------------ */
 
   /** Nombre tal como quieres que aparezca en grande. */
-  name: 'Nahomi Machuca',
+  name: 'Folio',
 
   /** Iniciales para el logo y el favicon (1 o 2 letras). */
-  initials: 'NM',
+  initials: 'F',
 
   /** Tu título profesional principal. */
-  role: 'Diseñadora Gráfica & Creadora de Contenido',
+  role: 'Plataforma de Portafolios Web Online',
 
   /** Frase potente de portada. Que sea tuya y breve. */
-  tagline: 'Convierto ideas en marcas que se ven, se sienten y se recuerdan.',
+  tagline: 'Crea y gestiona tu portafolio profesional en 1 minuto.',
 
   /** Párrafo de presentación de la portada (2 o 3 frases). */
   intro:
-    'Soy diseñadora gráfica en Manta, Ecuador. Combino el diseño, la edición de video y la estrategia de marketing con una mirada técnica —soy Ingeniera en TI y Magíster en Ciencia de Datos— para que cada marca comunique con claridad y con carácter.',
+    'Folio es la plataforma diseñada para que desarrolladores, diseñadores y profesionales creen, personalicen y compartan su portafolio online de alto impacto con CMS propio y hosting veloz.',
 
   /** Ciudad y país. */
-  location: 'Manta, Manabí — Ecuador',
+  location: 'Ecuador & Internacional',
 
   /** Texto de disponibilidad. Aparece como un distintivo verde. */
-  availability: 'Disponible para proyectos',
+  availability: 'Disponible para nuevos portafolios',
 
   /**
    * ⚠️ CAMBIA ESTOS DOS DATOS POR LOS REALES
    * El formulario de contacto los usa como destino.
    */
-  email: 'hola@nahomimachuca.com',
+  email: 'contacto@folio.dev',
   phone: '+593 99 000 0000',
 
   /** URL pública del sitio, igual que en astro.config.mjs. */
-  url: 'https://nahomimachuca.com',
+  url: 'https://proyecto-portafolio-steel.vercel.app',
 
   /** Descripción para Google (máximo ~155 caracteres). */
   metaDescription:
-    'Portafolio de Nahomi Machuca, diseñadora gráfica y creadora de contenido en Manta, Ecuador. Identidad visual, diseño digital, edición de video y marketing con estrategia.',
+    'Folio — Plataforma y generador de portafolios profesionales online. Diseños modernos, gestión de proyectos y hosting rápido.',
 
   /** Palabras clave para buscadores. */
   keywords: [
