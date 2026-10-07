@@ -268,8 +268,11 @@ export async function getPortfolioBySlug(slug: string): Promise<FullPortfolio | 
           supabase.from('services').select('*').eq('profile_id', profile.id).order('order_index'),
         ]);
 
-        const userSkills = (profile.skills_data && Array.isArray(profile.skills_data) && profile.skills_data.length > 0)
-          ? profile.skills_data
+        const userSkills = (profile.skills_data !== undefined && profile.skills_data !== null && Array.isArray(profile.skills_data))
+          ? (profile.skills_data as any[]).map((c) => ({
+              title: c.title || c.category || '',
+              skills: Array.isArray(c.skills) ? c.skills : [],
+            }))
           : skills;
 
         return {

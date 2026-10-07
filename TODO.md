@@ -90,10 +90,14 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
   - [x] Motor de compresión y redimensionado del lado del cliente (`src/lib/storage.ts`) con HTML5 Canvas convirtiendo a WebP (~80KB - 250KB) antes de subir a Supabase Storage.
   - [x] Modal interactivo de recorte en `/admin`: ajuste de posición (arrastrar y soltar), zoom interactivo y marcos circulares (avatar) o rectangulares (proyectos).
   - [x] Alivio dramático en tiempos de subida y ahorro de almacenamiento en Supabase.
-- [x] **Gestión Dinámica de Habilidades & Redes en `/admin`**:
-  - [x] Creación de columna `skills_data` (JSONB) y campos de redes sociales en tabla `public.profiles`.
-  - [x] Nueva pestaña **"Habilidades"** en `/admin` para crear, editar, ordenar y eliminar categorías y etiquetas de herramientas en tiempo real.
-  - [x] Nuevos campos de redes sociales en la pestaña "Datos Personales" vinculados al perfil.
+- [x] **Detección y Ocultamiento Inteligente de Secciones Vacías**:
+  - [x] Si un usuario elimina todas las experiencias, proyectos, servicios o habilidades, la sección correspondiente se oculta automáticamente en el portafolio en vivo (`[slug].astro`) sin dejar encabezados ni espacios en blanco.
+  - [x] Corrección en `getPortfolioBySlug` (`src/lib/supabase.ts`) para respetar arrays vacíos (`skills_data: []`) sin forzar los valores demo por defecto.
+  - [x] Mensajes informativos en `/admin` que indican claramente al usuario que las secciones vacías permanecen ocultas en su portafolio público hasta añadir contenido.
+- [x] **Corrección del Editor de Habilidades en CMS (`/admin`)**:
+  - [x] Solución al bug de títulos `undefined`: compatibilidad y normalización con la propiedad `title` de `SkillCategory`.
+  - [x] Sincronización en tiempo real y guardado confiable en Supabase (`profiles.skills_data`).
+  - [x] Inicialización automática con las habilidades de la plantilla cuando el usuario accede por primera vez a su panel.
 
 ---
 
