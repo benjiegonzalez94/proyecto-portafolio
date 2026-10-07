@@ -393,6 +393,7 @@ export async function createNewPortfolio(params: {
   templateId: string;
   themeAccent?: string;
   themeMode?: string;
+  avatarUrl?: string;
 }): Promise<{ profile: Profile | null; error: string | null }> {
   if (!supabase) {
     return { profile: null, error: 'Supabase no está configurado.' };
@@ -429,6 +430,7 @@ export async function createNewPortfolio(params: {
         template_id: params.templateId,
         theme_accent: accent,
         theme_mode: mode,
+        avatar_url: params.avatarUrl || null,
         hero_badge: 'Disponible para proyectos',
         bio: `¡Hola! Soy ${params.fullName}, especialista en ${params.headline}. Bienvenido a mi portafolio online donde presento mis proyectos más destacados, experiencia y servicios.`,
       })

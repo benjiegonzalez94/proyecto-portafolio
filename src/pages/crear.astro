@@ -112,6 +112,29 @@ import { AVAILABLE_TEMPLATES, isSupabaseConfigured } from '../lib/supabase';
                 </div>
               </div>
             </div>
+
+            <!-- FOTO DE PERFIL / AVATAR (OPCIONAL) -->
+            <div class="form-group full-width">
+              <label for="avatar-file-input">Foto de Perfil (Opcional)</label>
+              <div class="avatar-uploader-card">
+                <div class="avatar-thumb-box" id="avatar-thumb-box">
+                  <img id="avatar-thumb-preview" src="" alt="Foto" style="display: none;" />
+                  <div id="avatar-thumb-initials" class="avatar-thumb-initials">TU</div>
+                </div>
+                <div class="avatar-uploader-actions">
+                  <label for="avatar-file-input" class="btn-avatar-upload">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                      <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                    <span>Subir Foto de Perfil</span>
+                  </label>
+                  <input type="file" id="avatar-file-input" accept="image/*" style="display: none;" />
+                  <button type="button" id="btn-remove-avatar" class="btn-remove-avatar" style="display: none;">Quitar foto seleccionada</button>
+                  <p class="avatar-upload-hint">Sube tu fotografía (JPG, PNG o WebP). Se verá en la vista previa y en tu diseño Split Card.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -234,19 +257,34 @@ import { AVAILABLE_TEMPLATES, isSupabaseConfigured } from '../lib/supabase';
                 </div>
               </div>
 
-              <!-- Ventana del Portafolio Miniatura -->
+              <!-- Ventana del Portafolio Miniatura (Opción 4: Split Card Visual) -->
               <div class="mini-viewport-content">
-                <div class="mini-hero-block">
-                  <div class="mini-avatar-circle" id="mini-avatar-initials">TU</div>
-                  <div class="mini-status-chip">
-                    <span class="mini-dot"></span>
-                    <span>Disponible para proyectos</span>
+                <div class="mini-hero-split-card">
+                  <!-- Columna Visual: Tarjeta de Avatar Squircle + Badge Flotante Anclado -->
+                  <div class="mini-visual-col">
+                    <div class="mini-avatar-card">
+                      <div class="mini-avatar-frame">
+                        <img id="mini-avatar-img" src="" alt="Avatar" style="display: none;" class="mini-avatar-img" />
+                        <div class="mini-avatar-fallback" id="mini-avatar-fallback">
+                          <span id="mini-avatar-initials">TU</span>
+                        </div>
+                        <div class="mini-avatar-overlay"></div>
+                      </div>
+                      <div class="mini-hero-badge">
+                        <span class="mini-dot"></span>
+                        <span>Disponible para proyectos</span>
+                      </div>
+                    </div>
                   </div>
-                  <div class="mini-full-name" id="mini-name-text">Tu Nombre Completo</div>
-                  <div class="mini-role-title" id="mini-headline-text">Tu Especialidad o Rol Profesional</div>
-                  <div class="mini-cta-btn-wrap">
-                    <div class="mini-button-accent">
-                      <span>Conversar por WhatsApp</span>
+
+                  <!-- Columna Info: Nombre Completo, Rol Profesional y Botón de Acción -->
+                  <div class="mini-info-col">
+                    <div class="mini-full-name" id="mini-name-text">Tu Nombre Completo</div>
+                    <div class="mini-role-title" id="mini-headline-text">Tu Especialidad o Rol Profesional</div>
+                    <div class="mini-cta-btn-wrap">
+                      <div class="mini-button-accent">
+                        <span>Conversar por WhatsApp</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -342,14 +380,24 @@ import { AVAILABLE_TEMPLATES, isSupabaseConfigured } from '../lib/supabase';
 
 <script>
   import { supabase, isSupabaseConfigured, createNewPortfolio } from '../lib/supabase';
+  import { uploadMediaFile } from '../lib/storage';
 
   // Referencias de elementos para el Mini Mockup en Vivo
   const miniBrowserPreview = document.getElementById('mini-browser-preview') as HTMLElement;
   const previewStatusPill = document.getElementById('preview-status-pill') as HTMLElement;
   const miniUrlText = document.getElementById('mini-url-text') as HTMLElement;
   const miniAvatarInitials = document.getElementById('mini-avatar-initials') as HTMLElement;
+  const miniAvatarImg = document.getElementById('mini-avatar-img') as HTMLImageElement;
+  const miniAvatarFallback = document.getElementById('mini-avatar-fallback') as HTMLElement;
   const miniNameText = document.getElementById('mini-name-text') as HTMLElement;
   const miniHeadlineText = document.getElementById('mini-headline-text') as HTMLElement;
+
+  // Selector de Foto en Paso 1
+  const avatarFileInput = document.getElementById('avatar-file-input') as HTMLInputElement;
+  const avatarThumbPreview = document.getElementById('avatar-thumb-preview') as HTMLImageElement;
+  const avatarThumbInitials = document.getElementById('avatar-thumb-initials') as HTMLElement;
+  const btnRemoveAvatar = document.getElementById('btn-remove-avatar') as HTMLButtonElement;
+  let selectedAvatarFile: File | null = null;
 
   let currentTemplateName = 'Tech Minimal';
   let currentTemplateAccent = '#2563eb';
@@ -414,19 +462,59 @@ import { AVAILABLE_TEMPLATES, isSupabaseConfigured } from '../lib/supabase';
   let userManuallyEditedSlug = false;
 
   function updateInitials(name: string) {
-    if (!miniAvatarInitials) return;
     const clean = name.trim();
-    if (!clean) {
-      miniAvatarInitials.textContent = 'TU';
-      return;
+    let inits = 'TU';
+    if (clean) {
+      const parts = clean.split(' ').filter(Boolean);
+      if (parts.length >= 2) {
+        inits = (parts[0][0] + parts[1][0]).toUpperCase();
+      } else {
+        inits = clean.slice(0, 2).toUpperCase();
+      }
     }
-    const parts = clean.split(' ').filter(Boolean);
-    if (parts.length >= 2) {
-      miniAvatarInitials.textContent = (parts[0][0] + parts[1][0]).toUpperCase();
-    } else {
-      miniAvatarInitials.textContent = clean.slice(0, 2).toUpperCase();
-    }
+    if (miniAvatarInitials) miniAvatarInitials.textContent = inits;
+    if (avatarThumbInitials) avatarThumbInitials.textContent = inits;
   }
+
+  // Manejo de carga de foto de perfil
+  avatarFileInput?.addEventListener('change', () => {
+    const file = avatarFileInput.files?.[0];
+    if (!file) return;
+
+    selectedAvatarFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      if (avatarThumbPreview && avatarThumbInitials) {
+        avatarThumbPreview.src = result;
+        avatarThumbPreview.style.display = 'block';
+        avatarThumbInitials.style.display = 'none';
+      }
+      if (miniAvatarImg && miniAvatarFallback) {
+        miniAvatarImg.src = result;
+        miniAvatarImg.style.display = 'block';
+        miniAvatarFallback.style.display = 'none';
+      }
+      if (btnRemoveAvatar) btnRemoveAvatar.style.display = 'inline-block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  btnRemoveAvatar?.addEventListener('click', () => {
+    selectedAvatarFile = null;
+    if (avatarFileInput) avatarFileInput.value = '';
+    if (avatarThumbPreview && avatarThumbInitials) {
+      avatarThumbPreview.src = '';
+      avatarThumbPreview.style.display = 'none';
+      avatarThumbInitials.style.display = 'flex';
+    }
+    if (miniAvatarImg && miniAvatarFallback) {
+      miniAvatarImg.src = '';
+      miniAvatarImg.style.display = 'none';
+      miniAvatarFallback.style.display = 'flex';
+    }
+    if (btnRemoveAvatar) btnRemoveAvatar.style.display = 'none';
+  });
 
   // 3. Slugs reservados por el sistema (rutas de la app)
   const RESERVED_SLUGS = new Set([
@@ -697,7 +785,20 @@ import { AVAILABLE_TEMPLATES, isSupabaseConfigured } from '../lib/supabase';
         return;
       }
 
-      // 2. Crear portafolio base (perfil con tema configurado, proyectos y servicios iniciales)
+      // 2. Subir avatar si el usuario seleccionó uno
+      let uploadedAvatarUrl: string | undefined = undefined;
+      if (selectedAvatarFile) {
+        try {
+          const uploadResult = await uploadMediaFile(selectedAvatarFile, 'avatars', slug);
+          if (uploadResult.url) {
+            uploadedAvatarUrl = uploadResult.url;
+          }
+        } catch (uploadErr) {
+          console.warn('No se pudo subir la foto en registro inicial, el usuario podrá subirla en su panel:', uploadErr);
+        }
+      }
+
+      // 3. Crear portafolio base (perfil con tema configurado, avatar, proyectos y servicios iniciales)
       const { profile, error: portError } = await createNewPortfolio({
         userId,
         slug,
@@ -706,6 +807,7 @@ import { AVAILABLE_TEMPLATES, isSupabaseConfigured } from '../lib/supabase';
         email,
         templateId: selectedTemplate,
         themeMode: selectedThemeMode,
+        avatarUrl: uploadedAvatarUrl,
       });
 
       if (portError) {
@@ -1437,8 +1539,84 @@ import { AVAILABLE_TEMPLATES, isSupabaseConfigured } from '../lib/supabase';
     font-weight: 500;
   }
 
+  /* AVATAR UPLOADER EN PASO 1 */
+  .avatar-uploader-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1rem 1.25rem;
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 1rem;
+    margin-top: 0.25rem;
+  }
+  .avatar-thumb-box {
+    width: 68px;
+    height: 68px;
+    border-radius: 1rem;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #2563eb, #0f172a);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    position: relative;
+  }
+  .avatar-thumb-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .avatar-thumb-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 1.35rem;
+    font-weight: 800;
+  }
+  .avatar-uploader-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    align-items: flex-start;
+  }
+  .btn-avatar-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.6rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #f1f5f9;
+    font-size: 0.825rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-avatar-upload:hover {
+    background: rgba(37, 99, 235, 0.2);
+    border-color: #3b82f6;
+    color: #ffffff;
+  }
+  .btn-remove-avatar {
+    background: none;
+    border: none;
+    color: #ef4444;
+    font-size: 0.78rem;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+  }
+  .avatar-upload-hint {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #94a3b8;
+  }
+
   .mini-viewport-content {
-    padding: 2rem 1.5rem;
+    padding: 1.75rem 1.25rem;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1447,50 +1625,100 @@ import { AVAILABLE_TEMPLATES, isSupabaseConfigured } from '../lib/supabase';
     transition: all 0.3s ease;
   }
 
-  .mini-hero-block {
+  /* MINI HERO (Opción 4: Split Card Visual) */
+  .mini-hero-split-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.6rem;
-    max-width: 500px;
+    gap: 1.25rem;
     width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  @media (min-width: 520px) {
+    .mini-hero-split-card {
+      flex-direction: row;
+      align-items: center;
+      text-align: left;
+      gap: 1.5rem;
+    }
   }
 
-  .mini-avatar-circle {
-    width: 60px;
-    height: 60px;
-    border-radius: 1.25rem;
+  .mini-visual-col {
+    flex-shrink: 0;
+  }
+  .mini-avatar-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+  .mini-avatar-frame {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    border-radius: 1.35rem;
+    overflow: hidden;
     background: linear-gradient(135deg, var(--mini-accent, #2563eb), #0f172a);
-    color: #ffffff;
+    transition: all 0.3s ease;
+  }
+  .mini-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
+  .mini-avatar-fallback {
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.35rem;
+    color: #ffffff;
+    font-size: 1.85rem;
     font-weight: 800;
-    box-shadow: 0 8px 18px -4px var(--mini-accent, #2563eb);
-    margin-bottom: 0.25rem;
-    transition: all 0.2s ease;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--mini-accent, #2563eb), #0f172a);
   }
-
-  .mini-status-chip {
+  .mini-avatar-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  }
+  .mini-hero-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
     padding: 0.2rem 0.6rem;
     border-radius: 9999px;
-    font-size: 0.72rem;
+    font-size: 0.65rem;
     font-weight: 600;
+    margin-top: -10px;
+    z-index: 2;
+    position: relative;
+    white-space: nowrap;
+    transition: all 0.2s ease;
   }
 
-  .mini-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #22c55e;
+  .mini-info-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    width: 100%;
+  }
+  @media (min-width: 520px) {
+    .mini-info-col {
+      align-items: flex-start;
+    }
   }
 
   .mini-full-name {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     font-weight: 800;
     letter-spacing: -0.02em;
     line-height: 1.2;
@@ -1498,7 +1726,7 @@ import { AVAILABLE_TEMPLATES, isSupabaseConfigured } from '../lib/supabase';
   }
 
   .mini-role-title {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     font-weight: 700;
     color: var(--mini-accent, #2563eb);
     transition: color 0.2s ease;
@@ -1596,9 +1824,14 @@ import { AVAILABLE_TEMPLATES, isSupabaseConfigured } from '../lib/supabase';
   .preview-mode-dark .mini-viewport-content {
     background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.12) 0%, transparent 60%), #090d16;
   }
-  .preview-mode-dark .mini-status-chip {
-    background: rgba(34, 197, 94, 0.15);
+  .preview-mode-dark .mini-avatar-frame {
+    box-shadow: 0 14px 28px -8px rgba(0, 0, 0, 0.7), 0 0 0 3px rgba(255, 255, 255, 0.1);
+  }
+  .preview-mode-dark .mini-hero-badge {
+    background: #0f172a;
     color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   }
   .preview-mode-dark .mini-full-name {
     color: #ffffff;
@@ -1633,9 +1866,14 @@ import { AVAILABLE_TEMPLATES, isSupabaseConfigured } from '../lib/supabase';
   .preview-mode-light .mini-viewport-content {
     background: radial-gradient(circle at 50% 0%, rgba(241, 245, 249, 0.9) 0%, transparent 70%), #ffffff;
   }
-  .preview-mode-light .mini-status-chip {
-    background: rgba(34, 197, 94, 0.12);
+  .preview-mode-light .mini-avatar-frame {
+    box-shadow: 0 14px 28px -8px rgba(15, 23, 42, 0.18), 0 0 0 3px rgba(255, 255, 255, 0.9);
+  }
+  .preview-mode-light .mini-hero-badge {
+    background: #ffffff;
     color: #16a34a;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
   }
   .preview-mode-light .mini-full-name {
     color: #0f172a;

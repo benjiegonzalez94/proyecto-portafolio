@@ -74,6 +74,16 @@ const profiles = await getAllProfiles();
         </div>
 
         <div class="profile-actions-header">
+          <button type="button" id="btn-open-qr" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.6rem 1rem; font-weight: 600;" title="Generar código QR de tu portafolio">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect width="6" height="6" x="3" y="3" rx="1"/>
+              <rect width="6" height="6" x="15" y="3" rx="1"/>
+              <rect width="6" height="6" x="3" y="15" rx="1"/>
+              <path d="M15 15h2v2h-2zM19 19h2v2h-2zM15 19h2v2h-2zM19 15h2v2h-2z"/>
+            </svg>
+            <span>Código QR</span>
+          </button>
+
           <a id="btn-view-live" href="/benjie" target="_blank" class="btn btn-live">
             <span>Ver Portafolio en Vivo</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -485,6 +495,50 @@ const profiles = await getAllProfiles();
         <button type="button" id="crop-btn-cancel" class="btn btn-outline">Cancelar</button>
         <button type="button" id="crop-btn-confirm" class="btn btn-primary">
           <span id="crop-btn-text">Optimizar y Subir</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CÓDIGO QR -->
+  <div id="modal-qr" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 420px; text-align: center;">
+      <div class="modal-header" style="justify-content: space-between;">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.5rem;">
+          <span>📱</span>
+          <span>Código QR de tu Portafolio</span>
+        </h3>
+        <button type="button" class="btn-close-modal" id="qr-btn-close">✕</button>
+      </div>
+
+      <div class="modal-body" style="padding: 1.5rem 1rem;">
+        <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1.25rem;">
+          Comparte tu portafolio escaneando este código desde cualquier smartphone o descárgalo para tus tarjetas de presentación y CVs.
+        </p>
+
+        <!-- Contenedor del QR -->
+        <div style="background: #ffffff; padding: 1.25rem; border-radius: 1.25rem; display: inline-block; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; margin-bottom: 1rem;">
+          <img id="qr-code-img" src="" alt="Código QR del Portafolio" style="width: 220px; height: 220px; display: block; margin: 0 auto;" />
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.6rem 0.9rem; border-radius: 0.6rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.5rem;">
+          <span id="qr-target-url" style="font-size: 0.85rem; font-weight: 600; color: #0f172a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            folioweb.vercel.app/benjie
+          </span>
+          <button type="button" id="btn-copy-qr-link" class="btn btn-sm btn-outline" style="white-space: nowrap; padding: 0.35rem 0.65rem;">
+            Copiar
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="justify-content: center; gap: 0.75rem;">
+        <button type="button" id="btn-download-qr" class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Descargar Código QR (PNG)</span>
         </button>
       </div>
     </div>
@@ -1392,6 +1446,71 @@ const profiles = await getAllProfiles();
 
       populateProfileForm(currentPortfolio);
     });
+  });
+
+  // ==========================================
+  // 11.1 MODAL DE CÓDIGO QR Y DESCARGA
+  // ==========================================
+  const modalQr = document.getElementById('modal-qr') as HTMLElement;
+  const qrCodeImg = document.getElementById('qr-code-img') as HTMLImageElement;
+  const qrTargetUrl = document.getElementById('qr-target-url') as HTMLElement;
+  const btnOpenQr = document.getElementById('btn-open-qr');
+  const btnCloseQr = document.getElementById('qr-btn-close');
+  const btnCopyQrLink = document.getElementById('btn-copy-qr-link');
+  const btnDownloadQr = document.getElementById('btn-download-qr');
+
+  btnOpenQr?.addEventListener('click', () => {
+    const slug = currentSlug || 'benjie';
+    const fullUrl = `https://folioweb.vercel.app/${slug}`;
+    const cleanDisplayUrl = `folioweb.vercel.app/${slug}`;
+
+    if (qrTargetUrl) qrTargetUrl.textContent = cleanDisplayUrl;
+
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(fullUrl)}&margin=10`;
+    if (qrCodeImg) qrCodeImg.src = qrApiUrl;
+
+    if (modalQr) modalQr.style.display = 'flex';
+  });
+
+  btnCloseQr?.addEventListener('click', () => {
+    if (modalQr) modalQr.style.display = 'none';
+  });
+
+  modalQr?.addEventListener('click', (e) => {
+    if (e.target === modalQr) modalQr.style.display = 'none';
+  });
+
+  btnCopyQrLink?.addEventListener('click', async () => {
+    const slug = currentSlug || 'benjie';
+    const fullUrl = `https://folioweb.vercel.app/${slug}`;
+    try {
+      await navigator.clipboard.writeText(fullUrl);
+      showToast('Enlace copiado al portapapeles', 'success');
+    } catch {
+      showToast(fullUrl, 'info');
+    }
+  });
+
+  btnDownloadQr?.addEventListener('click', async () => {
+    const slug = currentSlug || 'benjie';
+    const fullUrl = `https://folioweb.vercel.app/${slug}`;
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(fullUrl)}&margin=15`;
+
+    try {
+      showToast('Preparando descarga del QR...', 'info');
+      const res = await fetch(qrApiUrl);
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `codigo-qr-folio-${slug}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      showToast('Código QR descargado exitosamente', 'success');
+    } catch (e) {
+      window.open(qrApiUrl, '_blank');
+    }
   });
 
   // ==========================================

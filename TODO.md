@@ -106,12 +106,17 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
   - [x] Conversión inteligente de caracteres especiales (ñ $\rightarrow$ n, acentos $\rightarrow$ vocales limpias, espacios $\rightarrow$ guiones `-`).
   - [x] Botón interactivo "Sincronizar con mi nombre" para regenerar el enlace derivado del nombre completo con un solo clic.
 
+- [x] **Actualización de Foto y Vista Previa en Onboarding (`/crear`)**:
+  - [x] Adaptación completa de la vista previa en vivo (*Live Mini Preview*) al diseño **Split Card Visual (Opción 4)**: marco squircle con fondo gradiente, badge de estado anclado abajo y columna de datos.
+  - [x] Incorporación de selector de fotografía de perfil opcional en el Paso 1 con previsualización en tiempo real.
+  - [x] Soporte de carga directa de fotografía en `createNewPortfolio` a Supabase Storage (`portfolio-media/avatars`).
+  - [x] Dinamización del saludo predeterminado de WhatsApp por perfil en `[slug].astro`.
+
 ---
 
-## 🔮 Próxima Sesión: Mejoras y Nuevas Funcionalidades (Fase 5)
-- [ ] **Dominio & Presencia**:
-  - [ ] Asignar subdominio definitivo en Vercel (ej: `folio-app.vercel.app`) o vincular dominio personalizado propio.
-  - [ ] Generación de códigos QR descargables en `/admin` para compartir el enlace del portafolio en tarjetas de presentación o CVs.
+## 🔮 Fase 5: Mejoras de Presencia & Crecimiento
+- [x] **Dominio & Presencia**:
+  - [x] Generación de códigos QR descargables en `/admin` para compartir el enlace del portafolio en tarjetas de presentación o CVs.
 - [ ] **Experiencia del CMS / Editor**:
   - [ ] Reordenamiento interactivo (Drag & Drop o flechas arriba/abajo) para proyectos, experiencias y servicios.
   - [ ] Galería de imágenes múltiples por proyecto (soporte de carrusel/slideshow en el modal de detalle).
