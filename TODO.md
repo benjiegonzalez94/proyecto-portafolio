@@ -98,9 +98,13 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
   - [x] Solución al bug de títulos `undefined`: compatibilidad y normalización con la propiedad `title` de `SkillCategory`.
   - [x] Sincronización en tiempo real y guardado confiable en Supabase (`profiles.skills_data`).
   - [x] Inicialización automática con las habilidades de la plantilla cuando el usuario accede por primera vez a su panel.
-- [x] **Optimización de UX en el Panel de Administración (`/admin`)**:
-  - [x] Eliminación del menú desplegable `<select>` innecesario para el usuario logueado; sustitución por un encabezado elegante con nombre, especialidad y chip interactivo del enlace público (`folio / slug`).
-  - [x] Eliminación del botón redundante "👁️ Vista Previa" y su modal en `/admin`, manteniendo únicamente la acción directa "Ver Portafolio en Vivo ↗" en una pestaña nueva. (La vista previa interactiva antes de generar el portafolio por primera vez se mantiene exclusiva en `/crear`).
+- [x] **Optimización del Formulario de Enlace Personal (`/crear`)**:
+  - [x] Unificación del prefijo de dominio a `folioweb.vercel.app/` en el formulario y en la barra de direcciones del mini mockup.
+  - [x] Comprobación de disponibilidad de enlace en tiempo real contra Supabase (Live Check con debounce) e indicador visual de estado (✓ Disponible, ✕ Ya ocupado, ⏳ Comprobando).
+  - [x] Protección contra slugs reservados del sistema (`admin`, `login`, `crear`, `api`, `dashboard`, `portfolio`, etc.).
+  - [x] Generación de sugerencias automáticas alternativas clickeables cuando el enlace deseado ya está en uso.
+  - [x] Conversión inteligente de caracteres especiales (ñ $\rightarrow$ n, acentos $\rightarrow$ vocales limpias, espacios $\rightarrow$ guiones `-`).
+  - [x] Botón interactivo "Sincronizar con mi nombre" para regenerar el enlace derivado del nombre completo con un solo clic.
 
 ---
 
