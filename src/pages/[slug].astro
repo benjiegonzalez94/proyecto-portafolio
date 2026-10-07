@@ -34,18 +34,6 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
 <BaseLayout title={pageTitle} description={profile.bio} image={profile.avatar_url || '/og-image.svg'} hideHeader={true} hideFooter={true}>
   <main class={`portfolio-page template-${profile.template_id || 'tech-minimal'} mode-${profile.theme_mode || 'dark'}`} style={`--profile-accent: ${profile.theme_accent || '#2563eb'};`}>
     
-    <!-- BARRA SUPERIOR DE NAVEGACIÓN -->
-    <nav class="top-nav" aria-label="Navegación del perfil">
-      <div class="container top-nav__inner">
-        <a href="/" class="top-nav__back" title="Volver al Portal Folio">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-          <span class="portal-brand-tag">Folio</span>
-        </a>
-      </div>
-    </nav>
-
     <!-- HERO SECTION -->
     <!-- HERO SECTION (Opción 4: Split Card Visual) -->
     <header class="hero-section">
@@ -455,34 +443,6 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
     padding: 0 1.5rem;
   }
 
-  /* TOP NAV */
-  .top-nav {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    position: sticky;
-    top: 0;
-    z-index: 40;
-  }
-  .top-nav__inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 3.75rem;
-  }
-  .top-nav__back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 600;
-    font-size: 0.9375rem;
-    color: #475569;
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-  .top-nav__back:hover {
-    color: var(--profile-accent);
-  }
 
   /* HERO (Opción 4: Split Card Visual) */
   .hero-section {
@@ -1157,16 +1117,6 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
   .portfolio-page.mode-dark {
     background: #090d16;
     color: #f8fafc;
-  }
-  .portfolio-page.mode-dark .top-nav {
-    background: rgba(9, 13, 22, 0.85);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  .portfolio-page.mode-dark .top-nav__back {
-    color: #94a3b8;
-  }
-  .portfolio-page.mode-dark .top-nav__back:hover {
-    color: #ffffff;
   }
   .portfolio-page.mode-dark .hero-section {
     background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.15) 0%, transparent 60%), #0b1120;
