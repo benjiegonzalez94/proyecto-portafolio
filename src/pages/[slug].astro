@@ -22,7 +22,9 @@ const whatsappPhone = profile.phone || '593900000000';
 const whatsappCleanNumber = whatsappPhone.replace(/[^0-9]/g, '');
 const whatsappDefaultMsg = isBenjie
   ? 'Hola Benjie, vi tu portafolio y me gustaría cotizar un proyecto de TI.'
-  : 'Hola Nahomi, vi tu portafolio y me gustaría cotizar un proyecto creativo.';
+  : (profile.slug === 'nahomi'
+    ? 'Hola Nahomi, vi tu portafolio y me gustaría cotizar un proyecto creativo.'
+    : `Hola ${profile.full_name}, vi tu portafolio y me gustaría conversar sobre un proyecto.`);
 const whatsappUrl = `https://wa.me/${whatsappCleanNumber}?text=${encodeURIComponent(whatsappDefaultMsg)}`;
 
 const rawCategories = projects.map((p) => p.category?.trim()).filter(Boolean) as string[];
