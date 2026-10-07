@@ -118,7 +118,7 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
 - [x] **Dominio & Presencia**:
   - [x] Generación de códigos QR descargables en `/admin` para compartir el enlace del portafolio en tarjetas de presentación o CVs.
 - [x] **Experiencia del CMS / Editor**:
-  - [x] Reordenamiento intuitivo por arrastre (**Drag & Drop** nativo con manijas táctiles/ratón `⠿`, indicador de línea de inserción superior/inferior, elevación visual y botones accesibles `▲` `▼`) para proyectos, experiencias y servicios con sincronización instantánea de `order_index` en Supabase.
+  - [x] Reordenamiento intuitivo exclusivamente por arrastre (**Drag & Drop** nativo con manijas dedicadas `⠿`, indicador de línea de inserción superior/inferior, elevación visual y sin flechas redundantes) para proyectos, experiencias y servicios con sincronización instantánea de `order_index` en Supabase.
   - [x] Galería de imágenes múltiples por proyecto (`gallery_images TEXT[]` en Supabase): carga masiva optimizada en Supabase Storage, miniaturas y eliminación individual en `/admin`.
   - [x] Visor Lightbox interactivo (slideshow/carrusel modal con teclado, flechas ‹ ›, contador de fotos y botón directo de WhatsApp) en el portafolio público (`[slug].astro`).
   - [x] Soporte para personalizar el mensaje predeterminado de WhatsApp (`whatsapp_message`) desde el perfil en el CMS.
