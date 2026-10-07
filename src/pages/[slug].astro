@@ -20,18 +20,18 @@ const pageTitle = `${profile.full_name} — ${profile.headline}`;
 const isBenjie = profile.slug === 'benjie';
 const whatsappPhone = profile.phone || '593900000000';
 const whatsappCleanNumber = whatsappPhone.replace(/[^0-9]/g, '');
-const whatsappDefaultMsg = isBenjie
+const whatsappDefaultMsg = profile.whatsapp_message || (isBenjie
   ? 'Hola Benjie, vi tu portafolio y me gustaría cotizar un proyecto de TI.'
   : (profile.slug === 'nahomi'
     ? 'Hola Nahomi, vi tu portafolio y me gustaría cotizar un proyecto creativo.'
-    : `Hola ${profile.full_name}, vi tu portafolio y me gustaría conversar sobre un proyecto.`);
+    : `Hola ${profile.full_name}, vi tu portafolio y me gustaría conversar sobre un proyecto.`));
 const whatsappUrl = `https://wa.me/${whatsappCleanNumber}?text=${encodeURIComponent(whatsappDefaultMsg)}`;
 
 const rawCategories = projects.map((p) => p.category?.trim()).filter(Boolean) as string[];
 const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new Set(rawCategories))] : [];
 ---
 
-<BaseLayout title={pageTitle} description={profile.bio} hideHeader={true} hideFooter={true}>
+<BaseLayout title={pageTitle} description={profile.bio} image={profile.avatar_url || '/og-image.svg'} hideHeader={true} hideFooter={true}>
   <main class={`portfolio-page template-${profile.template_id || 'tech-minimal'} mode-${profile.theme_mode || 'dark'}`} style={`--profile-accent: ${profile.theme_accent || '#2563eb'};`}>
     
     <!-- BARRA SUPERIOR DE NAVEGACIÓN -->
@@ -219,38 +219,78 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
           )}
 
           <div class="projects-grid" id="projects-grid-container">
-            {projects.map((proj) => (
-              <article class="project-card" data-category={proj.category || 'General'}>
-                {proj.image_url && (
-                  <div class="project-card__image-wrap">
-                    <img src={proj.image_url} alt={proj.title} class="project-card__img" loading="lazy" />
-                  </div>
-                )}
-                <div class="project-card__content">
-                  {proj.category && <span class="project-category">{proj.category}</span>}
-                  <h3 class="project-title">{proj.title}</h3>
-                  <p class="project-desc">{proj.description}</p>
-                  
-                  {proj.tags && proj.tags.length > 0 && (
-                    <div class="project-tags">
-                      {proj.tags.map((tag) => (
-                        <span class="tag-pill">{tag}</span>
-                      ))}
+            {projects.map((proj, pIdx) => {
+              const allPhotos = [proj.image_url, ...(proj.gallery_images || [])].filter(Boolean) as string[];
+              const hasGallery = allPhotos.length > 1;
+              return (
+                <article class="project-card" data-category={proj.category || 'General'}>
+                  {proj.image_url && (
+                    <div 
+                      class="project-card__image-wrap" 
+                      role="button" 
+                      tabindex="0" 
+                      data-lightbox-trigger={pIdx}
+                      title={hasGallery ? `Ver galería (${allPhotos.length} fotos)` : 'Ampliar imagen del proyecto'}
+                    >
+                      <img src={proj.image_url} alt={proj.title} class="project-card__img" loading="lazy" />
+                      {hasGallery && (
+                        <span class="project-gallery-badge">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                            <circle cx="9" cy="9" r="2"/>
+                            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                          </svg>
+                          <span>+{proj.gallery_images?.length} fotos</span>
+                        </span>
+                      )}
+                      <div class="project-card__image-overlay">
+                        <span>🔍 {hasGallery ? 'Ver Galería' : 'Ampliar'}</span>
+                      </div>
                     </div>
                   )}
+                  <div class="project-card__content">
+                    <div class="project-card__header-row">
+                      {proj.category && <span class="project-category">{proj.category}</span>}
+                      {hasGallery && (
+                        <button type="button" class="btn-gallery-pill" data-lightbox-trigger={pIdx}>
+                          📷 {allPhotos.length} fotos
+                        </button>
+                      )}
+                    </div>
+                    <h3 class="project-title">{proj.title}</h3>
+                    <p class="project-desc">{proj.description}</p>
+                    
+                    {proj.tags && proj.tags.length > 0 && (
+                      <div class="project-tags">
+                        {proj.tags.map((tag) => (
+                          <span class="tag-pill">{tag}</span>
+                        ))}
+                      </div>
+                    )}
 
-                  <div class="project-links">
-                    <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="link-btn">
-                      Consultar este servicio
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M5 12h14"/>
-                        <path d="m12 5 7 7-7 7"/>
-                      </svg>
-                    </a>
+                    <div class="project-links">
+                      <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="link-btn">
+                        Consultar este servicio
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M5 12h14"/>
+                          <path d="m12 5 7 7-7 7"/>
+                        </svg>
+                      </a>
+                      {proj.live_url && (
+                        <a href={proj.live_url} target="_blank" rel="noopener noreferrer" class="link-btn link-btn--secondary" title="Ver enlace o demo">
+                          Demo
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                            <polyline points="15 3 21 3 21 9"/>
+                            <line x1="10" y1="14" x2="21" y2="3"/>
+                          </svg>
+                        </a>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -340,6 +380,64 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
       </svg>
       <span class="whatsapp-tooltip">¿Conversamos?</span>
     </a>
+
+    <!-- MODAL LIGHTBOX INTERACTIVO (GALERÍA & SLIDESHOW DE PROYECTOS) -->
+    <div id="project-lightbox" class="lightbox-overlay" style="display: none;" aria-hidden="true">
+      <div class="lightbox-backdrop" id="lightbox-backdrop"></div>
+      
+      <div class="lightbox-modal">
+        <!-- Encabezado del Visor -->
+        <div class="lightbox-header">
+          <div class="lightbox-header-text">
+            <span id="lightbox-badge-cat" class="lightbox-badge-cat">General</span>
+            <h3 id="lightbox-title" class="lightbox-title">Título del Proyecto</h3>
+          </div>
+          <div class="lightbox-header-ctrls">
+            <span id="lightbox-counter" class="lightbox-counter">1 / 1</span>
+            <button type="button" id="lightbox-close" class="lightbox-btn-close" aria-label="Cerrar visor">✕</button>
+          </div>
+        </div>
+
+        <!-- Área Central del Visor de Imagen -->
+        <div class="lightbox-viewport">
+          <button type="button" id="lightbox-prev" class="lightbox-nav-btn lightbox-nav-prev" aria-label="Foto anterior">
+            ‹
+          </button>
+          <div class="lightbox-img-container">
+            <img id="lightbox-current-img" src="" alt="Vista del proyecto" />
+          </div>
+          <button type="button" id="lightbox-next" class="lightbox-nav-btn lightbox-nav-next" aria-label="Foto siguiente">
+            ›
+          </button>
+        </div>
+
+        <!-- Barra Inferior: Miniaturas y Acciones -->
+        <div class="lightbox-footer">
+          <div id="lightbox-thumbs-container" class="lightbox-thumbs-track"></div>
+          
+          <div class="lightbox-details-bar">
+            <p id="lightbox-desc" class="lightbox-desc"></p>
+            <div class="lightbox-actions-row">
+              <a id="lightbox-link-demo" href="#" target="_blank" rel="noopener noreferrer" class="link-btn link-btn--secondary" style="display: none;">
+                Ver Proyecto en Vivo ↗
+              </a>
+              <a id="lightbox-link-wa" href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="btn btn--whatsapp btn-sm">
+                <span>💬 Consultar este proyecto</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATOS DE PROYECTOS PARA VISOR -->
+    <script id="projects-data" type="application/json" set:html={JSON.stringify(projects.map(p => ({
+      title: p.title,
+      description: p.description,
+      category: p.category || 'General',
+      live_url: p.live_url || '',
+      photos: [p.image_url, ...(p.gallery_images || [])].filter(Boolean)
+    })))}></script>
 
   </main>
 </BaseLayout>
@@ -1233,6 +1331,314 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
     background: radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.18) 0%, transparent 60%),
                 linear-gradient(180deg, #0d1527 0%, #090d16 100%);
   }
+
+  /* PROYECTOS: HEADER ROW & GALLERIES */
+  .project-card__header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .btn-gallery-pill {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-gallery-pill:hover {
+    background: #dbeafe;
+    transform: scale(1.04);
+  }
+  .project-card__image-wrap {
+    position: relative;
+    cursor: pointer;
+  }
+  .project-gallery-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(4px);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .project-card__image-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+  .project-card__image-wrap:hover .project-card__image-overlay {
+    opacity: 1;
+  }
+  .link-btn--secondary {
+    color: #64748b;
+    font-weight: 600;
+  }
+  .link-btn--secondary:hover {
+    color: #0f172a;
+  }
+
+  /* MODAL LIGHTBOX / SLIDESHOW */
+  .lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fadeInLightbox 0.25s ease;
+  }
+  @keyframes fadeInLightbox {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 15, 29, 0.88);
+    backdrop-filter: blur(8px);
+  }
+  .lightbox-modal {
+    position: relative;
+    z-index: 2;
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 1.25rem;
+    width: 100%;
+    max-width: 960px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+  }
+  .lightbox-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #1e293b;
+    background: #0b1120;
+    gap: 1rem;
+  }
+  .lightbox-header-text {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+  .lightbox-badge-cat {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+  }
+  .lightbox-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #f8fafc;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lightbox-header-ctrls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+  }
+  .lightbox-counter {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #94a3b8;
+    background: #1e293b;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+  }
+  .lightbox-btn-close {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #f8fafc;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.2s ease;
+  }
+  .lightbox-btn-close:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    transform: rotate(90deg);
+  }
+  .lightbox-viewport {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #020617;
+    flex: 1;
+    min-height: 340px;
+    max-height: 58vh;
+    padding: 0.5rem;
+    overflow: hidden;
+  }
+  .lightbox-img-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lightbox-img-container img {
+    max-width: 100%;
+    max-height: 56vh;
+    object-fit: contain;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .lightbox-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+    z-index: 10;
+  }
+  .lightbox-nav-btn:hover {
+    background: rgba(37, 99, 235, 0.9);
+    border-color: #3b82f6;
+    transform: translateY(-50%) scale(1.1);
+  }
+  .lightbox-nav-prev {
+    left: 1rem;
+  }
+  .lightbox-nav-next {
+    right: 1rem;
+  }
+  .lightbox-footer {
+    background: #0b1120;
+    border-top: 1px solid #1e293b;
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .lightbox-thumbs-track {
+    display: flex;
+    gap: 0.6rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    scrollbar-width: thin;
+  }
+  .lightbox-thumb-btn {
+    width: 58px;
+    height: 58px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 2px solid #334155;
+    background: #020617;
+    padding: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+  }
+  .lightbox-thumb-btn:hover {
+    opacity: 0.9;
+    border-color: #94a3b8;
+  }
+  .lightbox-thumb-btn.active {
+    opacity: 1;
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
+  }
+  .lightbox-thumb-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .lightbox-details-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .lightbox-desc {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #94a3b8;
+    line-height: 1.45;
+    flex: 1;
+    min-width: 250px;
+  }
+  .lightbox-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* MODO OSCURO PARA TARJETAS */
+  .portfolio-page.mode-dark .btn-gallery-pill {
+    background: #1e293b;
+    border-color: #334155;
+    color: #38bdf8;
+  }
+  .portfolio-page.mode-dark .btn-gallery-pill:hover {
+    background: #334155;
+  }
+  .portfolio-page.mode-dark .link-btn--secondary {
+    color: #94a3b8;
+  }
+  .portfolio-page.mode-dark .link-btn--secondary:hover {
+    color: #f8fafc;
+  }
 </style>
 
 <script>
@@ -1266,6 +1672,147 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
         }
       });
     });
+  });
+
+  // ==========================================
+  // LIGHTBOX & GALERÍA DE PROYECTOS
+  // ==========================================
+  const rawProjectsDataEl = document.getElementById('projects-data');
+  const projectsData: Array<{
+    title: string;
+    description: string;
+    category: string;
+    live_url: string;
+    photos: string[];
+  }> = rawProjectsDataEl ? JSON.parse(rawProjectsDataEl.textContent || '[]') : [];
+
+  const lightboxEl = document.getElementById('project-lightbox');
+  const lightboxBackdrop = document.getElementById('lightbox-backdrop');
+  const lightboxCloseBtn = document.getElementById('lightbox-close');
+  const lightboxPrevBtn = document.getElementById('lightbox-prev');
+  const lightboxNextBtn = document.getElementById('lightbox-next');
+  const lightboxTitle = document.getElementById('lightbox-title');
+  const lightboxBadgeCat = document.getElementById('lightbox-badge-cat');
+  const lightboxCounter = document.getElementById('lightbox-counter');
+  const lightboxCurrentImg = document.getElementById('lightbox-current-img') as HTMLImageElement;
+  const lightboxDesc = document.getElementById('lightbox-desc');
+  const lightboxThumbsContainer = document.getElementById('lightbox-thumbs-container');
+  const lightboxLinkDemo = document.getElementById('lightbox-link-demo') as HTMLAnchorElement;
+
+  let activeProjectIdx = 0;
+  let activePhotoIdx = 0;
+
+  function openLightbox(projectIdx: number, photoIdx: number = 0) {
+    if (!projectsData[projectIdx] || !lightboxEl) return;
+    const proj = projectsData[projectIdx];
+    if (!proj.photos || proj.photos.length === 0) return;
+
+    activeProjectIdx = projectIdx;
+    activePhotoIdx = Math.min(photoIdx, proj.photos.length - 1);
+
+    updateLightboxView();
+    lightboxEl.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    if (!lightboxEl) return;
+    lightboxEl.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  function updateLightboxView() {
+    const proj = projectsData[activeProjectIdx];
+    if (!proj) return;
+
+    const totalPhotos = proj.photos.length;
+    const currentPhoto = proj.photos[activePhotoIdx];
+
+    if (lightboxTitle) lightboxTitle.textContent = proj.title;
+    if (lightboxBadgeCat) lightboxBadgeCat.textContent = proj.category || 'General';
+    if (lightboxCounter) lightboxCounter.textContent = `${activePhotoIdx + 1} / ${totalPhotos}`;
+    if (lightboxDesc) lightboxDesc.textContent = proj.description || '';
+
+    if (lightboxCurrentImg) {
+      lightboxCurrentImg.style.opacity = '0';
+      lightboxCurrentImg.style.transform = 'scale(0.97)';
+      setTimeout(() => {
+        lightboxCurrentImg.src = currentPhoto;
+        lightboxCurrentImg.style.opacity = '1';
+        lightboxCurrentImg.style.transform = 'scale(1)';
+      }, 100);
+    }
+
+    if (lightboxLinkDemo) {
+      if (proj.live_url) {
+        lightboxLinkDemo.href = proj.live_url;
+        lightboxLinkDemo.style.display = 'inline-flex';
+      } else {
+        lightboxLinkDemo.style.display = 'none';
+      }
+    }
+
+    // Visibilidad de controles de navegación
+    if (lightboxPrevBtn) lightboxPrevBtn.style.display = totalPhotos > 1 ? 'flex' : 'none';
+    if (lightboxNextBtn) lightboxNextBtn.style.display = totalPhotos > 1 ? 'flex' : 'none';
+
+    // Miniaturas
+    if (lightboxThumbsContainer) {
+      if (totalPhotos <= 1) {
+        lightboxThumbsContainer.style.display = 'none';
+      } else {
+        lightboxThumbsContainer.style.display = 'flex';
+        lightboxThumbsContainer.innerHTML = proj.photos.map((url, idx) => `
+          <button type="button" class="lightbox-thumb-btn ${idx === activePhotoIdx ? 'active' : ''}" data-photo-idx="${idx}" aria-label="Ir a foto ${idx + 1}">
+            <img src="${url}" alt="Miniatura ${idx + 1}" />
+          </button>
+        `).join('');
+
+        lightboxThumbsContainer.querySelectorAll('[data-photo-idx]').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-photo-idx'));
+            activePhotoIdx = idx;
+            updateLightboxView();
+          });
+        });
+      }
+    }
+  }
+
+  function nextPhoto() {
+    const proj = projectsData[activeProjectIdx];
+    if (!proj || !proj.photos || proj.photos.length <= 1) return;
+    activePhotoIdx = (activePhotoIdx + 1) % proj.photos.length;
+    updateLightboxView();
+  }
+
+  function prevPhoto() {
+    const proj = projectsData[activeProjectIdx];
+    if (!proj || !proj.photos || proj.photos.length <= 1) return;
+    activePhotoIdx = (activePhotoIdx - 1 + proj.photos.length) % proj.photos.length;
+    updateLightboxView();
+  }
+
+  // Disparadores en las tarjetas
+  document.querySelectorAll('[data-lightbox-trigger]').forEach((trigger) => {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const projIdx = Number((e.currentTarget as HTMLElement).getAttribute('data-lightbox-trigger'));
+      openLightbox(projIdx);
+    });
+  });
+
+  lightboxCloseBtn?.addEventListener('click', closeLightbox);
+  lightboxBackdrop?.addEventListener('click', closeLightbox);
+  lightboxNextBtn?.addEventListener('click', nextPhoto);
+  lightboxPrevBtn?.addEventListener('click', prevPhoto);
+
+  // Navegación por teclado
+  window.addEventListener('keydown', (e) => {
+    if (!lightboxEl || lightboxEl.style.display === 'none') return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') nextPhoto();
+    if (e.key === 'ArrowLeft') prevPhoto();
   });
 </script>
 

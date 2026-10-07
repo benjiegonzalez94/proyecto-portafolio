@@ -117,11 +117,13 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
 ## 🔮 Fase 5: Mejoras de Presencia & Crecimiento
 - [x] **Dominio & Presencia**:
   - [x] Generación de códigos QR descargables en `/admin` para compartir el enlace del portafolio en tarjetas de presentación o CVs.
-- [ ] **Experiencia del CMS / Editor**:
-  - [ ] Reordenamiento interactivo (Drag & Drop o flechas arriba/abajo) para proyectos, experiencias y servicios.
-  - [ ] Galería de imágenes múltiples por proyecto (soporte de carrusel/slideshow en el modal de detalle).
-  - [ ] Soporte para personalizar el mensaje predeterminado de WhatsApp desde el perfil.
-- [ ] **Métricas & Crecimiento**:
-  - [ ] Contador de visitas o clics en el botón de WhatsApp y enlaces externos de cada portafolio.
-  - [ ] Tarjetas Open Graph (OG Images) personalizadas dinámicamente con el nombre y avatar de cada usuario al compartir en redes sociales.
+- [x] **Experiencia del CMS / Editor**:
+  - [x] Reordenamiento interactivo (flechas arriba/abajo `▲` `▼`) para proyectos, experiencias y servicios con persistencia en tiempo real de `order_index`.
+  - [x] Galería de imágenes múltiples por proyecto (`gallery_images TEXT[]` en Supabase): carga masiva optimizada en Supabase Storage, miniaturas y eliminación individual en `/admin`.
+  - [x] Visor Lightbox interactivo (slideshow/carrusel modal con teclado, flechas ‹ ›, contador de fotos y botón directo de WhatsApp) en el portafolio público (`[slug].astro`).
+  - [x] Soporte para personalizar el mensaje predeterminado de WhatsApp (`whatsapp_message`) desde el perfil en el CMS.
+- [x] **Métricas & Crecimiento**:
+  - [x] Tarjetas Open Graph (OG Images) personalizadas dinámicamente con el nombre y avatar de cada usuario al compartir en redes sociales.
+- [ ] **Siguientes pasos opcionales**:
+  - [ ] Métricas analíticas avanzadas: contador de visitas o clics en el botón de WhatsApp y enlaces externos de cada portafolio.
 

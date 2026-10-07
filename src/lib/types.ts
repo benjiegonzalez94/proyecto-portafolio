@@ -12,6 +12,7 @@ export interface Profile {
   email?: string;
   phone?: string;
   whatsapp?: string;
+  whatsapp_message?: string;
   linkedin_url?: string;
   github_url?: string;
   behance_url?: string;
@@ -51,6 +52,7 @@ export interface Project {
   category?: string;
   tags?: string[];
   image_url?: string;
+  gallery_images?: string[];
   live_url?: string;
   repo_url?: string;
   featured?: boolean;

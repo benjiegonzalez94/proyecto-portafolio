@@ -143,6 +143,14 @@ const profiles = await getAllProfiles();
               </div>
             </div>
 
+            <div class="form-group">
+              <label for="prof-whatsapp-msg">Mensaje Predeterminado de WhatsApp (Opcional)</label>
+              <input type="text" id="prof-whatsapp-msg" placeholder="Ej: Hola, vi tu portafolio y me gustaría cotizar un proyecto..." />
+              <small style="font-size: 0.78rem; color: #64748b; margin-top: 0.25rem; display: block;">
+                Texto con el que los visitantes iniciarán el chat al hacer clic en tu botón de WhatsApp.
+              </small>
+            </div>
+
             <div class="form-grid">
               <div class="form-group">
                 <label for="prof-location">Ubicación</label>
@@ -439,18 +447,47 @@ const profiles = await getAllProfiles();
           </div>
         </div>
 
-        <!-- SUBIDA DE IMAGEN -->
+        <!-- SUBIDA DE IMAGEN PRINCIPAL -->
         <div class="form-group">
-          <label>Imagen del Proyecto</label>
+          <label>Imagen de Portada Principal</label>
           <div class="upload-image-box">
             <input type="file" id="proj-image-file" accept="image/*" class="sr-only" />
             <div class="upload-actions">
               <label for="proj-image-file" class="btn btn-sm btn-outline">
-                📁 Seleccionar Imagen de mi Equipo
+                📁 Seleccionar Imagen de Portada
               </label>
               <span id="proj-file-status" class="file-status-text">Ningún archivo subido</span>
             </div>
             <input type="text" id="proj-image-url" placeholder="O pega la URL directa de la imagen" style="margin-top: 0.5rem;" />
+          </div>
+        </div>
+
+        <!-- GALERÍA DE MÚLTIPLES FOTOS ADICIONALES -->
+        <div class="form-group" style="margin-top: 1rem; border-top: 1px dashed #cbd5e1; padding-top: 1rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+            <label style="font-weight: 700; margin: 0; color: #0f172a;">Galería de Fotos Adicionales</label>
+            <span style="font-size: 0.78rem; color: #64748b;">Múltiples fotos para carrusel</span>
+          </div>
+          <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.6rem 0;">
+            Añade capturas adicionales o detalles del proyecto que los visitantes podrán explorar en el visor de fotos.
+          </p>
+
+          <!-- Contenedor de miniaturas cargadas -->
+          <div id="proj-gallery-list" style="display: flex; flex-wrap: wrap; gap: 0.6rem; min-height: 48px; align-items: center; margin-bottom: 0.75rem;">
+            <!-- Miniaturas dinámicas -->
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <label for="proj-gallery-files" class="btn btn-sm btn-outline" style="cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; font-weight: 600;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>+ Añadir Más Fotos a la Galería</span>
+            </label>
+            <input type="file" id="proj-gallery-files" accept="image/*" multiple class="sr-only" />
+            <span id="proj-gallery-status" style="font-size: 0.8rem; color: #64748b;"></span>
           </div>
         </div>
 
@@ -791,6 +828,7 @@ const profiles = await getAllProfiles();
     (document.getElementById('prof-email') as HTMLInputElement).value = p.email || '';
     (document.getElementById('prof-location') as HTMLInputElement).value = p.location || '';
     (document.getElementById('prof-phone') as HTMLInputElement).value = p.phone || '';
+    (document.getElementById('prof-whatsapp-msg') as HTMLInputElement).value = p.whatsapp_message || '';
     (document.getElementById('prof-badge') as HTMLInputElement).value = p.hero_badge || '';
     (document.getElementById('prof-avatar') as HTMLInputElement).value = p.avatar_url || '';
     (document.getElementById('prof-theme') as HTMLInputElement).value = p.theme_accent || '#2563eb';
@@ -1036,6 +1074,7 @@ const profiles = await getAllProfiles();
     currentPortfolio.profile.email = (document.getElementById('prof-email') as HTMLInputElement).value;
     currentPortfolio.profile.location = (document.getElementById('prof-location') as HTMLInputElement).value;
     currentPortfolio.profile.phone = (document.getElementById('prof-phone') as HTMLInputElement).value;
+    currentPortfolio.profile.whatsapp_message = (document.getElementById('prof-whatsapp-msg') as HTMLInputElement).value.trim() || undefined;
     currentPortfolio.profile.hero_badge = (document.getElementById('prof-badge') as HTMLInputElement).value;
     currentPortfolio.profile.avatar_url = (document.getElementById('prof-avatar') as HTMLInputElement).value;
     currentPortfolio.profile.theme_accent = (document.getElementById('prof-theme') as HTMLInputElement).value;
@@ -1059,6 +1098,7 @@ const profiles = await getAllProfiles();
             email: currentPortfolio.profile.email,
             location: currentPortfolio.profile.location,
             phone: currentPortfolio.profile.phone,
+            whatsapp_message: currentPortfolio.profile.whatsapp_message || null,
             hero_badge: currentPortfolio.profile.hero_badge,
             avatar_url: currentPortfolio.profile.avatar_url,
             theme_accent: currentPortfolio.profile.theme_accent,
@@ -1087,7 +1127,10 @@ const profiles = await getAllProfiles();
     if (displayProfileHeadline) displayProfileHeadline.textContent = currentPortfolio.profile.headline;
   });
 
-  // 9. MODAL DE PROYECTOS & GESTIÓN DE ARCHIVOS
+  // 9. MODAL DE PROYECTOS & GESTIÓN DE ARCHIVOS Y GALERÍA MULTIPLE
+  let editingProjectId: string | null = null;
+  let editingProjectGallery: string[] = [];
+
   const projectModal = document.getElementById('project-modal');
   const btnOpenModal = document.getElementById('btn-open-project-modal');
   const btnCloseModal = document.getElementById('modal-project-close');
@@ -1096,9 +1139,68 @@ const profiles = await getAllProfiles();
   const inputProjFile = document.getElementById('proj-image-file') as HTMLInputElement;
   const inputProjUrl = document.getElementById('proj-image-url') as HTMLInputElement;
   const projFileStatus = document.getElementById('proj-file-status');
+  const projGalleryList = document.getElementById('proj-gallery-list');
+  const inputProjGalleryFiles = document.getElementById('proj-gallery-files') as HTMLInputElement;
+  const projGalleryStatus = document.getElementById('proj-gallery-status');
+
+  function renderGalleryThumbs() {
+    if (!projGalleryList) return;
+    if (editingProjectGallery.length === 0) {
+      projGalleryList.innerHTML = '<span style="font-size: 0.8rem; color: #94a3b8; font-style: italic;">Sin fotos adicionales añadidas.</span>';
+      return;
+    }
+
+    projGalleryList.innerHTML = editingProjectGallery.map((imgUrl, i) => `
+      <div style="position: relative; width: 68px; height: 68px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; box-shadow: 0 1px 4px rgba(0,0,0,0.08); background: #0f172a;">
+        <img src="${imgUrl}" alt="Foto adicional ${i+1}" style="width: 100%; height: 100%; object-fit: cover;" />
+        <button type="button" class="btn-del-gallery-thumb" data-del-gallery-idx="${i}" style="position: absolute; top: 2px; right: 2px; background: rgba(239,68,68,0.9); color: #ffffff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;" title="Quitar foto">✕</button>
+      </div>
+    `).join('');
+
+    projGalleryList.querySelectorAll('[data-del-gallery-idx]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-gallery-idx'));
+        editingProjectGallery.splice(idx, 1);
+        renderGalleryThumbs();
+      });
+    });
+  }
+
+  // Manejar selección de múltiples fotos adicionales
+  inputProjGalleryFiles?.addEventListener('change', async (e) => {
+    const files = (e.target as HTMLInputElement).files;
+    if (!files || files.length === 0 || !currentPortfolio) return;
+
+    if (projGalleryStatus) {
+      projGalleryStatus.textContent = `Subiendo ${files.length} foto(s)...`;
+      projGalleryStatus.style.color = '#3b82f6';
+    }
+
+    let uploadedCount = 0;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const { url, error } = await uploadMediaFile(file, 'projects', currentPortfolio.profile.slug);
+      if (!error && url) {
+        editingProjectGallery.push(url);
+        uploadedCount++;
+      }
+    }
+
+    renderGalleryThumbs();
+    if (projGalleryStatus) {
+      projGalleryStatus.textContent = `✓ ${uploadedCount} foto(s) agregada(s)`;
+      projGalleryStatus.style.color = '#10b981';
+      setTimeout(() => { if (projGalleryStatus) projGalleryStatus.textContent = ''; }, 3000);
+    }
+    (e.target as HTMLInputElement).value = '';
+  });
 
   btnOpenModal?.addEventListener('click', () => {
+    editingProjectId = null;
+    editingProjectGallery = [];
     if (projectModal) {
+      const modalTitle = projectModal.querySelector('.modal-title');
+      if (modalTitle) modalTitle.textContent = 'Añadir Nuevo Proyecto';
       (document.getElementById('proj-title') as HTMLInputElement).value = '';
       (document.getElementById('proj-desc') as HTMLTextAreaElement).value = '';
       (document.getElementById('proj-category') as HTMLInputElement).value = '';
@@ -1107,14 +1209,34 @@ const profiles = await getAllProfiles();
       (document.getElementById('proj-repo') as HTMLInputElement).value = '';
       inputProjUrl.value = '';
       if (projFileStatus) projFileStatus.textContent = 'Ningún archivo subido';
+      renderGalleryThumbs();
       projectModal.style.display = 'flex';
     }
   });
 
+  function openEditProjectModal(proj: Project) {
+    editingProjectId = proj.id;
+    editingProjectGallery = Array.isArray(proj.gallery_images) ? [...proj.gallery_images] : [];
+    if (projectModal) {
+      const modalTitle = projectModal.querySelector('.modal-title');
+      if (modalTitle) modalTitle.textContent = `Editar Proyecto: ${proj.title}`;
+      (document.getElementById('proj-title') as HTMLInputElement).value = proj.title || '';
+      (document.getElementById('proj-desc') as HTMLTextAreaElement).value = proj.description || '';
+      (document.getElementById('proj-category') as HTMLInputElement).value = proj.category || '';
+      (document.getElementById('proj-tags') as HTMLInputElement).value = (proj.tags || []).join(', ');
+      (document.getElementById('proj-live') as HTMLInputElement).value = proj.live_url || '';
+      (document.getElementById('proj-repo') as HTMLInputElement).value = proj.repo_url || '';
+      inputProjUrl.value = proj.image_url || '';
+      if (projFileStatus) projFileStatus.textContent = proj.image_url ? 'Imagen de portada actual' : 'Ningún archivo subido';
+      renderGalleryThumbs();
+      projectModal.style.display = 'flex';
+    }
+  }
+
   btnCloseModal?.addEventListener('click', () => { if (projectModal) projectModal.style.display = 'none'; });
   btnCancelModal?.addEventListener('click', () => { if (projectModal) projectModal.style.display = 'none'; });
 
-  // Subir imagen del proyecto al bucket con recorte y compresión WebP
+  // Subir imagen de portada del proyecto al bucket con recorte y compresión WebP
   inputProjFile?.addEventListener('change', async (e) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file || !currentPortfolio) return;
@@ -1132,13 +1254,13 @@ const profiles = await getAllProfiles();
 
       inputProjUrl.value = url;
       if (projFileStatus) projFileStatus.textContent = '✓ Imagen optimizada';
-      showToast('Captura de proyecto optimizada y guardada con éxito', 'success');
+      showToast('Captura de portada optimizada y guardada con éxito', 'success');
     });
 
     (e.target as HTMLInputElement).value = '';
   });
 
-  // Guardar proyecto
+  // Guardar proyecto (Crear o Actualizar)
   formProject?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!currentPortfolio) return;
@@ -1150,24 +1272,40 @@ const profiles = await getAllProfiles();
     const live_url = (document.getElementById('proj-live') as HTMLInputElement).value.trim();
     const repo_url = (document.getElementById('proj-repo') as HTMLInputElement).value.trim();
     const image_url = inputProjUrl.value.trim();
-    const tags = tagsStr ? tagsStr.split(',').map((t) => t.trim()) : [];
+    const tags = tagsStr ? tagsStr.split(',').map((t) => t.trim()).filter(Boolean) : [];
 
-    const newProj: Project = {
-      id: `proj-${Date.now()}`,
-      profile_id: currentPortfolio.profile.id,
-      title,
-      description,
-      category,
-      tags,
-      live_url,
-      repo_url,
-      image_url,
-      featured: true,
-      order_index: currentPortfolio.projects.length + 1,
-    };
+    if (editingProjectId) {
+      // ACTUALIZAR PROYECTO EXISTENTE
+      const targetProj = currentPortfolio.projects.find((p) => p.id === editingProjectId);
+      if (targetProj) {
+        targetProj.title = title;
+        targetProj.description = description;
+        targetProj.category = category;
+        targetProj.tags = tags;
+        targetProj.live_url = live_url;
+        targetProj.repo_url = repo_url;
+        targetProj.image_url = image_url;
+        targetProj.gallery_images = [...editingProjectGallery];
 
-    if (supabase && isSupabaseConfigured) {
-      const { data, error } = await supabase.from('projects').insert({
+        if (supabase && isSupabaseConfigured) {
+          await supabase.from('projects').update({
+            title,
+            description,
+            category,
+            tags,
+            live_url: live_url || null,
+            repo_url: repo_url || null,
+            image_url: image_url || null,
+            gallery_images: editingProjectGallery,
+            updated_at: new Date().toISOString(),
+          }).eq('id', editingProjectId);
+        }
+        showToast('Proyecto actualizado con éxito', 'success');
+      }
+    } else {
+      // CREAR NUEVO PROYECTO
+      const newProj: Project = {
+        id: `proj-${Date.now()}`,
         profile_id: currentPortfolio.profile.id,
         title,
         description,
@@ -1176,21 +1314,88 @@ const profiles = await getAllProfiles();
         live_url,
         repo_url,
         image_url,
+        gallery_images: [...editingProjectGallery],
         featured: true,
-        order_index: newProj.order_index,
-      }).select().single();
+        order_index: currentPortfolio.projects.length + 1,
+      };
 
-      if (!error && data) {
-        newProj.id = data.id;
+      if (supabase && isSupabaseConfigured) {
+        const { data, error } = await supabase.from('projects').insert({
+          profile_id: currentPortfolio.profile.id,
+          title,
+          description,
+          category,
+          tags,
+          live_url: live_url || null,
+          repo_url: repo_url || null,
+          image_url: image_url || null,
+          gallery_images: editingProjectGallery,
+          featured: true,
+          order_index: newProj.order_index,
+        }).select().single();
+
+        if (!error && data) {
+          newProj.id = data.id;
+        }
       }
+
+      currentPortfolio.projects.push(newProj);
+      showToast('Proyecto creado con éxito', 'success');
     }
 
-    currentPortfolio.projects.push(newProj);
     renderProjects(currentPortfolio);
     if (projectModal) projectModal.style.display = 'none';
   });
 
-  // 10. RENDER LISTAS
+  // Reordenar proyectos
+  async function reorderProjects(fromIdx: number, toIdx: number, portfolio: FullPortfolio) {
+    if (fromIdx < 0 || fromIdx >= portfolio.projects.length || toIdx < 0 || toIdx >= portfolio.projects.length) return;
+    const item = portfolio.projects.splice(fromIdx, 1)[0];
+    portfolio.projects.splice(toIdx, 0, item);
+    portfolio.projects.forEach((p, i) => { p.order_index = i + 1; });
+    renderProjects(portfolio);
+
+    if (supabase && isSupabaseConfigured) {
+      for (let i = 0; i < portfolio.projects.length; i++) {
+        await supabase.from('projects').update({ order_index: i + 1 }).eq('id', portfolio.projects[i].id);
+      }
+    }
+    showToast('Orden de proyectos actualizado', 'info');
+  }
+
+  // Reordenar experiencias
+  async function reorderExperiences(fromIdx: number, toIdx: number, portfolio: FullPortfolio) {
+    if (fromIdx < 0 || fromIdx >= portfolio.experiences.length || toIdx < 0 || toIdx >= portfolio.experiences.length) return;
+    const item = portfolio.experiences.splice(fromIdx, 1)[0];
+    portfolio.experiences.splice(toIdx, 0, item);
+    portfolio.experiences.forEach((exp, i) => { exp.order_index = i + 1; });
+    renderExperiences(portfolio);
+
+    if (supabase && isSupabaseConfigured) {
+      for (let i = 0; i < portfolio.experiences.length; i++) {
+        await supabase.from('experiences').update({ order_index: i + 1 }).eq('id', portfolio.experiences[i].id);
+      }
+    }
+    showToast('Orden de experiencias actualizado', 'info');
+  }
+
+  // Reordenar servicios
+  async function reorderServices(fromIdx: number, toIdx: number, portfolio: FullPortfolio) {
+    if (fromIdx < 0 || fromIdx >= portfolio.services.length || toIdx < 0 || toIdx >= portfolio.services.length) return;
+    const item = portfolio.services.splice(fromIdx, 1)[0];
+    portfolio.services.splice(toIdx, 0, item);
+    portfolio.services.forEach((srv, i) => { srv.order_index = i + 1; });
+    renderServices(portfolio);
+
+    if (supabase && isSupabaseConfigured) {
+      for (let i = 0; i < portfolio.services.length; i++) {
+        await supabase.from('services').update({ order_index: i + 1 }).eq('id', portfolio.services[i].id);
+      }
+    }
+    showToast('Orden de servicios actualizado', 'info');
+  }
+
+  // 10. RENDER LISTAS CON REORDENAMIENTO Y ACCIONES
   function renderProjects(portfolio: FullPortfolio) {
     const container = document.getElementById('projects-list-container');
     if (!container) return;
@@ -1202,25 +1407,59 @@ const profiles = await getAllProfiles();
     container.innerHTML = portfolio.projects
       .map(
         (proj, idx) => `
-      <div class="item-row">
-        ${proj.image_url ? `<img src="${proj.image_url}" alt="${proj.title}" class="item-thumb" />` : ''}
-        <div class="item-info">
-          <strong>${proj.title}</strong>
-          <span class="item-sub">${proj.category || 'General'}</span>
-          <p class="item-desc">${proj.description}</p>
+      <div class="item-row" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.75rem; margin-bottom: 0.75rem;">
+        <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+          <button type="button" class="btn-order-move" data-up-proj="${idx}" ${idx === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''} title="Mover arriba">▲</button>
+          <button type="button" class="btn-order-move" data-down-proj="${idx}" ${idx === portfolio.projects.length - 1 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''} title="Mover abajo">▼</button>
         </div>
-        <div class="item-actions">
-          <button class="btn btn-sm btn-delete" data-del-proj="${idx}">Eliminar</button>
+        ${proj.image_url ? `<img src="${proj.image_url}" alt="${proj.title}" class="item-thumb" style="width: 54px; height: 54px; object-fit: cover; border-radius: 8px; flex-shrink: 0;" />` : `<div style="width: 54px; height: 54px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">📁</div>`}
+        <div class="item-info" style="flex: 1; min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <strong style="color: #0f172a; font-size: 0.95rem;">${proj.title}</strong>
+            <span class="item-sub" style="font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 9999px; background: #e0f2fe; color: #0369a1;">${proj.category || 'General'}</span>
+            ${proj.gallery_images && proj.gallery_images.length > 0 ? `<span style="font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 9999px; background: #ecfdf5; color: #047857; font-weight: 600;">📷 +${proj.gallery_images.length} fotos</span>` : ''}
+          </div>
+          <p class="item-desc" style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${proj.description}</p>
+        </div>
+        <div class="item-actions" style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+          <button class="btn btn-sm btn-outline" data-edit-proj="${idx}" style="padding: 0.35rem 0.65rem; font-size: 0.82rem;">✏️ Editar / Fotos</button>
+          <button class="btn btn-sm btn-delete" data-del-proj="${idx}" style="padding: 0.35rem 0.65rem; font-size: 0.82rem;">Eliminar</button>
         </div>
       </div>
     `
       )
       .join('');
 
+    // Reordenar
+    container.querySelectorAll('[data-up-proj]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-up-proj'));
+        reorderProjects(idx, idx - 1, portfolio);
+      });
+    });
+    container.querySelectorAll('[data-down-proj]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-down-proj'));
+        reorderProjects(idx, idx + 1, portfolio);
+      });
+    });
+
+    // Editar proyecto
+    container.querySelectorAll('[data-edit-proj]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-edit-proj'));
+        const proj = portfolio.projects[idx];
+        if (proj) openEditProjectModal(proj);
+      });
+    });
+
+    // Eliminar proyecto
     container.querySelectorAll('[data-del-proj]').forEach((btn) => {
       btn.addEventListener('click', async (e) => {
         const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-proj'));
         const proj = portfolio.projects[idx];
+        if (!confirm(`¿Estás seguro de eliminar el proyecto "${proj.title}"?`)) return;
+
         if (proj && supabase && isSupabaseConfigured) {
           const { error } = await supabase.from('projects').delete().eq('id', proj.id);
           if (error) {
@@ -1246,20 +1485,40 @@ const profiles = await getAllProfiles();
     container.innerHTML = portfolio.experiences
       .map(
         (exp, idx) => `
-      <div class="item-row">
-        <div class="item-info">
-          <strong>${exp.role}</strong>
-          <span class="item-company">${exp.company}</span>
-          <span class="item-sub">${exp.period}</span>
-          <p class="item-desc">${exp.description}</p>
+      <div class="item-row" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.75rem; margin-bottom: 0.75rem;">
+        <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+          <button type="button" class="btn-order-move" data-up-exp="${idx}" ${idx === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''} title="Mover arriba">▲</button>
+          <button type="button" class="btn-order-move" data-down-exp="${idx}" ${idx === portfolio.experiences.length - 1 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''} title="Mover abajo">▼</button>
         </div>
-        <div class="item-actions">
-          <button class="btn btn-sm btn-delete" data-del-exp="${idx}">Eliminar</button>
+        <div class="item-info" style="flex: 1; min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <strong style="color: #0f172a; font-size: 0.95rem;">${exp.role}</strong>
+            <span class="item-company" style="font-weight: 600; color: #2563eb; font-size: 0.85rem;">${exp.company}</span>
+            <span class="item-sub" style="font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 9999px; background: #f1f5f9; color: #475569;">${exp.period}</span>
+          </div>
+          <p class="item-desc" style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${exp.description}</p>
+        </div>
+        <div class="item-actions" style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+          <button class="btn btn-sm btn-delete" data-del-exp="${idx}" style="padding: 0.35rem 0.65rem; font-size: 0.82rem;">Eliminar</button>
         </div>
       </div>
     `
       )
       .join('');
+
+    // Reordenar
+    container.querySelectorAll('[data-up-exp]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-up-exp'));
+        reorderExperiences(idx, idx - 1, portfolio);
+      });
+    });
+    container.querySelectorAll('[data-down-exp]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-down-exp'));
+        reorderExperiences(idx, idx + 1, portfolio);
+      });
+    });
 
     container.querySelectorAll('[data-del-exp]').forEach((btn) => {
       btn.addEventListener('click', async (e) => {
@@ -1290,18 +1549,36 @@ const profiles = await getAllProfiles();
     container.innerHTML = portfolio.services
       .map(
         (srv, idx) => `
-      <div class="item-row">
-        <div class="item-info">
-          <strong>${srv.title}</strong>
-          <p class="item-desc">${srv.description}</p>
+      <div class="item-row" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.75rem; margin-bottom: 0.75rem;">
+        <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+          <button type="button" class="btn-order-move" data-up-srv="${idx}" ${idx === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''} title="Mover arriba">▲</button>
+          <button type="button" class="btn-order-move" data-down-srv="${idx}" ${idx === portfolio.services.length - 1 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''} title="Mover abajo">▼</button>
         </div>
-        <div class="item-actions">
-          <button class="btn btn-sm btn-delete" data-del-srv="${idx}">Eliminar</button>
+        <div class="item-info" style="flex: 1; min-width: 0;">
+          <strong style="color: #0f172a; font-size: 0.95rem;">${srv.title}</strong>
+          <p class="item-desc" style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${srv.description}</p>
+        </div>
+        <div class="item-actions" style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+          <button class="btn btn-sm btn-delete" data-del-srv="${idx}" style="padding: 0.35rem 0.65rem; font-size: 0.82rem;">Eliminar</button>
         </div>
       </div>
     `
       )
       .join('');
+
+    // Reordenar
+    container.querySelectorAll('[data-up-srv]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-up-srv'));
+        reorderServices(idx, idx - 1, portfolio);
+      });
+    });
+    container.querySelectorAll('[data-down-srv]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-down-srv'));
+        reorderServices(idx, idx + 1, portfolio);
+      });
+    });
 
     container.querySelectorAll('[data-del-srv]').forEach((btn) => {
       btn.addEventListener('click', async (e) => {
@@ -2377,6 +2654,25 @@ const profiles = await getAllProfiles();
   }
   .btn-delete:hover {
     background: #fecaca;
+  }
+  .btn-order-move {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    width: 24px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-order-move:hover:not(:disabled) {
+    background: #e2e8f0;
+    color: #0f172a;
+    border-color: #94a3b8;
   }
 
   /* LISTADOS */
