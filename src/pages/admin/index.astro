@@ -47,7 +47,7 @@ const profiles = await getAllProfiles();
       <!-- NOTIFICACIÓN DE ESTADO O VINCULACIÓN -->
       <div id="admin-notification" class="notice-box" style="display: none;"></div>
 
-      <!-- SELECTOR DE PERFIL Y BOTÓN VER PORTAFOLIO -->
+      <!-- IDENTIDAD DEL PERFIL Y BOTÓN VER PORTAFOLIO EN VIVO -->
       <section class="profile-header-banner">
         <div class="profile-info-main">
           <div class="avatar-preview-wrap">
@@ -60,22 +60,28 @@ const profiles = await getAllProfiles();
             </label>
             <input type="file" id="input-avatar-file" accept="image/*" style="display: none;" />
           </div>
-          <div>
-            <div class="selector-row">
-              <select id="select-profile-active" class="custom-select">
-                {profiles.map((p) => (
-                  <option value={p.slug}>{p.full_name} ({p.slug})</option>
-                ))}
-              </select>
+
+          <div class="profile-identity-texts">
+            <div class="profile-title-row">
+              <h1 class="profile-display-name" id="display-profile-name">Cargando portafolio...</h1>
+              <a id="profile-slug-chip" href="/benjie" target="_blank" class="profile-slug-badge" title="Abrir enlace público">
+                <span class="slug-prefix">folio /</span>
+                <span class="slug-name" id="display-profile-slug">benjie</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                  <polyline points="15 3 21 3 21 9"/>
+                  <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+              </a>
             </div>
-            <p class="profile-status-sub" id="profile-status-text">Cargando portafolio...</p>
+            <p class="profile-headline-sub" id="display-profile-headline">Especialidad o rol principal</p>
           </div>
+
+          <!-- Selector / input oculto para preservar compatibilidad con scripts existentes -->
+          <input type="hidden" id="select-profile-active" value="benjie" />
         </div>
 
         <div class="profile-actions-header">
-          <button id="btn-quick-preview" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.45rem;">
-            <span>👁️ Vista Previa</span>
-          </button>
           <a id="btn-view-live" href="/benjie" target="_blank" class="btn btn-live">
             <span>Ver Portafolio en Vivo</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -454,25 +460,6 @@ const profiles = await getAllProfiles();
     </div>
   </div>
 
-  <!-- MODAL VISTA PREVIA RÁPIDA -->
-  <div id="preview-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-dialog preview-dialog">
-      <div class="modal-header">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-          <h3 style="margin: 0;">Vista Previa del Portafolio</h3>
-          <div class="device-toggle-group">
-            <button type="button" class="device-btn active" data-device="desktop">💻 Desktop</button>
-            <button type="button" class="device-btn" data-device="mobile">📱 Móvil</button>
-          </div>
-        </div>
-        <button id="modal-preview-close" class="modal-close">&times;</button>
-      </div>
-      <div class="modal-body preview-modal-body">
-        <iframe id="preview-iframe" src="/benjie" class="preview-iframe"></iframe>
-      </div>
-    </div>
-  </div>
-
   <!-- MODAL HERRAMIENTA DE RECORTE Y OPTIMIZACIÓN (CROPPER TOOL) -->
   <div id="crop-modal" class="modal-overlay" style="display: none; z-index: 1100;">
     <div class="modal-dialog" style="max-width: 520px;">
@@ -557,39 +544,6 @@ const profiles = await getAllProfiles();
     }, 3500);
   }
 
-  // GESTIÓN DE VISTA PREVIA RÁPIDA
-  const btnQuickPreview = document.getElementById('btn-quick-preview');
-  const previewModal = document.getElementById('preview-modal');
-  const previewIframe = document.getElementById('preview-iframe') as HTMLIFrameElement;
-  const modalPreviewClose = document.getElementById('modal-preview-close');
-  const deviceBtns = document.querySelectorAll('.device-btn');
-
-  btnQuickPreview?.addEventListener('click', () => {
-    if (previewModal && previewIframe) {
-      previewIframe.src = `/${currentSlug}?preview=${Date.now()}`;
-      previewModal.style.display = 'flex';
-    }
-  });
-
-  modalPreviewClose?.addEventListener('click', () => {
-    if (previewModal) previewModal.style.display = 'none';
-  });
-
-  deviceBtns.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      deviceBtns.forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      const device = btn.getAttribute('data-device');
-      if (previewIframe) {
-        if (device === 'mobile') {
-          previewIframe.style.width = '375px';
-        } else {
-          previewIframe.style.width = '100%';
-        }
-      }
-    });
-  });
-
   // 1. VERIFICAR AUTENTICACIÓN
   async function checkAuthSession() {
     if (!supabase || !isSupabaseConfigured) return;
@@ -632,16 +586,12 @@ const profiles = await getAllProfiles();
       currentSlug = match.slug;
       if (selectProfile) {
         selectProfile.value = match.slug;
-        // Si no es admin, bloquear selector para que solo vea su propio perfil
-        if (!isAdmin) {
-          selectProfile.innerHTML = `<option value="${match.slug}">${match.full_name} (${match.slug})</option>`;
-        }
       }
       await loadProfileData(match.slug);
     } else if (isAdmin) {
       // Si es admin y no tiene perfil propio específico, cargar el primero por defecto
-      if (selectProfile && selectProfile.options.length > 0) {
-        currentSlug = selectProfile.value;
+      if (selectProfile) {
+        currentSlug = selectProfile.value || 'benjie';
         await loadProfileData(currentSlug);
       }
     }
@@ -815,6 +765,16 @@ const profiles = await getAllProfiles();
     if (btnViewLive) {
       btnViewLive.href = `/${p.slug}`;
     }
+
+    const displayProfileName = document.getElementById('display-profile-name');
+    const displayProfileSlug = document.getElementById('display-profile-slug');
+    const displayProfileHeadline = document.getElementById('display-profile-headline');
+    const profileSlugChip = document.getElementById('profile-slug-chip') as HTMLAnchorElement;
+
+    if (displayProfileName) displayProfileName.textContent = p.full_name || 'Mi Portafolio';
+    if (displayProfileSlug) displayProfileSlug.textContent = p.slug;
+    if (displayProfileHeadline) displayProfileHeadline.textContent = p.headline || 'Tu especialidad o rol principal';
+    if (profileSlugChip) profileSlugChip.href = `/${p.slug}`;
 
     // Marcar plantilla activa
     const activeTmpl = p.template_id || 'tech-minimal';
@@ -1076,6 +1036,11 @@ const profiles = await getAllProfiles();
     } else {
       showToast('Guardado en memoria de sesión', 'info');
     }
+
+    const displayProfileName = document.getElementById('display-profile-name');
+    const displayProfileHeadline = document.getElementById('display-profile-headline');
+    if (displayProfileName) displayProfileName.textContent = currentPortfolio.profile.full_name;
+    if (displayProfileHeadline) displayProfileHeadline.textContent = currentPortfolio.profile.headline;
   });
 
   // 9. MODAL DE PROYECTOS & GESTIÓN DE ARCHIVOS
@@ -1958,21 +1923,52 @@ const profiles = await getAllProfiles();
     transform: scale(1.1);
   }
 
-  .custom-select {
-    padding: 0.6rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid #cbd5e1;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #0f172a;
-    background: #ffffff;
-    min-width: 240px;
+  .profile-identity-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
   }
-
-  .profile-status-sub {
-    margin: 0.35rem 0 0 0;
+  .profile-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .profile-display-name {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+  }
+  .profile-slug-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
     font-size: 0.8125rem;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .profile-slug-badge:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+  }
+  .profile-slug-badge .slug-prefix {
+    color: #94a3b8;
+    font-weight: 500;
+  }
+  .profile-headline-sub {
+    margin: 0;
+    font-size: 0.875rem;
     color: #64748b;
+    font-weight: 500;
   }
 
   .btn-live {

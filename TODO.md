@@ -98,6 +98,9 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
   - [x] Solución al bug de títulos `undefined`: compatibilidad y normalización con la propiedad `title` de `SkillCategory`.
   - [x] Sincronización en tiempo real y guardado confiable en Supabase (`profiles.skills_data`).
   - [x] Inicialización automática con las habilidades de la plantilla cuando el usuario accede por primera vez a su panel.
+- [x] **Optimización de UX en el Panel de Administración (`/admin`)**:
+  - [x] Eliminación del menú desplegable `<select>` innecesario para el usuario logueado; sustitución por un encabezado elegante con nombre, especialidad y chip interactivo del enlace público (`folio / slug`).
+  - [x] Eliminación del botón redundante "👁️ Vista Previa" y su modal en `/admin`, manteniendo únicamente la acción directa "Ver Portafolio en Vivo ↗" en una pestaña nueva. (La vista previa interactiva antes de generar el portafolio por primera vez se mantiene exclusiva en `/crear`).
 
 ---
 
