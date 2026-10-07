@@ -1491,10 +1491,6 @@ const profiles = await getAllProfiles();
             <circle cx="15" cy="18" r="1.6"/>
           </svg>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 0.2rem;">
-          <button type="button" class="btn-order-move" data-up-proj="${idx}" ${idx === 0 ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''} title="Mover arriba">▲</button>
-          <button type="button" class="btn-order-move" data-down-proj="${idx}" ${idx === portfolio.projects.length - 1 ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''} title="Mover abajo">▼</button>
-        </div>
         ${proj.image_url ? `<img src="${proj.image_url}" alt="${proj.title}" class="item-thumb" style="width: 54px; height: 54px; object-fit: cover; border-radius: 8px; flex-shrink: 0;" />` : `<div style="width: 54px; height: 54px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">📁</div>`}
         <div class="item-info" style="flex: 1; min-width: 0;">
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
@@ -1516,20 +1512,6 @@ const profiles = await getAllProfiles();
     // Activar Drag & Drop para Proyectos
     setupDragAndDrop(container, '.item-draggable', 'data-proj-idx', (fromIdx, toIdx) => {
       reorderProjects(fromIdx, toIdx, portfolio);
-    });
-
-    // Reordenar por botones (accesibilidad)
-    container.querySelectorAll('[data-up-proj]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-up-proj'));
-        reorderProjects(idx, idx - 1, portfolio);
-      });
-    });
-    container.querySelectorAll('[data-down-proj]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-down-proj'));
-        reorderProjects(idx, idx + 1, portfolio);
-      });
     });
 
     // Editar proyecto
@@ -1584,10 +1566,6 @@ const profiles = await getAllProfiles();
             <circle cx="15" cy="18" r="1.6"/>
           </svg>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 0.2rem;">
-          <button type="button" class="btn-order-move" data-up-exp="${idx}" ${idx === 0 ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''} title="Mover arriba">▲</button>
-          <button type="button" class="btn-order-move" data-down-exp="${idx}" ${idx === portfolio.experiences.length - 1 ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''} title="Mover abajo">▼</button>
-        </div>
         <div class="item-info" style="flex: 1; min-width: 0;">
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <strong style="color: #0f172a; font-size: 0.95rem;">${exp.role}</strong>
@@ -1607,20 +1585,6 @@ const profiles = await getAllProfiles();
     // Activar Drag & Drop para Experiencias
     setupDragAndDrop(container, '.item-draggable', 'data-exp-idx', (fromIdx, toIdx) => {
       reorderExperiences(fromIdx, toIdx, portfolio);
-    });
-
-    // Reordenar
-    container.querySelectorAll('[data-up-exp]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-up-exp'));
-        reorderExperiences(idx, idx - 1, portfolio);
-      });
-    });
-    container.querySelectorAll('[data-down-exp]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-down-exp'));
-        reorderExperiences(idx, idx + 1, portfolio);
-      });
     });
 
     container.querySelectorAll('[data-del-exp]').forEach((btn) => {
@@ -1663,10 +1627,6 @@ const profiles = await getAllProfiles();
             <circle cx="15" cy="18" r="1.6"/>
           </svg>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 0.2rem;">
-          <button type="button" class="btn-order-move" data-up-srv="${idx}" ${idx === 0 ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''} title="Mover arriba">▲</button>
-          <button type="button" class="btn-order-move" data-down-srv="${idx}" ${idx === portfolio.services.length - 1 ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''} title="Mover abajo">▼</button>
-        </div>
         <div class="item-info" style="flex: 1; min-width: 0;">
           <strong style="color: #0f172a; font-size: 0.95rem;">${srv.title}</strong>
           <p class="item-desc" style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${srv.description}</p>
@@ -1682,20 +1642,6 @@ const profiles = await getAllProfiles();
     // Activar Drag & Drop para Servicios
     setupDragAndDrop(container, '.item-draggable', 'data-srv-idx', (fromIdx, toIdx) => {
       reorderServices(fromIdx, toIdx, portfolio);
-    });
-
-    // Reordenar
-    container.querySelectorAll('[data-up-srv]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-up-srv'));
-        reorderServices(idx, idx - 1, portfolio);
-      });
-    });
-    container.querySelectorAll('[data-down-srv]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-down-srv'));
-        reorderServices(idx, idx + 1, portfolio);
-      });
     });
 
     container.querySelectorAll('[data-del-srv]').forEach((btn) => {
@@ -2770,26 +2716,6 @@ const profiles = await getAllProfiles();
   .btn-delete:hover {
     background: #fecaca;
   }
-  .btn-order-move {
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    width: 24px;
-    height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    color: #475569;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .btn-order-move:hover:not(:disabled) {
-    background: #e2e8f0;
-    color: #0f172a;
-    border-color: #94a3b8;
-  }
-
   /* LISTADOS */
   .items-list {
     display: flex;
@@ -2834,7 +2760,7 @@ const profiles = await getAllProfiles();
     align-items: center;
     justify-content: center;
     color: #94a3b8;
-    padding: 0.35rem 0.2rem;
+    padding: 0.4rem 0.25rem;
     border-radius: 6px;
     transition: color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
     flex-shrink: 0;
@@ -2845,7 +2771,7 @@ const profiles = await getAllProfiles();
   }
   .drag-handle:active {
     cursor: grabbing;
-    transform: scale(1.08);
+    transform: scale(1.1);
   }
   .item-thumb {
     width: 64px;
