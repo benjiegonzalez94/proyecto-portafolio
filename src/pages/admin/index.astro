@@ -62,19 +62,11 @@ const profiles = await getAllProfiles();
           </div>
 
           <div class="profile-identity-texts">
-            <div class="profile-title-row">
-              <h1 class="profile-display-name" id="display-profile-name">Cargando portafolio...</h1>
-              <a id="profile-slug-chip" href="/benjie" target="_blank" class="profile-slug-badge" title="Abrir enlace público">
-                <span class="slug-prefix">folio /</span>
-                <span class="slug-name" id="display-profile-slug">benjie</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                  <polyline points="15 3 21 3 21 9"/>
-                  <line x1="10" y1="14" x2="21" y2="3"/>
-                </svg>
-              </a>
-            </div>
-            <p class="profile-headline-sub" id="display-profile-headline">Especialidad o rol principal</p>
+            <h1 class="profile-display-name" id="display-profile-name">Cargando portafolio...</h1>
+            <p class="profile-headline-sub">
+              <span id="display-profile-headline">Especialidad o rol principal</span>
+              <span class="profile-slug-sub">• folio/<span id="display-profile-slug">benjie</span></span>
+            </p>
           </div>
 
           <!-- Selector / input oculto para preservar compatibilidad con scripts existentes -->
@@ -769,12 +761,10 @@ const profiles = await getAllProfiles();
     const displayProfileName = document.getElementById('display-profile-name');
     const displayProfileSlug = document.getElementById('display-profile-slug');
     const displayProfileHeadline = document.getElementById('display-profile-headline');
-    const profileSlugChip = document.getElementById('profile-slug-chip') as HTMLAnchorElement;
 
     if (displayProfileName) displayProfileName.textContent = p.full_name || 'Mi Portafolio';
     if (displayProfileSlug) displayProfileSlug.textContent = p.slug;
     if (displayProfileHeadline) displayProfileHeadline.textContent = p.headline || 'Tu especialidad o rol principal';
-    if (profileSlugChip) profileSlugChip.href = `/${p.slug}`;
 
     // Marcar plantilla activa
     const activeTmpl = p.template_id || 'tech-minimal';
@@ -1926,49 +1916,28 @@ const profiles = await getAllProfiles();
   .profile-identity-texts {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
-  }
-  .profile-title-row {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
+    gap: 0.25rem;
   }
   .profile-display-name {
     margin: 0;
-    font-size: 1.35rem;
+    font-size: 1.45rem;
     font-weight: 800;
     color: #0f172a;
     letter-spacing: -0.02em;
   }
-  .profile-slug-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.25rem 0.65rem;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    border-radius: 9999px;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: #2563eb;
-    text-decoration: none;
-    transition: all 0.2s ease;
-  }
-  .profile-slug-badge:hover {
-    background: #eff6ff;
-    border-color: #bfdbfe;
-    color: #1d4ed8;
-  }
-  .profile-slug-badge .slug-prefix {
-    color: #94a3b8;
-    font-weight: 500;
-  }
   .profile-headline-sub {
     margin: 0;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     color: #64748b;
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .profile-slug-sub {
+    color: #94a3b8;
+    font-weight: 600;
   }
 
   .btn-live {
