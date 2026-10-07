@@ -151,49 +151,57 @@ const profiles = await getAllProfiles();
               </div>
             </div>
 
-            <!-- ENLACES Y REDES SOCIALES -->
-            <h3 style="font-size: 1.05rem; font-weight: 700; margin: 1.25rem 0 0.5rem; color: #0f172a;">Redes Sociales & Enlaces Profesionales</h3>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="prof-github">GitHub URL</label>
-                <input type="url" id="prof-github" placeholder="https://github.com/tu-usuario" />
+            <!-- ENLACES Y REDES SOCIALES (Fila compacta con selector desplegable) -->
+            <div class="social-links-manager" style="margin: 1.5rem 0 1rem;">
+              <label style="display: block; font-size: 0.95rem; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem;">
+                Redes Sociales & Enlaces Profesionales
+              </label>
+              <p style="font-size: 0.85rem; color: #64748b; margin: 0 0 0.85rem 0;">
+                Selecciona la red social, pega tu enlace y agrégala o actualízala.
+              </p>
+
+              <!-- Fila única de formulario -->
+              <div class="social-add-row" style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+                <select id="social-select-platform" style="padding: 0.65rem 0.9rem; border-radius: 0.6rem; border: 1px solid #cbd5e1; font-weight: 600; color: #0f172a; background: #ffffff; min-width: 170px;">
+                  <option value="github">🐙 GitHub</option>
+                  <option value="linkedin">💼 LinkedIn</option>
+                  <option value="instagram">📸 Instagram</option>
+                  <option value="behance">🎨 Behance</option>
+                  <option value="twitter">🐦 X (Twitter)</option>
+                  <option value="website">🌐 Sitio Web</option>
+                </select>
+                <input 
+                  type="url" 
+                  id="social-input-url" 
+                  placeholder="https://..." 
+                  style="flex: 1; min-width: 220px; padding: 0.65rem 0.9rem; border-radius: 0.6rem; border: 1px solid #cbd5e1; font-size: 0.925rem;" 
+                />
+                <button type="button" id="btn-add-social-link" class="btn btn-outline" style="padding: 0.65rem 1.1rem; white-space: nowrap; font-weight: 600;">
+                  + Agregar Red
+                </button>
               </div>
-              <div class="form-group">
-                <label for="prof-linkedin">LinkedIn URL</label>
-                <input type="url" id="prof-linkedin" placeholder="https://linkedin.com/in/tu-perfil" />
+
+              <!-- Lista de redes activas agregadas -->
+              <div id="social-active-list" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.85rem;">
+                <!-- Rellenado dinámicamente con tags/pills de redes configuradas -->
               </div>
+
+              <!-- Inputs ocultos para mantener compatibilidad y persistencia directa -->
+              <input type="hidden" id="prof-github" />
+              <input type="hidden" id="prof-linkedin" />
+              <input type="hidden" id="prof-instagram" />
+              <input type="hidden" id="prof-behance" />
+              <input type="hidden" id="prof-twitter" />
+              <input type="hidden" id="prof-website" />
             </div>
 
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="prof-instagram">Instagram URL</label>
-                <input type="url" id="prof-instagram" placeholder="https://instagram.com/tu-cuenta" />
-              </div>
-              <div class="form-group">
-                <label for="prof-behance">Behance URL</label>
-                <input type="url" id="prof-behance" placeholder="https://behance.net/tu-portafolio" />
-              </div>
-            </div>
-
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="prof-twitter">X (Twitter) URL</label>
-                <input type="url" id="prof-twitter" placeholder="https://x.com/tu-usuario" />
-              </div>
-              <div class="form-group">
-                <label for="prof-website">Sitio Web Personal / Blog</label>
-                <input type="url" id="prof-website" placeholder="https://tu-dominio.com" />
-              </div>
-            </div>
-
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="prof-avatar">URL de Foto de Perfil (Avatar)</label>
-                <input type="text" id="prof-avatar" placeholder="https://... o sube una imagen arriba" />
-              </div>
-              <div class="form-group">
-                <label for="prof-theme">Color de Acento (Hex)</label>
+            <!-- PREFERENCIA VISUAL (Avatar URL oculto del usuario, solo color de acento visible) -->
+            <input type="hidden" id="prof-avatar" />
+            <div class="form-group" style="margin-top: 1rem;">
+              <label for="prof-theme" style="font-weight: 600;">Color de Acento del Portafolio</label>
+              <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.35rem;">
                 <input type="color" id="prof-theme" value="#2563eb" class="color-picker-input" />
+                <span style="font-size: 0.85rem; color: #64748b;">Tono principal para botones, títulos y efectos glow.</span>
               </div>
             </div>
 
@@ -792,6 +800,7 @@ const profiles = await getAllProfiles();
     (document.getElementById('prof-behance') as HTMLInputElement).value = p.behance_url || '';
     (document.getElementById('prof-twitter') as HTMLInputElement).value = p.twitter_url || '';
     (document.getElementById('prof-website') as HTMLInputElement).value = p.website_url || '';
+    renderActiveSocialPills();
 
     if (avatarPreviewImg) {
       avatarPreviewImg.src = p.avatar_url || '/images/avatar-placeholder.svg';
@@ -840,6 +849,108 @@ const profiles = await getAllProfiles();
     renderServices(portfolio);
     renderSkillsList(portfolio);
   }
+
+  // ==========================================
+  // GESTIÓN COMPACTA DE REDES SOCIALES
+  // ==========================================
+  const socialPlatformsMeta: Record<string, { label: string; icon: string; placeholder: string }> = {
+    github: { label: 'GitHub', icon: '🐙', placeholder: 'https://github.com/tu-usuario' },
+    linkedin: { label: 'LinkedIn', icon: '💼', placeholder: 'https://linkedin.com/in/tu-perfil' },
+    instagram: { label: 'Instagram', icon: '📸', placeholder: 'https://instagram.com/tu-cuenta' },
+    behance: { label: 'Behance', icon: '🎨', placeholder: 'https://behance.net/tu-portafolio' },
+    twitter: { label: 'X (Twitter)', icon: '🐦', placeholder: 'https://x.com/tu-usuario' },
+    website: { label: 'Sitio Web', icon: '🌐', placeholder: 'https://tu-dominio.com' },
+  };
+
+  function renderActiveSocialPills() {
+    const listContainer = document.getElementById('social-active-list');
+    if (!listContainer) return;
+
+    const platforms = ['github', 'linkedin', 'instagram', 'behance', 'twitter', 'website'] as const;
+    const activeItems = platforms.map((key) => {
+      const input = document.getElementById(`prof-${key}`) as HTMLInputElement;
+      const url = input ? input.value.trim() : '';
+      return { key, url, meta: socialPlatformsMeta[key] };
+    }).filter((item) => Boolean(item.url));
+
+    if (activeItems.length === 0) {
+      listContainer.innerHTML = '<span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Sin redes sociales agregadas aún. Selecciona una arriba para añadirla.</span>';
+      return;
+    }
+
+    listContainer.innerHTML = activeItems.map((item) => `
+      <div style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.35rem 0.75rem; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 9999px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-size: 0.85rem;">
+        <span>${item.meta.icon}</span>
+        <strong style="color: #0f172a;">${item.meta.label}:</strong>
+        <a href="${item.url}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: none; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${item.url}">
+          ${item.url.replace(/^https?:\/\//, '')}
+        </a>
+        <button type="button" class="btn-del-social" data-del-social="${item.key}" style="border: none; background: transparent; cursor: pointer; color: #ef4444; font-weight: 700; padding: 0 0.2rem; font-size: 0.95rem;" title="Eliminar ${item.meta.label}">
+          ✕
+        </button>
+      </div>
+    `).join('');
+
+    // Listener para eliminar red
+    listContainer.querySelectorAll('[data-del-social]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const platformKey = (e.currentTarget as HTMLElement).getAttribute('data-del-social');
+        if (!platformKey) return;
+
+        const input = document.getElementById(`prof-${platformKey}`) as HTMLInputElement;
+        if (input) input.value = '';
+
+        if (currentPortfolio) {
+          const propName = `${platformKey}_url` as keyof typeof currentPortfolio.profile;
+          (currentPortfolio.profile as any)[propName] = undefined;
+        }
+
+        renderActiveSocialPills();
+        showToast(`Red ${socialPlatformsMeta[platformKey]?.label || platformKey} eliminada. Guarda los cambios para aplicar en vivo.`, 'info');
+      });
+    });
+  }
+
+  // Al cambiar la opción en el selector, actualizar placeholder o rellenar si ya tiene URL
+  const selectPlatform = document.getElementById('social-select-platform') as HTMLSelectElement;
+  const inputSocialUrl = document.getElementById('social-input-url') as HTMLInputElement;
+  const btnAddSocial = document.getElementById('btn-add-social-link');
+
+  selectPlatform?.addEventListener('change', () => {
+    const key = selectPlatform.value;
+    const existingVal = (document.getElementById(`prof-${key}`) as HTMLInputElement)?.value || '';
+    inputSocialUrl.value = existingVal;
+    inputSocialUrl.placeholder = socialPlatformsMeta[key]?.placeholder || 'https://...';
+    if (btnAddSocial) {
+      btnAddSocial.textContent = existingVal ? '✓ Actualizar Red' : '+ Agregar Red';
+    }
+  });
+
+  btnAddSocial?.addEventListener('click', () => {
+    const key = selectPlatform?.value;
+    const url = inputSocialUrl?.value.trim();
+    if (!key) return;
+
+    if (!url) {
+      alert('Por favor ingresa un enlace o URL válido (ej: https://...)');
+      return;
+    }
+
+    const targetInput = document.getElementById(`prof-${key}`) as HTMLInputElement;
+    if (targetInput) {
+      targetInput.value = url;
+    }
+
+    if (currentPortfolio) {
+      const propName = `${key}_url` as keyof typeof currentPortfolio.profile;
+      (currentPortfolio.profile as any)[propName] = url;
+    }
+
+    renderActiveSocialPills();
+    inputSocialUrl.value = '';
+    if (btnAddSocial) btnAddSocial.textContent = '+ Agregar Red';
+    showToast(`Red ${socialPlatformsMeta[key]?.label} añadida. Pulsa "Guardar Cambios de Perfil" para persistir.`, 'success');
+  });
 
   // 6. SUBIDA DE AVATAR A SUPABASE STORAGE CON RECORTADOR Y OPTIMIZACIÓN
   inputAvatarFile?.addEventListener('change', async (e) => {
