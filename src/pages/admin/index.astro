@@ -1391,7 +1391,84 @@ const profiles = await getAllProfiles();
     showToast('Orden de servicios actualizado', 'info');
   }
 
-  // 10. RENDER LISTAS CON REORDENAMIENTO Y ACCIONES
+  // 10. DRAG & DROP Y RENDER DE LISTAS CON REORDENAMIENTO
+  function setupDragAndDrop(
+    container: HTMLElement, 
+    rowSelector: string, 
+    indexAttr: string, 
+    onReorder: (fromIdx: number, toIdx: number) => void
+  ) {
+    let draggedIndex: number | null = null;
+    const rows = container.querySelectorAll<HTMLElement>(rowSelector);
+
+    rows.forEach((row) => {
+      row.addEventListener('dragstart', (e) => {
+        draggedIndex = Number(row.getAttribute(indexAttr));
+        row.classList.add('is-dragging');
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', String(draggedIndex));
+        }
+      });
+
+      row.addEventListener('dragend', () => {
+        row.classList.remove('is-dragging');
+        rows.forEach((r) => r.classList.remove('drag-over-top', 'drag-over-bottom'));
+        draggedIndex = null;
+      });
+
+      row.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (draggedIndex === null) return;
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+
+        const targetIdx = Number(row.getAttribute(indexAttr));
+        if (targetIdx === draggedIndex) {
+          row.classList.remove('drag-over-top', 'drag-over-bottom');
+          return;
+        }
+
+        const rect = row.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        if (e.clientY < midY) {
+          row.classList.add('drag-over-top');
+          row.classList.remove('drag-over-bottom');
+        } else {
+          row.classList.add('drag-over-bottom');
+          row.classList.remove('drag-over-top');
+        }
+      });
+
+      row.addEventListener('dragleave', () => {
+        row.classList.remove('drag-over-top', 'drag-over-bottom');
+      });
+
+      row.addEventListener('drop', (e) => {
+        e.preventDefault();
+        row.classList.remove('drag-over-top', 'drag-over-bottom');
+        if (draggedIndex === null) return;
+
+        const targetIdx = Number(row.getAttribute(indexAttr));
+        if (targetIdx === draggedIndex) return;
+
+        const rect = row.getBoundingClientRect();
+        const isAfter = e.clientY > (rect.top + rect.height / 2);
+
+        let newIdx = targetIdx;
+        if (isAfter) {
+          newIdx = draggedIndex < targetIdx ? targetIdx : targetIdx + 1;
+        } else {
+          newIdx = draggedIndex < targetIdx ? targetIdx - 1 : targetIdx;
+        }
+
+        newIdx = Math.max(0, Math.min(rows.length - 1, newIdx));
+        if (newIdx !== draggedIndex) {
+          onReorder(draggedIndex, newIdx);
+        }
+      });
+    });
+  }
+
   function renderProjects(portfolio: FullPortfolio) {
     const container = document.getElementById('projects-list-container');
     if (!container) return;
@@ -1403,10 +1480,20 @@ const profiles = await getAllProfiles();
     container.innerHTML = portfolio.projects
       .map(
         (proj, idx) => `
-      <div class="item-row" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.75rem; margin-bottom: 0.75rem;">
+      <div class="item-row item-draggable" draggable="true" data-proj-idx="${idx}" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.75rem; margin-bottom: 0.75rem;">
+        <div class="drag-handle" title="Arrastra para mover de lugar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="9" cy="6" r="1.6"/>
+            <circle cx="15" cy="6" r="1.6"/>
+            <circle cx="9" cy="12" r="1.6"/>
+            <circle cx="15" cy="12" r="1.6"/>
+            <circle cx="9" cy="18" r="1.6"/>
+            <circle cx="15" cy="18" r="1.6"/>
+          </svg>
+        </div>
         <div style="display: flex; flex-direction: column; gap: 0.2rem;">
-          <button type="button" class="btn-order-move" data-up-proj="${idx}" ${idx === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''} title="Mover arriba">▲</button>
-          <button type="button" class="btn-order-move" data-down-proj="${idx}" ${idx === portfolio.projects.length - 1 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''} title="Mover abajo">▼</button>
+          <button type="button" class="btn-order-move" data-up-proj="${idx}" ${idx === 0 ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''} title="Mover arriba">▲</button>
+          <button type="button" class="btn-order-move" data-down-proj="${idx}" ${idx === portfolio.projects.length - 1 ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''} title="Mover abajo">▼</button>
         </div>
         ${proj.image_url ? `<img src="${proj.image_url}" alt="${proj.title}" class="item-thumb" style="width: 54px; height: 54px; object-fit: cover; border-radius: 8px; flex-shrink: 0;" />` : `<div style="width: 54px; height: 54px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">📁</div>`}
         <div class="item-info" style="flex: 1; min-width: 0;">
@@ -1426,7 +1513,12 @@ const profiles = await getAllProfiles();
       )
       .join('');
 
-    // Reordenar
+    // Activar Drag & Drop para Proyectos
+    setupDragAndDrop(container, '.item-draggable', 'data-proj-idx', (fromIdx, toIdx) => {
+      reorderProjects(fromIdx, toIdx, portfolio);
+    });
+
+    // Reordenar por botones (accesibilidad)
     container.querySelectorAll('[data-up-proj]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-up-proj'));
@@ -1481,10 +1573,20 @@ const profiles = await getAllProfiles();
     container.innerHTML = portfolio.experiences
       .map(
         (exp, idx) => `
-      <div class="item-row" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.75rem; margin-bottom: 0.75rem;">
+      <div class="item-row item-draggable" draggable="true" data-exp-idx="${idx}" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.75rem; margin-bottom: 0.75rem;">
+        <div class="drag-handle" title="Arrastra para mover de lugar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="9" cy="6" r="1.6"/>
+            <circle cx="15" cy="6" r="1.6"/>
+            <circle cx="9" cy="12" r="1.6"/>
+            <circle cx="15" cy="12" r="1.6"/>
+            <circle cx="9" cy="18" r="1.6"/>
+            <circle cx="15" cy="18" r="1.6"/>
+          </svg>
+        </div>
         <div style="display: flex; flex-direction: column; gap: 0.2rem;">
-          <button type="button" class="btn-order-move" data-up-exp="${idx}" ${idx === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''} title="Mover arriba">▲</button>
-          <button type="button" class="btn-order-move" data-down-exp="${idx}" ${idx === portfolio.experiences.length - 1 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''} title="Mover abajo">▼</button>
+          <button type="button" class="btn-order-move" data-up-exp="${idx}" ${idx === 0 ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''} title="Mover arriba">▲</button>
+          <button type="button" class="btn-order-move" data-down-exp="${idx}" ${idx === portfolio.experiences.length - 1 ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''} title="Mover abajo">▼</button>
         </div>
         <div class="item-info" style="flex: 1; min-width: 0;">
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
@@ -1501,6 +1603,11 @@ const profiles = await getAllProfiles();
     `
       )
       .join('');
+
+    // Activar Drag & Drop para Experiencias
+    setupDragAndDrop(container, '.item-draggable', 'data-exp-idx', (fromIdx, toIdx) => {
+      reorderExperiences(fromIdx, toIdx, portfolio);
+    });
 
     // Reordenar
     container.querySelectorAll('[data-up-exp]').forEach((btn) => {
@@ -1545,10 +1652,20 @@ const profiles = await getAllProfiles();
     container.innerHTML = portfolio.services
       .map(
         (srv, idx) => `
-      <div class="item-row" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.75rem; margin-bottom: 0.75rem;">
+      <div class="item-row item-draggable" draggable="true" data-srv-idx="${idx}" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.75rem; margin-bottom: 0.75rem;">
+        <div class="drag-handle" title="Arrastra para mover de lugar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="9" cy="6" r="1.6"/>
+            <circle cx="15" cy="6" r="1.6"/>
+            <circle cx="9" cy="12" r="1.6"/>
+            <circle cx="15" cy="12" r="1.6"/>
+            <circle cx="9" cy="18" r="1.6"/>
+            <circle cx="15" cy="18" r="1.6"/>
+          </svg>
+        </div>
         <div style="display: flex; flex-direction: column; gap: 0.2rem;">
-          <button type="button" class="btn-order-move" data-up-srv="${idx}" ${idx === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''} title="Mover arriba">▲</button>
-          <button type="button" class="btn-order-move" data-down-srv="${idx}" ${idx === portfolio.services.length - 1 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''} title="Mover abajo">▼</button>
+          <button type="button" class="btn-order-move" data-up-srv="${idx}" ${idx === 0 ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''} title="Mover arriba">▲</button>
+          <button type="button" class="btn-order-move" data-down-srv="${idx}" ${idx === portfolio.services.length - 1 ? 'disabled style="opacity: 0.25; cursor: not-allowed;"' : ''} title="Mover abajo">▼</button>
         </div>
         <div class="item-info" style="flex: 1; min-width: 0;">
           <strong style="color: #0f172a; font-size: 0.95rem;">${srv.title}</strong>
@@ -1561,6 +1678,11 @@ const profiles = await getAllProfiles();
     `
       )
       .join('');
+
+    // Activar Drag & Drop para Servicios
+    setupDragAndDrop(container, '.item-draggable', 'data-srv-idx', (fromIdx, toIdx) => {
+      reorderServices(fromIdx, toIdx, portfolio);
+    });
 
     // Reordenar
     container.querySelectorAll('[data-up-srv]').forEach((btn) => {
@@ -2683,6 +2805,47 @@ const profiles = await getAllProfiles();
     border: 1px solid #e2e8f0;
     border-radius: 0.75rem;
     gap: 1.25rem;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+    user-select: none;
+  }
+  .item-row button, 
+  .item-row a, 
+  .item-row input {
+    user-select: auto;
+  }
+  .item-row.is-dragging {
+    opacity: 0.45 !important;
+    background: #eff6ff !important;
+    border: 2px dashed #2563eb !important;
+    box-shadow: 0 12px 24px -6px rgba(37, 99, 235, 0.25) !important;
+    transform: scale(0.99);
+  }
+  .item-row.drag-over-top {
+    border-top: 3px solid #2563eb !important;
+    transform: translateY(3px);
+  }
+  .item-row.drag-over-bottom {
+    border-bottom: 3px solid #2563eb !important;
+    transform: translateY(-3px);
+  }
+  .drag-handle {
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    padding: 0.35rem 0.2rem;
+    border-radius: 6px;
+    transition: color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+    flex-shrink: 0;
+  }
+  .drag-handle:hover {
+    color: #0f172a;
+    background-color: #e2e8f0;
+  }
+  .drag-handle:active {
+    cursor: grabbing;
+    transform: scale(1.08);
   }
   .item-thumb {
     width: 64px;
