@@ -513,7 +513,7 @@ const profiles = await getAllProfiles();
 </BaseLayout>
 
 <script>
-  import { fallbackPortfolios, supabase, isSupabaseConfigured } from '../../lib/supabase';
+  import { fallbackPortfolios, supabase, isSupabaseConfigured, defaultSkillsBySlug } from '../../lib/supabase';
   import { uploadMediaFile } from '../../lib/storage';
   import type { FullPortfolio, Project } from '../../lib/types';
 
@@ -751,6 +751,17 @@ const profiles = await getAllProfiles();
             supabase.from('projects').select('*').eq('profile_id', pData.id).order('order_index'),
             supabase.from('services').select('*').eq('profile_id', pData.id).order('order_index'),
           ]);
+
+          // Si skills_data aún no se ha guardado en DB (null o undefined), inicializar con las categorías por defecto
+          if (pData.skills_data === null || pData.skills_data === undefined) {
+            pData.skills_data = JSON.parse(JSON.stringify(defaultSkillsBySlug[slug] || []));
+          } else if (Array.isArray(pData.skills_data)) {
+            pData.skills_data.forEach((c: any) => {
+              const name = c.title || c.category || '';
+              c.title = name;
+              c.category = name;
+            });
+          }
 
           currentPortfolio = {
             profile: pData,
@@ -1175,7 +1186,7 @@ const profiles = await getAllProfiles();
     const container = document.getElementById('projects-list-container');
     if (!container) return;
     if (portfolio.projects.length === 0) {
-      container.innerHTML = '<p class="empty-text">No hay proyectos agregados todavía.</p>';
+      container.innerHTML = '<p class="empty-text">No hay proyectos agregados todavía. Esta sección se mantendrá oculta en tu portafolio público hasta que agregues al menos uno.</p>';
       return;
     }
 
@@ -1202,10 +1213,15 @@ const profiles = await getAllProfiles();
         const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-proj'));
         const proj = portfolio.projects[idx];
         if (proj && supabase && isSupabaseConfigured) {
-          await supabase.from('projects').delete().eq('id', proj.id);
+          const { error } = await supabase.from('projects').delete().eq('id', proj.id);
+          if (error) {
+            showToast(`Error al eliminar proyecto: ${error.message}`, 'error');
+            return;
+          }
         }
         portfolio.projects.splice(idx, 1);
         renderProjects(portfolio);
+        showToast('Proyecto eliminado con éxito', 'success');
       });
     });
   }
@@ -1214,7 +1230,7 @@ const profiles = await getAllProfiles();
     const container = document.getElementById('exp-list-container');
     if (!container) return;
     if (portfolio.experiences.length === 0) {
-      container.innerHTML = '<p class="empty-text">No hay experiencias registradas.</p>';
+      container.innerHTML = '<p class="empty-text">No hay experiencias registradas. Esta sección se mantendrá oculta en tu portafolio público hasta que agregues al menos una.</p>';
       return;
     }
 
@@ -1241,10 +1257,15 @@ const profiles = await getAllProfiles();
         const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-exp'));
         const exp = portfolio.experiences[idx];
         if (exp && supabase && isSupabaseConfigured) {
-          await supabase.from('experiences').delete().eq('id', exp.id);
+          const { error } = await supabase.from('experiences').delete().eq('id', exp.id);
+          if (error) {
+            showToast(`Error al eliminar experiencia: ${error.message}`, 'error');
+            return;
+          }
         }
         portfolio.experiences.splice(idx, 1);
         renderExperiences(portfolio);
+        showToast('Experiencia eliminada con éxito', 'success');
       });
     });
   }
@@ -1253,7 +1274,7 @@ const profiles = await getAllProfiles();
     const container = document.getElementById('srv-list-container');
     if (!container) return;
     if (portfolio.services.length === 0) {
-      container.innerHTML = '<p class="empty-text">No hay servicios registrados.</p>';
+      container.innerHTML = '<p class="empty-text">No hay servicios registrados. Esta sección se mantendrá oculta en tu portafolio público hasta que agregues al menos uno.</p>';
       return;
     }
 
@@ -1278,10 +1299,15 @@ const profiles = await getAllProfiles();
         const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-srv'));
         const srv = portfolio.services[idx];
         if (srv && supabase && isSupabaseConfigured) {
-          await supabase.from('services').delete().eq('id', srv.id);
+          const { error } = await supabase.from('services').delete().eq('id', srv.id);
+          if (error) {
+            showToast(`Error al eliminar servicio: ${error.message}`, 'error');
+            return;
+          }
         }
         portfolio.services.splice(idx, 1);
         renderServices(portfolio);
+        showToast('Servicio eliminado con éxito', 'success');
       });
     });
   }
@@ -1618,20 +1644,23 @@ const profiles = await getAllProfiles();
     const skillsData = portfolio.profile.skills_data || [];
 
     if (skillsData.length === 0) {
-      container.innerHTML = '<p class="empty-text">No hay categorías de habilidades registradas. Pulsa "+ Nueva Categoría" para añadir una.</p>';
+      container.innerHTML = '<p class="empty-text">No hay categorías de habilidades registradas. Esta sección se mantendrá oculta en tu portafolio público hasta que añadas al menos una categoría.</p>';
       return;
     }
 
     container.innerHTML = skillsData
       .map(
-        (cat, catIdx) => `
+        (cat: any, catIdx: number) => {
+          const catTitle = cat.title || cat.category || '';
+          const skillsList = Array.isArray(cat.skills) ? cat.skills.join(', ') : '';
+          return `
       <div class="item-row" style="flex-direction: column; align-items: stretch; gap: 0.75rem;" data-cat-idx="${catIdx}">
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
           <input 
             type="text" 
             class="cat-title-input" 
             data-cat-edit="${catIdx}" 
-            value="${cat.category}" 
+            value="${catTitle.replace(/"/g, '&quot;')}" 
             placeholder="Nombre de Categoría (ej: Frontend, Backend, UI/UX)"
             style="font-size: 1.1rem; font-weight: 700; color: #0f172a; padding: 0.4rem 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; flex: 1;"
           />
@@ -1646,13 +1675,14 @@ const profiles = await getAllProfiles();
             type="text" 
             class="cat-skills-input" 
             data-skills-edit="${catIdx}" 
-            value="${cat.skills.join(', ')}" 
+            value="${skillsList.replace(/"/g, '&quot;')}" 
             placeholder="Ej: TypeScript, React, Astro, Node.js"
             style="padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.925rem;"
           />
         </div>
       </div>
-    `
+    `;
+        }
       )
       .join('');
 
@@ -1660,8 +1690,10 @@ const profiles = await getAllProfiles();
     container.querySelectorAll('.cat-title-input').forEach((input) => {
       input.addEventListener('input', (e) => {
         const idx = Number((e.target as HTMLElement).getAttribute('data-cat-edit'));
+        const val = (e.target as HTMLInputElement).value;
         if (portfolio.profile.skills_data?.[idx]) {
-          portfolio.profile.skills_data[idx].category = (e.target as HTMLInputElement).value;
+          portfolio.profile.skills_data[idx].title = val;
+          (portfolio.profile.skills_data[idx] as any).category = val;
         }
       });
     });
@@ -1683,6 +1715,7 @@ const profiles = await getAllProfiles();
         if (portfolio.profile.skills_data) {
           portfolio.profile.skills_data.splice(idx, 1);
           renderSkillsList(portfolio);
+          showToast('Categoría eliminada. Recuerda pulsar "Guardar Cambios de Habilidades" para confirmar.', 'info');
         }
       });
     });
@@ -1696,9 +1729,9 @@ const profiles = await getAllProfiles();
     }
 
     currentPortfolio.profile.skills_data.push({
-      category: 'Nueva Categoría',
+      title: 'Nueva Categoría',
       skills: ['Herramienta 1', 'Herramienta 2'],
-    });
+    } as any);
 
     renderSkillsList(currentPortfolio);
   });
@@ -1713,7 +1746,17 @@ const profiles = await getAllProfiles();
       skillsStatus.style.color = '#3b82f6';
     }
 
-    const skillsData = currentPortfolio.profile.skills_data || [];
+    const rawSkills = currentPortfolio.profile.skills_data || [];
+    const skillsData = rawSkills
+      .map((cat: any) => ({
+        title: (cat.title || cat.category || '').trim(),
+        skills: Array.isArray(cat.skills)
+          ? cat.skills.map((s: string) => (typeof s === 'string' ? s.trim() : s)).filter(Boolean)
+          : [],
+      }))
+      .filter((cat: any) => cat.title.length > 0 || cat.skills.length > 0);
+
+    currentPortfolio.profile.skills_data = skillsData;
 
     if (supabase && isSupabaseConfigured) {
       try {
@@ -1727,7 +1770,8 @@ const profiles = await getAllProfiles();
 
         if (error) throw error;
         if (skillsStatus) skillsStatus.textContent = 'Guardado';
-        showToast('Habilidades actualizadas con éxito', 'success');
+        renderSkillsList(currentPortfolio);
+        showToast('Habilidades actualizadas y guardadas con éxito', 'success');
       } catch (err: any) {
         showToast(`Error al guardar habilidades: ${err.message}`, 'error');
         if (skillsStatus) skillsStatus.textContent = 'Error';

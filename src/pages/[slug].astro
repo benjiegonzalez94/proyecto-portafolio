@@ -171,7 +171,7 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
     </header>
 
     <!-- STACK TECNOLÓGICO / HABILIDADES CLAVE -->
-    {skillCategories && skillCategories.length > 0 && (
+    {skillCategories && skillCategories.length > 0 && skillCategories.some((cat) => (cat.skills && cat.skills.length > 0) || (cat.title && cat.title.trim().length > 0)) && (
       <section class="section skills-section">
         <div class="container">
           <div class="section-header">
@@ -179,11 +179,13 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
             <h2 class="section-title">{isBenjie ? 'Stack Tecnológico & Competencias' : 'Especialidades & Herramientas'}</h2>
           </div>
           <div class="skills-grid">
-            {skillCategories.map((cat) => (
+            {skillCategories
+              .filter((cat) => (cat.skills && cat.skills.length > 0) || (cat.title && cat.title.trim().length > 0))
+              .map((cat) => (
               <div class="skill-category-card">
                 <h3 class="skill-category-title">{cat.title}</h3>
                 <div class="skill-pills">
-                  {cat.skills.map((s) => (
+                  {cat.skills && cat.skills.map((s) => (
                     <span class="skill-pill">{s}</span>
                   ))}
                 </div>
