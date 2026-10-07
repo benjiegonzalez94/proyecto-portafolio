@@ -27,11 +27,6 @@ const profiles = await getAllProfiles();
         </div>
 
         <div class="admin-topbar__user">
-          <div class={`status-badge ${isSupabaseConfigured ? 'status-badge--live' : 'status-badge--local'}`}>
-            <span class="status-indicator"></span>
-            <span>{isSupabaseConfigured ? 'Supabase Conectado' : 'Modo Demo'}</span>
-          </div>
-
           <div id="user-session-bar" class="user-session-bar" style="display: none;">
             <span class="user-email" id="display-user-email">usuario@correo.com</span>
             <button id="btn-logout" class="btn btn-sm btn-logout" title="Cerrar Sesión">
@@ -436,9 +431,9 @@ const profiles = await getAllProfiles();
           </div>
         </div>
 
-        <!-- SUBIDA DE IMAGEN CON SUPABASE STORAGE -->
+        <!-- SUBIDA DE IMAGEN -->
         <div class="form-group">
-          <label>Imagen del Proyecto (Supabase Storage)</label>
+          <label>Imagen del Proyecto</label>
           <div class="upload-image-box">
             <input type="file" id="proj-image-file" accept="image/*" class="sr-only" />
             <div class="upload-actions">
@@ -961,7 +956,7 @@ const profiles = await getAllProfiles();
     openCropTool(file, 'avatar', async (optimizedFile) => {
       const statusIndicator = document.getElementById('profile-save-status');
       if (statusIndicator) {
-        statusIndicator.textContent = 'Subiendo foto de perfil optimizada a Supabase Storage...';
+        statusIndicator.textContent = 'Subiendo foto de perfil optimizada...';
         statusIndicator.style.color = '#3b82f6';
       }
 
@@ -987,7 +982,7 @@ const profiles = await getAllProfiles();
       }
 
       if (statusIndicator) statusIndicator.textContent = 'Foto guardada';
-      showToast('Foto de perfil optimizada y actualizada con éxito en Supabase', 'success');
+      showToast('Foto de perfil optimizada y guardada con éxito', 'success');
     });
 
     // Resetear valor para permitir seleccionar la misma imagen
@@ -1063,16 +1058,16 @@ const profiles = await getAllProfiles();
           .eq('id', currentPortfolio.profile.id);
 
         if (error) throw error;
-        showToast('Perfil guardado exitosamente en Supabase', 'success');
+        showToast('Perfil guardado exitosamente', 'success');
       } catch (err: any) {
         showToast(`Error al guardar: ${err.message}`, 'error');
       }
     } else {
-      showToast('Guardado en memoria de sesión local', 'info');
+      showToast('Guardado en memoria de sesión', 'info');
     }
   });
 
-  // 9. MODAL DE PROYECTOS & SUPABASE STORAGE
+  // 9. MODAL DE PROYECTOS & GESTIÓN DE ARCHIVOS
   const projectModal = document.getElementById('project-modal');
   const btnOpenModal = document.getElementById('btn-open-project-modal');
   const btnCloseModal = document.getElementById('modal-project-close');
@@ -1105,7 +1100,7 @@ const profiles = await getAllProfiles();
     if (!file || !currentPortfolio) return;
 
     openCropTool(file, 'project', async (optimizedFile) => {
-      if (projFileStatus) projFileStatus.textContent = '⏳ Subiendo a Supabase Storage...';
+      if (projFileStatus) projFileStatus.textContent = '⏳ Subiendo imagen optimizada...';
 
       const { url, error } = await uploadMediaFile(optimizedFile, 'projects', currentPortfolio.profile.slug);
 
@@ -1116,8 +1111,8 @@ const profiles = await getAllProfiles();
       }
 
       inputProjUrl.value = url;
-      if (projFileStatus) projFileStatus.textContent = '✓ Imagen optimizada y subida a Supabase';
-      showToast('Captura de proyecto optimizada y subida con éxito', 'success');
+      if (projFileStatus) projFileStatus.textContent = '✓ Imagen optimizada';
+      showToast('Captura de proyecto optimizada y guardada con éxito', 'success');
     });
 
     (e.target as HTMLInputElement).value = '';
@@ -1714,7 +1709,7 @@ const profiles = await getAllProfiles();
 
     const skillsStatus = document.getElementById('skills-save-status');
     if (skillsStatus) {
-      skillsStatus.textContent = 'Guardando habilidades en Supabase...';
+      skillsStatus.textContent = 'Guardando habilidades...';
       skillsStatus.style.color = '#3b82f6';
     }
 
@@ -1732,14 +1727,14 @@ const profiles = await getAllProfiles();
 
         if (error) throw error;
         if (skillsStatus) skillsStatus.textContent = 'Guardado';
-        showToast('Categorías de habilidades guardadas con éxito en Supabase', 'success');
+        showToast('Habilidades actualizadas con éxito', 'success');
       } catch (err: any) {
         showToast(`Error al guardar habilidades: ${err.message}`, 'error');
         if (skillsStatus) skillsStatus.textContent = 'Error';
       }
     } else {
-      showToast('Habilidades guardadas localmente', 'info');
-      if (skillsStatus) skillsStatus.textContent = 'Guardado local';
+      showToast('Habilidades guardadas en sesión', 'info');
+      if (skillsStatus) skillsStatus.textContent = 'Guardado';
     }
   });
 
