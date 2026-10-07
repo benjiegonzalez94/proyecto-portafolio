@@ -22,7 +22,7 @@ export const fallbackPortfolios: Record<string, FullPortfolio> = {
       full_name: 'Benjie González',
       headline: 'Ingeniero en Tecnologías de la Información',
       bio: 'Especialista en desarrollo de software, infraestructura TI, administración de redes y soporte corporativo. Apasionado por la automatización y soluciones tecnológicas escalables.',
-      hero_badge: 'Disponible para consultoría y proyectos TI',
+      hero_badge: 'Disponible para proyectos',
       email: 'contacto@benjiegonzalez.dev',
       location: 'Ecuador',
       theme_accent: '#2563eb', // Royal Blue
