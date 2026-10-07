@@ -124,6 +124,10 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
   - [x] Soporte para personalizar el mensaje predeterminado de WhatsApp (`whatsapp_message`) desde el perfil en el CMS.
 - [x] **Métricas & Crecimiento**:
   - [x] Tarjetas Open Graph (OG Images) personalizadas dinámicamente con el nombre y avatar de cada usuario al compartir en redes sociales.
+- [x] **Privacidad de Marca y Experiencia de Usuario**:
+  - [x] Eliminación de enlaces de regreso a la landing page en el encabezado del CMS (`/admin`), mostrando exclusivamente el distintivo de marca `⚡ Folio CMS` junto con el usuario y botón de cerrar sesión.
+  - [x] Eliminación del botón `< Folio` en el portafolio público (`[slug].astro`), garantizando que los clientes y reclutadores que abran el enlace solo vean el portafolio del profesional sin fugas a la landing general.
 - [ ] **Siguientes pasos opcionales**:
   - [ ] Métricas analíticas avanzadas: contador de visitas o clics en el botón de WhatsApp y enlaces externos de cada portafolio.
+
 
