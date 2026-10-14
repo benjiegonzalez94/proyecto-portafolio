@@ -127,6 +127,10 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
 - [x] **Privacidad de Marca y Experiencia de Usuario**:
   - [x] Eliminación de enlaces de regreso a la landing page en el encabezado del CMS (`/admin`), mostrando exclusivamente el distintivo de marca `⚡ Folio CMS` junto con el usuario y botón de cerrar sesión.
   - [x] Eliminación del botón `< Folio` en el portafolio público (`[slug].astro`), garantizando que los clientes y reclutadores que abran el enlace solo vean el portafolio del profesional sin fugas a la landing general.
+  - [x] **Separación Estricta de Roles (Administración vs Creadores)**:
+    - [x] El usuario Administrador (`admin@portafolio.dev`) accede directamente a la **Consola de Administración de la Plataforma**: métricas globales en tiempo real (total de portafolios, proyectos en vitrina, usuarios registrados), buscador interactivo y directorio completo de portafolios.
+    - [x] Los usuarios comunes (creadores) acceden exclusivamente a la gestión de su **propio portafolio personal**, sin acceso a métricas globales ni a portafolios de terceros.
+    - [x] Modo de soporte asistido para Administradores con banner y botón para volver a la consola central.
 - [ ] **Siguientes pasos opcionales**:
   - [ ] Métricas analíticas avanzadas: contador de visitas o clics en el botón de WhatsApp y enlaces externos de cada portafolio.
 
