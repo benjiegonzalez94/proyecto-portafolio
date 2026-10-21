@@ -548,7 +548,21 @@ const profiles = await getAllProfiles();
               </label>
               <span id="proj-file-status" class="file-status-text">Ningún archivo subido</span>
             </div>
-            <input type="text" id="proj-image-url" placeholder="O pega la URL directa de la imagen" style="margin-top: 0.5rem;" />
+
+            <!-- Input oculto para persistencia interna sin exponer URL al usuario -->
+            <input type="hidden" id="proj-image-url" value="" />
+
+            <!-- Vista previa visual de la portada seleccionada -->
+            <div id="proj-cover-preview-wrap" style="display: none; align-items: center; gap: 0.85rem; margin-top: 0.75rem; padding: 0.5rem 0.75rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.65rem;">
+              <img id="proj-cover-preview-img" src="" alt="Portada del proyecto" style="width: 72px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1; flex-shrink: 0;" />
+              <div style="flex: 1; min-width: 0;">
+                <span style="font-size: 0.82rem; font-weight: 700; color: #0f172a; display: block;">Portada actual</span>
+                <span style="font-size: 0.75rem; color: #10b981; font-weight: 600;">✓ Optimizada en WebP</span>
+              </div>
+              <button type="button" id="btn-remove-proj-cover" class="btn btn-sm btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 0.3rem 0.6rem; font-size: 0.75rem;" title="Eliminar portada">
+                ✕ Quitar
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1452,9 +1466,30 @@ const profiles = await getAllProfiles();
   const inputProjFile = document.getElementById('proj-image-file') as HTMLInputElement;
   const inputProjUrl = document.getElementById('proj-image-url') as HTMLInputElement;
   const projFileStatus = document.getElementById('proj-file-status');
+  const projCoverPreviewWrap = document.getElementById('proj-cover-preview-wrap');
+  const projCoverPreviewImg = document.getElementById('proj-cover-preview-img') as HTMLImageElement;
+  const btnRemoveProjCover = document.getElementById('btn-remove-proj-cover');
   const projGalleryList = document.getElementById('proj-gallery-list');
   const inputProjGalleryFiles = document.getElementById('proj-gallery-files') as HTMLInputElement;
   const projGalleryStatus = document.getElementById('proj-gallery-status');
+
+  function setProjectCover(url: string) {
+    if (inputProjUrl) inputProjUrl.value = url || '';
+    if (url) {
+      if (projCoverPreviewImg) projCoverPreviewImg.src = url;
+      if (projCoverPreviewWrap) projCoverPreviewWrap.style.display = 'flex';
+      if (projFileStatus) projFileStatus.textContent = '✓ Imagen lista';
+    } else {
+      if (projCoverPreviewImg) projCoverPreviewImg.src = '';
+      if (projCoverPreviewWrap) projCoverPreviewWrap.style.display = 'none';
+      if (projFileStatus) projFileStatus.textContent = 'Ningún archivo subido';
+    }
+  }
+
+  btnRemoveProjCover?.addEventListener('click', () => {
+    setProjectCover('');
+    showToast('Portada del proyecto removida', 'info');
+  });
 
   function renderGalleryThumbs() {
     if (!projGalleryList) return;
@@ -1520,8 +1555,7 @@ const profiles = await getAllProfiles();
       (document.getElementById('proj-tags') as HTMLInputElement).value = '';
       (document.getElementById('proj-live') as HTMLInputElement).value = '';
       (document.getElementById('proj-repo') as HTMLInputElement).value = '';
-      inputProjUrl.value = '';
-      if (projFileStatus) projFileStatus.textContent = 'Ningún archivo subido';
+      setProjectCover('');
       renderGalleryThumbs();
       projectModal.style.display = 'flex';
     }
@@ -1539,8 +1573,7 @@ const profiles = await getAllProfiles();
       (document.getElementById('proj-tags') as HTMLInputElement).value = (proj.tags || []).join(', ');
       (document.getElementById('proj-live') as HTMLInputElement).value = proj.live_url || '';
       (document.getElementById('proj-repo') as HTMLInputElement).value = proj.repo_url || '';
-      inputProjUrl.value = proj.image_url || '';
-      if (projFileStatus) projFileStatus.textContent = proj.image_url ? 'Imagen de portada actual' : 'Ningún archivo subido';
+      setProjectCover(proj.image_url || '');
       renderGalleryThumbs();
       projectModal.style.display = 'flex';
     }
@@ -1565,8 +1598,7 @@ const profiles = await getAllProfiles();
         return;
       }
 
-      inputProjUrl.value = url;
-      if (projFileStatus) projFileStatus.textContent = '✓ Imagen optimizada';
+      setProjectCover(url);
       showToast('Captura de portada optimizada y guardada con éxito', 'success');
     });
 
