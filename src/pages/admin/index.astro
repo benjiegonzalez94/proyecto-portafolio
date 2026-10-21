@@ -1716,7 +1716,6 @@ const profiles = await getAllProfiles();
             repo_url: repo_url || null,
             image_url: image_url || null,
             gallery_images: finalGalleryUrls,
-            updated_at: new Date().toISOString(),
           }).eq('id', editingProjectId).then(({ error }) => {
             if (error) {
               console.error('Error al actualizar en Supabase:', error);
