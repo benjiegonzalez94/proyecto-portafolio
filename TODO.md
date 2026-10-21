@@ -131,6 +131,10 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
     - [x] El usuario Administrador (`admin@portafolio.dev`) accede directamente a la **Consola de Administración de la Plataforma**: métricas globales en tiempo real (total de portafolios, proyectos en vitrina, usuarios registrados), buscador interactivo y directorio completo de portafolios.
     - [x] Los usuarios comunes (creadores) acceden exclusivamente a la gestión de su **propio portafolio personal**, sin acceso a métricas globales ni a portafolios de terceros.
     - [x] Modo de soporte asistido para Administradores con banner y botón para volver a la consola central.
+  - [x] **Optimización de Pantalla de Escritorio y Experiencia Multimedia**:
+    - [x] Expansión del contenedor en la consola de administración (`admin/index.astro`) a 1440px / 1600px en monitores de escritorio, eliminando espacios vacíos laterales y columnas comprimidas en la tabla de usuarios.
+    - [x] Ajuste de proporciones en el visor de proyectos (*Lightbox* en `[slug].astro`): la imagen de portada ya no se mezcla con las fotos adicionales para no desbalancear la galería.
+    - [x] Rediseño flexible de altura del visor (*Lightbox*): botones de demo y WhatsApp siempre visibles y accesibles en pantalla completa sin tener que quitar zoom.
 - [ ] **Siguientes pasos opcionales**:
   - [ ] Métricas analíticas avanzadas: contador de visitas o clics en el botón de WhatsApp y enlaces externos de cada portafolio.
 
