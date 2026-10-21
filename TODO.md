@@ -122,6 +122,7 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
   - [x] Galería de imágenes múltiples por proyecto (`gallery_images TEXT[]` en Supabase): carga masiva optimizada en Supabase Storage, miniaturas y eliminación individual en `/admin`.
   - [x] Visor Lightbox interactivo (slideshow/carrusel modal con teclado, flechas ‹ ›, contador de fotos y botón directo de WhatsApp) en el portafolio público (`[slug].astro`).
   - [x] Soporte para personalizar el mensaje predeterminado de WhatsApp (`whatsapp_message`) desde el perfil en el CMS.
+  - [x] Modales dedicados de creación y edición completa (`✏️ Editar`) para **Experiencias** (cargo, empresa, periodo, descripción) y **Servicios** (título, descripción, icono) en `/admin`, eliminando diálogos emergentes toscos (`prompt`).
 - [x] **Métricas & Crecimiento**:
   - [x] Tarjetas Open Graph (OG Images) personalizadas dinámicamente con el nombre y avatar de cada usuario al compartir en redes sociales.
 - [x] **Privacidad de Marca y Experiencia de Usuario**:
