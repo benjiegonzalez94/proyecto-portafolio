@@ -529,11 +529,11 @@ const profiles = await getAllProfiles();
         <div class="form-grid">
           <div class="form-group">
             <label for="proj-live">Enlace en Vivo (Demo / Web)</label>
-            <input type="url" id="proj-live" placeholder="https://ejemplo.com" />
+            <input type="text" id="proj-live" placeholder="https://ejemplo.com o #" />
           </div>
           <div class="form-group">
             <label for="proj-repo">Enlace Repositorio (GitHub)</label>
-            <input type="url" id="proj-repo" placeholder="https://github.com/..." />
+            <input type="text" id="proj-repo" placeholder="https://github.com/... o #" />
           </div>
         </div>
 
@@ -1456,7 +1456,13 @@ const profiles = await getAllProfiles();
 
   // 9. MODAL DE PROYECTOS & GESTIÓN DE ARCHIVOS Y GALERÍA MULTIPLE
   let editingProjectId: string | null = null;
-  let editingProjectGallery: string[] = [];
+  interface ProjectGalleryItem {
+    id: string;
+    url: string;
+    file?: File;
+    uploading: boolean;
+  }
+  let editingProjectGalleryItems: ProjectGalleryItem[] = [];
 
   const projectModal = document.getElementById('project-modal');
   const btnOpenModal = document.getElementById('btn-open-project-modal');
@@ -1493,59 +1499,95 @@ const profiles = await getAllProfiles();
 
   function renderGalleryThumbs() {
     if (!projGalleryList) return;
-    if (editingProjectGallery.length === 0) {
+    if (editingProjectGalleryItems.length === 0) {
       projGalleryList.innerHTML = '<span style="font-size: 0.8rem; color: #94a3b8; font-style: italic;">Sin fotos adicionales añadidas.</span>';
       return;
     }
 
-    projGalleryList.innerHTML = editingProjectGallery.map((imgUrl, i) => `
+    projGalleryList.innerHTML = editingProjectGalleryItems.map((item) => `
       <div style="position: relative; width: 68px; height: 68px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; box-shadow: 0 1px 4px rgba(0,0,0,0.08); background: #0f172a;">
-        <img src="${imgUrl}" alt="Foto adicional ${i+1}" style="width: 100%; height: 100%; object-fit: cover;" />
-        <button type="button" class="btn-del-gallery-thumb" data-del-gallery-idx="${i}" style="position: absolute; top: 2px; right: 2px; background: rgba(239,68,68,0.9); color: #ffffff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;" title="Quitar foto">✕</button>
+        <img src="${item.url}" alt="Foto adicional" style="width: 100%; height: 100%; object-fit: cover; ${item.uploading ? 'filter: brightness(0.65);' : ''}" />
+        ${item.uploading ? `
+          <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; font-size: 0.65rem; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.8); pointer-events: none;">
+            <svg class="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation: spin 1s linear infinite; margin-bottom: 2px;">
+              <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)"/>
+              <path d="M12 2a10 10 0 0 1 10 10"/>
+            </svg>
+            <span>Subiendo</span>
+          </div>
+        ` : ''}
+        <button type="button" class="btn-del-gallery-thumb" data-del-gallery-id="${item.id}" style="position: absolute; top: 2px; right: 2px; background: rgba(239,68,68,0.9); color: #ffffff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 2;" title="Quitar foto">✕</button>
       </div>
     `).join('');
 
-    projGalleryList.querySelectorAll('[data-del-gallery-idx]').forEach((btn) => {
+    projGalleryList.querySelectorAll('[data-del-gallery-id]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
-        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-gallery-idx'));
-        editingProjectGallery.splice(idx, 1);
+        const id = (e.currentTarget as HTMLElement).getAttribute('data-del-gallery-id');
+        editingProjectGalleryItems = editingProjectGalleryItems.filter((item) => item.id !== id);
         renderGalleryThumbs();
       });
     });
   }
 
-  // Manejar selección de múltiples fotos adicionales
+  // Manejar selección de múltiples fotos adicionales con vista previa instantánea
   inputProjGalleryFiles?.addEventListener('change', async (e) => {
-    const files = (e.target as HTMLInputElement).files;
-    if (!files || files.length === 0 || !currentPortfolio) return;
+    const fileList = (e.target as HTMLInputElement).files;
+    if (!fileList || fileList.length === 0 || !currentPortfolio) return;
+
+    const files = Array.from(fileList);
+    (e.target as HTMLInputElement).value = '';
+
+    // 1. VISTA PREVIA INSTANTÁNEA (0ms) con URLs locales (Blob)
+    const newItems: ProjectGalleryItem[] = files.map((file, idx) => ({
+      id: `img-new-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
+      url: URL.createObjectURL(file),
+      file,
+      uploading: true,
+    }));
+
+    editingProjectGalleryItems.push(...newItems);
+    renderGalleryThumbs(); // ¡Aparece en pantalla de inmediato!
 
     if (projGalleryStatus) {
       projGalleryStatus.textContent = `Subiendo ${files.length} foto(s)...`;
       projGalleryStatus.style.color = '#3b82f6';
     }
 
-    let uploadedCount = 0;
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const { url, error } = await uploadMediaFile(file, 'projects', currentPortfolio.profile.slug);
-      if (!error && url) {
-        editingProjectGallery.push(url);
-        uploadedCount++;
-      }
-    }
+    // 2. SUBIDA PARALELA A SUPABASE STORAGE
+    await Promise.all(
+      newItems.map(async (item) => {
+        if (!item.file || !currentPortfolio) return;
+        try {
+          const { url, error } = await uploadMediaFile(item.file, 'projects', currentPortfolio.profile.slug);
+          const found = editingProjectGalleryItems.find((p) => p.id === item.id);
+          if (found) {
+            if (!error && url) {
+              found.url = url;
+              found.uploading = false;
+              found.file = undefined;
+            } else {
+              editingProjectGalleryItems = editingProjectGalleryItems.filter((p) => p.id !== item.id);
+              showToast('Error al subir una de las imágenes', 'error');
+            }
+          }
+        } catch {
+          editingProjectGalleryItems = editingProjectGalleryItems.filter((p) => p.id !== item.id);
+        }
+      })
+    );
 
-    renderGalleryThumbs();
+    renderGalleryThumbs(); // Actualizar con URLs definitivas de Supabase y remover spinners
+
     if (projGalleryStatus) {
-      projGalleryStatus.textContent = `✓ ${uploadedCount} foto(s) agregada(s)`;
+      projGalleryStatus.textContent = `✓ ${files.length} foto(s) lista(s)`;
       projGalleryStatus.style.color = '#10b981';
       setTimeout(() => { if (projGalleryStatus) projGalleryStatus.textContent = ''; }, 3000);
     }
-    (e.target as HTMLInputElement).value = '';
   });
 
   btnOpenModal?.addEventListener('click', () => {
     editingProjectId = null;
-    editingProjectGallery = [];
+    editingProjectGalleryItems = [];
     if (projectModal) {
       const modalTitle = projectModal.querySelector('.modal-title');
       if (modalTitle) modalTitle.textContent = 'Añadir Nuevo Proyecto';
@@ -1563,7 +1605,11 @@ const profiles = await getAllProfiles();
 
   function openEditProjectModal(proj: Project) {
     editingProjectId = proj.id;
-    editingProjectGallery = Array.isArray(proj.gallery_images) ? [...proj.gallery_images] : [];
+    editingProjectGalleryItems = (Array.isArray(proj.gallery_images) ? proj.gallery_images : []).map((url, i) => ({
+      id: `img-exist-${i}-${Date.now()}`,
+      url,
+      uploading: false,
+    }));
     if (projectModal) {
       const modalTitle = projectModal.querySelector('.modal-title');
       if (modalTitle) modalTitle.textContent = `Editar Proyecto: ${proj.title}`;
@@ -1588,27 +1634,46 @@ const profiles = await getAllProfiles();
     if (!file || !currentPortfolio) return;
 
     openCropTool(file, 'project', async (optimizedFile) => {
-      if (projFileStatus) projFileStatus.textContent = '⏳ Subiendo imagen optimizada...';
+      // 1. Vista previa instantánea (0ms)
+      const instantCoverUrl = URL.createObjectURL(optimizedFile);
+      setProjectCover(instantCoverUrl);
+      if (projFileStatus) {
+        projFileStatus.textContent = '⏳ Guardando imagen en la nube...';
+        projFileStatus.style.color = '#3b82f6';
+      }
 
       const { url, error } = await uploadMediaFile(optimizedFile, 'projects', currentPortfolio.profile.slug);
 
       if (error || !url) {
-        alert(`Error al subir imagen: ${error}`);
-        if (projFileStatus) projFileStatus.textContent = 'Error al subir';
+        showToast(`Error al subir imagen: ${error}`, 'error');
+        if (projFileStatus) {
+          projFileStatus.textContent = 'Error al subir';
+          projFileStatus.style.color = '#ef4444';
+        }
         return;
       }
 
+      // Reemplazar con la URL pública permanente de Supabase
       setProjectCover(url);
+      if (projFileStatus) {
+        projFileStatus.textContent = '✓ Imagen lista';
+        projFileStatus.style.color = '#10b981';
+      }
       showToast('Captura de portada optimizada y guardada con éxito', 'success');
     });
 
     (e.target as HTMLInputElement).value = '';
   });
 
-  // Guardar proyecto (Crear o Actualizar)
+  // Guardar proyecto (Crear o Actualizar) con actualización optimista instantánea
   formProject?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!currentPortfolio) return;
+
+    if (editingProjectGalleryItems.some((it) => it.uploading)) {
+      showToast('Por favor espera un momento a que las fotos terminen de subirse a la nube', 'info');
+      return;
+    }
 
     const title = (document.getElementById('proj-title') as HTMLInputElement).value.trim();
     const description = (document.getElementById('proj-desc') as HTMLTextAreaElement).value.trim();
@@ -1618,6 +1683,10 @@ const profiles = await getAllProfiles();
     const repo_url = (document.getElementById('proj-repo') as HTMLInputElement).value.trim();
     const image_url = inputProjUrl.value.trim();
     const tags = tagsStr ? tagsStr.split(',').map((t) => t.trim()).filter(Boolean) : [];
+
+    const finalGalleryUrls = editingProjectGalleryItems
+      .filter((it) => !it.uploading && it.url && !it.url.startsWith('blob:'))
+      .map((it) => it.url);
 
     if (editingProjectId) {
       // ACTUALIZAR PROYECTO EXISTENTE
@@ -1630,10 +1699,15 @@ const profiles = await getAllProfiles();
         targetProj.live_url = live_url;
         targetProj.repo_url = repo_url;
         targetProj.image_url = image_url;
-        targetProj.gallery_images = [...editingProjectGallery];
+        targetProj.gallery_images = [...finalGalleryUrls];
+
+        // ACTUALIZACIÓN VISUAL INMEDIATA (0ms)
+        renderProjects(currentPortfolio);
+        if (projectModal) projectModal.style.display = 'none';
+        showToast('Proyecto actualizado con éxito', 'success');
 
         if (supabase && isSupabaseConfigured) {
-          await supabase.from('projects').update({
+          supabase.from('projects').update({
             title,
             description,
             category,
@@ -1641,16 +1715,21 @@ const profiles = await getAllProfiles();
             live_url: live_url || null,
             repo_url: repo_url || null,
             image_url: image_url || null,
-            gallery_images: editingProjectGallery,
+            gallery_images: finalGalleryUrls,
             updated_at: new Date().toISOString(),
-          }).eq('id', editingProjectId);
+          }).eq('id', editingProjectId).then(({ error }) => {
+            if (error) {
+              console.error('Error al actualizar en Supabase:', error);
+              showToast('Error al sincronizar con el servidor', 'error');
+            }
+          });
         }
-        showToast('Proyecto actualizado con éxito', 'success');
       }
     } else {
       // CREAR NUEVO PROYECTO
+      const tempId = `proj-${Date.now()}`;
       const newProj: Project = {
-        id: `proj-${Date.now()}`,
+        id: tempId,
         profile_id: currentPortfolio.profile.id,
         title,
         description,
@@ -1659,13 +1738,19 @@ const profiles = await getAllProfiles();
         live_url,
         repo_url,
         image_url,
-        gallery_images: [...editingProjectGallery],
+        gallery_images: [...finalGalleryUrls],
         featured: true,
         order_index: currentPortfolio.projects.length + 1,
       };
 
+      currentPortfolio.projects.push(newProj);
+      // ACTUALIZACIÓN VISUAL INMEDIATA (0ms)
+      renderProjects(currentPortfolio);
+      if (projectModal) projectModal.style.display = 'none';
+      showToast('Proyecto creado con éxito', 'success');
+
       if (supabase && isSupabaseConfigured) {
-        const { data, error } = await supabase.from('projects').insert({
+        supabase.from('projects').insert({
           profile_id: currentPortfolio.profile.id,
           title,
           description,
@@ -1674,22 +1759,19 @@ const profiles = await getAllProfiles();
           live_url: live_url || null,
           repo_url: repo_url || null,
           image_url: image_url || null,
-          gallery_images: editingProjectGallery,
+          gallery_images: finalGalleryUrls,
           featured: true,
           order_index: newProj.order_index,
-        }).select().single();
-
-        if (!error && data) {
-          newProj.id = data.id;
-        }
+        }).select().single().then(({ data, error }) => {
+          if (!error && data) {
+            newProj.id = data.id;
+          } else if (error) {
+            console.error('Error al insertar en Supabase:', error);
+            showToast('Error al sincronizar con el servidor', 'error');
+          }
+        });
       }
-
-      currentPortfolio.projects.push(newProj);
-      showToast('Proyecto creado con éxito', 'success');
     }
-
-    renderProjects(currentPortfolio);
-    if (projectModal) projectModal.style.display = 'none';
   });
 
   // Reordenar proyectos
@@ -2731,6 +2813,12 @@ const profiles = await getAllProfiles();
 </script>
 
 <style>
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
   .admin-wrapper {
     min-height: 100vh;
     background: #f8fafc;
