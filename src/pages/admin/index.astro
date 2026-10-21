@@ -589,6 +589,79 @@ const profiles = await getAllProfiles();
     </div>
   </div>
 
+  <!-- MODAL PARA AGREGAR / EDITAR EXPERIENCIA -->
+  <div id="experience-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-dialog" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3 id="modal-experience-title">Añadir Experiencia</h3>
+        <button type="button" id="modal-experience-close" class="modal-close">&times;</button>
+      </div>
+      <form id="experience-form" class="modal-body">
+        <input type="hidden" id="exp-edit-id" value="" />
+        <div class="form-group">
+          <label for="exp-role">Cargo o Rol Profesional *</label>
+          <input type="text" id="exp-role" required placeholder="Ej: Desarrollador de Software y Consultor TI" />
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="exp-company">Empresa u Organización *</label>
+            <input type="text" id="exp-company" required placeholder="Ej: Proyectos Freelance & Propios" />
+          </div>
+          <div class="form-group">
+            <label for="exp-period">Periodo de Tiempo *</label>
+            <input type="text" id="exp-period" required placeholder="Ej: 2022 - Presente" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="exp-desc">Descripción de Responsabilidades y Logros</label>
+          <textarea id="exp-desc" rows="4" placeholder="Describe los proyectos desarrollados, tecnologías implementadas y soluciones clave..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btn-cancel-experience" class="btn btn-outline">Cancelar</button>
+          <button type="submit" id="btn-save-experience" class="btn btn-primary">Guardar Experiencia</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL PARA AGREGAR / EDITAR SERVICIO -->
+  <div id="service-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-dialog" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3 id="modal-service-title">Añadir Servicio</h3>
+        <button type="button" id="modal-service-close" class="modal-close">&times;</button>
+      </div>
+      <form id="service-form" class="modal-body">
+        <input type="hidden" id="srv-edit-id" value="" />
+        <div class="form-group">
+          <label for="srv-title">Título del Servicio o Especialidad *</label>
+          <input type="text" id="srv-title" required placeholder="Ej: Redes e Infraestructura TI" />
+        </div>
+        <div class="form-group">
+          <label for="srv-desc">Descripción del Servicio</label>
+          <textarea id="srv-desc" rows="3" placeholder="Explica en qué consiste el servicio, metodologías y beneficios para el cliente..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="srv-icon">Icono Visual</label>
+          <select id="srv-icon" class="form-select" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; background: #ffffff;">
+            <option value="code">💻 Código y Desarrollo (code)</option>
+            <option value="server">🖥️ Servidores y Redes (server)</option>
+            <option value="palette">🎨 Diseño y Branding (palette)</option>
+            <option value="video">🎬 Video y Multimedia (video)</option>
+            <option value="sparkles">✨ Creatividad / Marketing (sparkles)</option>
+            <option value="tool">🛠️ Soporte y Mantenimiento (tool)</option>
+            <option value="star">⭐ General / Destacado (star)</option>
+            <option value="check">✅ Consultoría y Estrategia (check)</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btn-cancel-service" class="btn btn-outline">Cancelar</button>
+          <button type="submit" id="btn-save-service" class="btn btn-primary">Guardar Servicio</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL HERRAMIENTA DE RECORTE Y OPTIMIZACIÓN (CROPPER TOOL) -->
   <div id="crop-modal" class="modal-overlay" style="display: none; z-index: 1100;">
     <div class="modal-dialog" style="max-width: 520px;">
@@ -676,7 +749,7 @@ const profiles = await getAllProfiles();
   import { fallbackPortfolios, supabase, isSupabaseConfigured, defaultSkillsBySlug } from '../../lib/supabase';
   import { uploadMediaFile } from '../../lib/storage';
   import { extractPortfolioMetrics } from '../../lib/analytics';
-  import type { FullPortfolio, Project } from '../../lib/types';
+  import type { FullPortfolio, Project, Experience, Service } from '../../lib/types';
 
   // Elementos DOM
   const selectProfile = document.getElementById('select-profile-active') as HTMLSelectElement;
@@ -1819,6 +1892,7 @@ const profiles = await getAllProfiles();
           <p class="item-desc" style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${exp.description}</p>
         </div>
         <div class="item-actions" style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+          <button class="btn btn-sm btn-outline" data-edit-exp="${idx}" style="padding: 0.35rem 0.65rem; font-size: 0.82rem;">✏️ Editar</button>
           <button class="btn btn-sm btn-delete" data-del-exp="${idx}" style="padding: 0.35rem 0.65rem; font-size: 0.82rem;">Eliminar</button>
         </div>
       </div>
@@ -1831,10 +1905,22 @@ const profiles = await getAllProfiles();
       reorderExperiences(fromIdx, toIdx, portfolio);
     });
 
+    // Editar experiencia
+    container.querySelectorAll('[data-edit-exp]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-edit-exp'));
+        const exp = portfolio.experiences[idx];
+        if (exp) openEditExperienceModal(exp);
+      });
+    });
+
+    // Eliminar experiencia
     container.querySelectorAll('[data-del-exp]').forEach((btn) => {
       btn.addEventListener('click', async (e) => {
         const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-exp'));
         const exp = portfolio.experiences[idx];
+        if (!confirm(`¿Estás seguro de eliminar la experiencia "${exp.role}"?`)) return;
+
         if (exp && supabase && isSupabaseConfigured) {
           const { error } = await supabase.from('experiences').delete().eq('id', exp.id);
           if (error) {
@@ -1876,6 +1962,7 @@ const profiles = await getAllProfiles();
           <p class="item-desc" style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${srv.description}</p>
         </div>
         <div class="item-actions" style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+          <button class="btn btn-sm btn-outline" data-edit-srv="${idx}" style="padding: 0.35rem 0.65rem; font-size: 0.82rem;">✏️ Editar</button>
           <button class="btn btn-sm btn-delete" data-del-srv="${idx}" style="padding: 0.35rem 0.65rem; font-size: 0.82rem;">Eliminar</button>
         </div>
       </div>
@@ -1888,10 +1975,22 @@ const profiles = await getAllProfiles();
       reorderServices(fromIdx, toIdx, portfolio);
     });
 
+    // Editar servicio
+    container.querySelectorAll('[data-edit-srv]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-edit-srv'));
+        const srv = portfolio.services[idx];
+        if (srv) openEditServiceModal(srv);
+      });
+    });
+
+    // Eliminar servicio
     container.querySelectorAll('[data-del-srv]').forEach((btn) => {
       btn.addEventListener('click', async (e) => {
         const idx = Number((e.currentTarget as HTMLElement).getAttribute('data-del-srv'));
         const srv = portfolio.services[idx];
+        if (!confirm(`¿Estás seguro de eliminar el servicio "${srv.title}"?`)) return;
+
         if (srv && supabase && isSupabaseConfigured) {
           const { error } = await supabase.from('services').delete().eq('id', srv.id);
           if (error) {
@@ -1906,68 +2005,219 @@ const profiles = await getAllProfiles();
     });
   }
 
-  // Agregar experiencia
-  document.getElementById('btn-add-exp')?.addEventListener('click', async () => {
+  // ==========================================
+  // GESTIÓN DE MODAL DE EXPERIENCIA
+  // ==========================================
+  const experienceModal = document.getElementById('experience-modal');
+  const modalExpTitle = document.getElementById('modal-experience-title');
+  const modalExpClose = document.getElementById('modal-experience-close');
+  const btnCancelExp = document.getElementById('btn-cancel-experience');
+  const formExperience = document.getElementById('experience-form');
+  const inputExpEditId = document.getElementById('exp-edit-id') as HTMLInputElement;
+  const inputExpRole = document.getElementById('exp-role') as HTMLInputElement;
+  const inputExpCompany = document.getElementById('exp-company') as HTMLInputElement;
+  const inputExpPeriod = document.getElementById('exp-period') as HTMLInputElement;
+  const inputExpDesc = document.getElementById('exp-desc') as HTMLTextAreaElement;
+
+  function openAddExperienceModal() {
+    if (!experienceModal) return;
+    if (modalExpTitle) modalExpTitle.textContent = 'Añadir Experiencia';
+    if (inputExpEditId) inputExpEditId.value = '';
+    if (inputExpRole) inputExpRole.value = '';
+    if (inputExpCompany) inputExpCompany.value = '';
+    if (inputExpPeriod) inputExpPeriod.value = '';
+    if (inputExpDesc) inputExpDesc.value = '';
+    experienceModal.style.display = 'flex';
+  }
+
+  function openEditExperienceModal(exp: Experience) {
+    if (!experienceModal) return;
+    if (modalExpTitle) modalExpTitle.textContent = `Editar Experiencia: ${exp.role}`;
+    if (inputExpEditId) inputExpEditId.value = exp.id;
+    if (inputExpRole) inputExpRole.value = exp.role || '';
+    if (inputExpCompany) inputExpCompany.value = exp.company || '';
+    if (inputExpPeriod) inputExpPeriod.value = exp.period || '';
+    if (inputExpDesc) inputExpDesc.value = exp.description || '';
+    experienceModal.style.display = 'flex';
+  }
+
+  modalExpClose?.addEventListener('click', () => { if (experienceModal) experienceModal.style.display = 'none'; });
+  btnCancelExp?.addEventListener('click', () => { if (experienceModal) experienceModal.style.display = 'none'; });
+
+  document.getElementById('btn-add-exp')?.addEventListener('click', openAddExperienceModal);
+
+  formExperience?.addEventListener('submit', async (e) => {
+    e.preventDefault();
     if (!currentPortfolio) return;
-    const role = prompt('Cargo / Rol:');
-    if (!role) return;
-    const company = prompt('Empresa o entidad:') || '';
-    const period = prompt('Periodo (ej: 2023 - Presente):') || '2024';
 
-    const newExp = {
-      id: `exp-${Date.now()}`,
-      profile_id: currentPortfolio.profile.id,
-      role,
-      company,
-      period,
-      description: 'Responsabilidades y logros principales.',
-      order_index: currentPortfolio.experiences.length + 1,
-    };
+    const editId = inputExpEditId.value.trim();
+    const role = inputExpRole.value.trim();
+    const company = inputExpCompany.value.trim();
+    const period = inputExpPeriod.value.trim();
+    const description = inputExpDesc.value.trim();
 
-    if (supabase && isSupabaseConfigured) {
-      const { data } = await supabase.from('experiences').insert({
+    if (editId) {
+      // EDITAR EXPERIENCIA EXISTENTE
+      const targetExp = currentPortfolio.experiences.find((x) => x.id === editId);
+      if (targetExp) {
+        targetExp.role = role;
+        targetExp.company = company;
+        targetExp.period = period;
+        targetExp.description = description;
+
+        if (supabase && isSupabaseConfigured) {
+          const { error } = await supabase.from('experiences').update({
+            role,
+            company,
+            period,
+            description,
+          }).eq('id', editId);
+
+          if (error) {
+            showToast(`Error al actualizar experiencia: ${error.message}`, 'error');
+            return;
+          }
+        }
+        showToast('Experiencia actualizada con éxito', 'success');
+      }
+    } else {
+      // CREAR NUEVA EXPERIENCIA
+      const newExp: Experience = {
+        id: `exp-${Date.now()}`,
         profile_id: currentPortfolio.profile.id,
         role,
         company,
         period,
-        description: newExp.description,
-        order_index: newExp.order_index,
-      }).select().single();
-      if (data) newExp.id = data.id;
+        description,
+        order_index: currentPortfolio.experiences.length + 1,
+      };
+
+      if (supabase && isSupabaseConfigured) {
+        const { data, error } = await supabase.from('experiences').insert({
+          profile_id: currentPortfolio.profile.id,
+          role,
+          company,
+          period,
+          description,
+          order_index: newExp.order_index,
+        }).select().single();
+
+        if (error) {
+          showToast(`Error al guardar experiencia: ${error.message}`, 'error');
+          return;
+        }
+        if (data) newExp.id = data.id;
+      }
+
+      currentPortfolio.experiences.push(newExp);
+      showToast('Experiencia añadida con éxito', 'success');
     }
 
-    currentPortfolio.experiences.push(newExp);
+    if (experienceModal) experienceModal.style.display = 'none';
     renderExperiences(currentPortfolio);
   });
 
-  // Agregar servicio
-  document.getElementById('btn-add-srv')?.addEventListener('click', async () => {
+  // ==========================================
+  // GESTIÓN DE MODAL DE SERVICIO
+  // ==========================================
+  const serviceModal = document.getElementById('service-modal');
+  const modalSrvTitle = document.getElementById('modal-service-title');
+  const modalSrvClose = document.getElementById('modal-service-close');
+  const btnCancelSrv = document.getElementById('btn-cancel-service');
+  const formService = document.getElementById('service-form');
+  const inputSrvEditId = document.getElementById('srv-edit-id') as HTMLInputElement;
+  const inputSrvTitle = document.getElementById('srv-title') as HTMLInputElement;
+  const inputSrvDesc = document.getElementById('srv-desc') as HTMLTextAreaElement;
+  const inputSrvIcon = document.getElementById('srv-icon') as HTMLSelectElement;
+
+  function openAddServiceModal() {
+    if (!serviceModal) return;
+    if (modalSrvTitle) modalSrvTitle.textContent = 'Añadir Servicio';
+    if (inputSrvEditId) inputSrvEditId.value = '';
+    if (inputSrvTitle) inputSrvTitle.value = '';
+    if (inputSrvDesc) inputSrvDesc.value = '';
+    if (inputSrvIcon) inputSrvIcon.value = 'code';
+    serviceModal.style.display = 'flex';
+  }
+
+  function openEditServiceModal(srv: Service) {
+    if (!serviceModal) return;
+    if (modalSrvTitle) modalSrvTitle.textContent = `Editar Servicio: ${srv.title}`;
+    if (inputSrvEditId) inputSrvEditId.value = srv.id;
+    if (inputSrvTitle) inputSrvTitle.value = srv.title || '';
+    if (inputSrvDesc) inputSrvDesc.value = srv.description || '';
+    if (inputSrvIcon) inputSrvIcon.value = srv.icon || 'code';
+    serviceModal.style.display = 'flex';
+  }
+
+  modalSrvClose?.addEventListener('click', () => { if (serviceModal) serviceModal.style.display = 'none'; });
+  btnCancelSrv?.addEventListener('click', () => { if (serviceModal) serviceModal.style.display = 'none'; });
+
+  document.getElementById('btn-add-srv')?.addEventListener('click', openAddServiceModal);
+
+  formService?.addEventListener('submit', async (e) => {
+    e.preventDefault();
     if (!currentPortfolio) return;
-    const title = prompt('Título del servicio:');
-    if (!title) return;
-    const description = prompt('Descripción del servicio:') || '';
 
-    const newSrv = {
-      id: `srv-${Date.now()}`,
-      profile_id: currentPortfolio.profile.id,
-      title,
-      description,
-      icon: 'code',
-      order_index: currentPortfolio.services.length + 1,
-    };
+    const editId = inputSrvEditId.value.trim();
+    const title = inputSrvTitle.value.trim();
+    const description = inputSrvDesc.value.trim();
+    const icon = inputSrvIcon.value.trim() || 'code';
 
-    if (supabase && isSupabaseConfigured) {
-      const { data } = await supabase.from('services').insert({
+    if (editId) {
+      // EDITAR SERVICIO EXISTENTE
+      const targetSrv = currentPortfolio.services.find((s) => s.id === editId);
+      if (targetSrv) {
+        targetSrv.title = title;
+        targetSrv.description = description;
+        targetSrv.icon = icon;
+
+        if (supabase && isSupabaseConfigured) {
+          const { error } = await supabase.from('services').update({
+            title,
+            description,
+            icon,
+          }).eq('id', editId);
+
+          if (error) {
+            showToast(`Error al actualizar servicio: ${error.message}`, 'error');
+            return;
+          }
+        }
+        showToast('Servicio actualizado con éxito', 'success');
+      }
+    } else {
+      // CREAR NUEVO SERVICIO
+      const newSrv: Service = {
+        id: `srv-${Date.now()}`,
         profile_id: currentPortfolio.profile.id,
         title,
         description,
-        icon: 'code',
-        order_index: newSrv.order_index,
-      }).select().single();
-      if (data) newSrv.id = data.id;
+        icon,
+        order_index: currentPortfolio.services.length + 1,
+      };
+
+      if (supabase && isSupabaseConfigured) {
+        const { data, error } = await supabase.from('services').insert({
+          profile_id: currentPortfolio.profile.id,
+          title,
+          description,
+          icon,
+          order_index: newSrv.order_index,
+        }).select().single();
+
+        if (error) {
+          showToast(`Error al guardar servicio: ${error.message}`, 'error');
+          return;
+        }
+        if (data) newSrv.id = data.id;
+      }
+
+      currentPortfolio.services.push(newSrv);
+      showToast('Servicio añadido con éxito', 'success');
     }
 
-    currentPortfolio.services.push(newSrv);
+    if (serviceModal) serviceModal.style.display = 'none';
     renderServices(currentPortfolio);
   });
 
