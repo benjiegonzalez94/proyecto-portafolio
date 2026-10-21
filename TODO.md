@@ -123,6 +123,7 @@ Este archivo lleva el estado de las tareas para que tú y futuros agentes contin
   - [x] Visor Lightbox interactivo (slideshow/carrusel modal con teclado, flechas ‹ ›, contador de fotos y botón directo de WhatsApp) en el portafolio público (`[slug].astro`).
   - [x] Soporte para personalizar el mensaje predeterminado de WhatsApp (`whatsapp_message`) desde el perfil en el CMS.
   - [x] Modales dedicados de creación y edición completa (`✏️ Editar`) para **Experiencias** (cargo, empresa, periodo, descripción) y **Servicios** (título, descripción, icono) en `/admin`, eliminando diálogos emergentes toscos (`prompt`).
+  - [x] Eliminación de URL técnica de Supabase en el modal de proyectos: el campo de texto con la ruta directa fue reemplazado por una tarjeta miniatura con estado "✓ Optimizada en WebP" y botón "✕ Quitar", manteniendo la URL en un input oculto para no exponer rutas internas al usuario.
 - [x] **Métricas & Crecimiento**:
   - [x] Tarjetas Open Graph (OG Images) personalizadas dinámicamente con el nombre y avatar de cada usuario al compartir en redes sociales.
 - [x] **Privacidad de Marca y Experiencia de Usuario**:
