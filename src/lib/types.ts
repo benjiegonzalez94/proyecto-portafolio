@@ -13,6 +13,9 @@ export interface Profile {
   phone?: string;
   whatsapp?: string;
   whatsapp_message?: string;
+  views_count?: number;
+  whatsapp_clicks?: number;
+  link_clicks?: number;
   linkedin_url?: string;
   github_url?: string;
   behance_url?: string;

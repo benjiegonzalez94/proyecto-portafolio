@@ -73,7 +73,7 @@ const profiles = await getAllProfiles();
         </div>
 
         <!-- TARJETAS DE MÉTRICAS GLOBALES -->
-        <div class="admin-metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.75rem;">
+        <div class="admin-metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 1.75rem;">
           <div class="metric-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
             <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Portafolios Totales</span>
             <span class="metric-num" id="metric-total-portfolios" style="font-size: 2.25rem; font-weight: 800; color: #0f172a;">0</span>
@@ -88,6 +88,16 @@ const profiles = await getAllProfiles();
             <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Creadores Registrados</span>
             <span class="metric-num" id="metric-active-users" style="font-size: 2.25rem; font-weight: 800; color: #059669;">0</span>
             <span style="font-size: 0.75rem; color: #64748b;">Perfiles de profesionales</span>
+          </div>
+          <div class="metric-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Visitas Totales</span>
+            <span class="metric-num" id="metric-total-views" style="font-size: 2.25rem; font-weight: 800; color: #7c3aed;">0</span>
+            <span style="font-size: 0.75rem; color: #64748b;">Visualizaciones globales</span>
+          </div>
+          <div class="metric-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Contactos WhatsApp</span>
+            <span class="metric-num" id="metric-total-whatsapp" style="font-size: 2.25rem; font-weight: 800; color: #16a34a;">0</span>
+            <span style="font-size: 0.75rem; color: #16a34a; font-weight: 600;">Interacciones de clientes</span>
           </div>
         </div>
 
@@ -111,6 +121,8 @@ const profiles = await getAllProfiles();
                   <th>Correo</th>
                   <th>Enlace Público</th>
                   <th>Plantilla</th>
+                  <th style="text-align: center;">Visitas</th>
+                  <th style="text-align: center;">WhatsApp</th>
                   <th style="text-align: right;">Acciones</th>
                 </tr>
               </thead>
@@ -189,6 +201,41 @@ const profiles = await getAllProfiles();
                 <line x1="10" y1="14" x2="21" y2="3"/>
               </svg>
             </a>
+          </div>
+        </section>
+
+        <!-- TARJETA DE RENDIMIENTO Y ANALÍTICAS DEL PORTAFOLIO -->
+        <section class="portfolio-analytics-banner" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.85rem;">
+            <div style="width: 44px; height: 44px; border-radius: 0.75rem; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; border: 1px solid #dbeafe; flex-shrink: 0;">
+              📊
+            </div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #0f172a;">Rendimiento de tu Portafolio</h3>
+                <span style="display: inline-flex; align-items: center; gap: 0.3rem; background: #ecfdf5; color: #059669; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 9999px; border: 1px solid #a7f3d0;">
+                  <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+                  En Vivo
+                </span>
+              </div>
+              <p style="margin: 0.15rem 0 0 0; font-size: 0.82rem; color: #64748b;">Métricas en tiempo real de quienes visitan tu enlace y te contactan.</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+            <div style="display: flex; flex-direction: column; min-width: 90px;">
+              <span style="font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em;">Visitas</span>
+              <span id="user-metric-views" style="font-size: 1.6rem; font-weight: 800; color: #0f172a;">0</span>
+            </div>
+            <div style="width: 1px; height: 36px; background: #e2e8f0;"></div>
+            <div style="display: flex; flex-direction: column; min-width: 110px;">
+              <span style="font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em;">WhatsApp</span>
+              <span id="user-metric-whatsapp" style="font-size: 1.6rem; font-weight: 800; color: #16a34a;">0</span>
+            </div>
+            <div style="width: 1px; height: 36px; background: #e2e8f0;"></div>
+            <div style="display: flex; flex-direction: column; min-width: 110px;">
+              <span style="font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em;">Clics en Enlaces</span>
+              <span id="user-metric-links" style="font-size: 1.6rem; font-weight: 800; color: #2563eb;">0</span>
+            </div>
           </div>
         </section>
 
@@ -628,6 +675,7 @@ const profiles = await getAllProfiles();
 <script>
   import { fallbackPortfolios, supabase, isSupabaseConfigured, defaultSkillsBySlug } from '../../lib/supabase';
   import { uploadMediaFile } from '../../lib/storage';
+  import { extractPortfolioMetrics } from '../../lib/analytics';
   import type { FullPortfolio, Project } from '../../lib/types';
 
   // Elementos DOM
@@ -756,7 +804,7 @@ const profiles = await getAllProfiles();
     if (!profilesList || profilesList.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5" style="text-align: center; color: #64748b; padding: 2.5rem;">
+          <td colspan="7" style="text-align: center; color: #64748b; padding: 2.5rem;">
             No se encontraron portafolios registrados con ese criterio.
           </td>
         </tr>
@@ -765,8 +813,9 @@ const profiles = await getAllProfiles();
     }
 
     tbody.innerHTML = profilesList
-      .map(
-        (p) => `
+      .map((p) => {
+        const met = extractPortfolioMetrics(p);
+        return `
       <tr>
         <td>
           <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -794,6 +843,16 @@ const profiles = await getAllProfiles();
             ${p.template_id || 'tech-minimal'}
           </span>
         </td>
+        <td style="text-align: center;">
+          <span style="display: inline-flex; align-items: center; gap: 0.3rem; font-weight: 700; color: #0f172a; font-size: 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.2rem 0.6rem; border-radius: 9999px;">
+            👁️ ${met.views}
+          </span>
+        </td>
+        <td style="text-align: center;">
+          <span style="display: inline-flex; align-items: center; gap: 0.3rem; font-weight: 700; color: #16a34a; font-size: 0.85rem; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.2rem 0.6rem; border-radius: 9999px;">
+            💬 ${met.whatsappClicks}
+          </span>
+        </td>
         <td style="text-align: right;">
           <div style="display: inline-flex; align-items: center; gap: 0.5rem; justify-content: flex-end;">
             <a href="/${p.slug}" target="_blank" class="btn btn-sm btn-outline" style="padding: 0.35rem 0.65rem; font-size: 0.8rem; text-decoration: none;">
@@ -805,8 +864,8 @@ const profiles = await getAllProfiles();
           </div>
         </td>
       </tr>
-    `
-      )
+    `;
+      })
       .join('');
 
     // Eventos para abrir el CMS en modo administración asistida
@@ -854,13 +913,26 @@ const profiles = await getAllProfiles();
       const profCount = cachedAdminProfiles.length;
       const projCount = allProjects?.length || 0;
 
+      let totalViews = 0;
+      let totalWhatsapp = 0;
+
+      cachedAdminProfiles.forEach((p) => {
+        const met = extractPortfolioMetrics(p);
+        totalViews += met.views;
+        totalWhatsapp += met.whatsappClicks;
+      });
+
       const mPortfolios = document.getElementById('metric-total-portfolios');
       const mProjects = document.getElementById('metric-total-projects');
       const mUsers = document.getElementById('metric-active-users');
+      const mViews = document.getElementById('metric-total-views');
+      const mWhatsapp = document.getElementById('metric-total-whatsapp');
 
       if (mPortfolios) mPortfolios.textContent = String(profCount);
       if (mProjects) mProjects.textContent = String(projCount);
       if (mUsers) mUsers.textContent = String(profCount);
+      if (mViews) mViews.textContent = String(totalViews);
+      if (mWhatsapp) mWhatsapp.textContent = String(totalWhatsapp);
 
       renderAdminUsersTable(cachedAdminProfiles);
     } catch (err) {
@@ -1015,6 +1087,16 @@ const profiles = await getAllProfiles();
     if (displayProfileName) displayProfileName.textContent = p.full_name || 'Mi Portafolio';
     if (displayProfileSlug) displayProfileSlug.textContent = p.slug;
     if (displayProfileHeadline) displayProfileHeadline.textContent = p.headline || 'Tu especialidad o rol principal';
+
+    // Actualizar métricas analíticas del portafolio del usuario
+    const userMetrics = extractPortfolioMetrics(p);
+    const uViews = document.getElementById('user-metric-views');
+    const uWa = document.getElementById('user-metric-whatsapp');
+    const uLinks = document.getElementById('user-metric-links');
+
+    if (uViews) uViews.textContent = String(userMetrics.views);
+    if (uWa) uWa.textContent = String(userMetrics.whatsappClicks);
+    if (uLinks) uLinks.textContent = String(userMetrics.linkClicks);
 
     // Marcar plantilla activa
     const activeTmpl = p.template_id || 'tech-minimal';
