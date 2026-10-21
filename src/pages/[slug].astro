@@ -32,7 +32,7 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
 ---
 
 <BaseLayout title={pageTitle} description={profile.bio} image={profile.avatar_url || '/og-image.svg'} hideHeader={true} hideFooter={true}>
-  <main class={`portfolio-page template-${profile.template_id || 'tech-minimal'} mode-${profile.theme_mode || 'dark'}`} style={`--profile-accent: ${profile.theme_accent || '#2563eb'};`}>
+  <main id="portfolio-main-root" data-portfolio-slug={profile.slug} class={`portfolio-page template-${profile.template_id || 'tech-minimal'} mode-${profile.theme_mode || 'dark'}`} style={`--profile-accent: ${profile.theme_accent || '#2563eb'};`}>
     
     <!-- HERO SECTION -->
     <!-- HERO SECTION (Opción 4: Split Card Visual) -->
@@ -1817,5 +1817,59 @@ const projectCategories = rawCategories.length > 0 ? ['Todos', ...Array.from(new
     if (e.key === 'ArrowRight') nextPhoto();
     if (e.key === 'ArrowLeft') prevPhoto();
   });
+
+  // ==========================================
+  // RASTREO ANALÍTICO EN TIEMPO REAL
+  // ==========================================
+  import { recordPortfolioView, recordWhatsAppClick, recordLinkClick } from '../lib/analytics';
+
+  const rootMain = document.getElementById('portfolio-main-root');
+  const targetSlug = rootMain?.getAttribute('data-portfolio-slug');
+
+  if (targetSlug) {
+    // 1. Registrar visita al portafolio (1 por sesión de visitante)
+    recordPortfolioView(targetSlug);
+
+    // 2. Escuchar clics en botones de WhatsApp
+    const waSelectors = [
+      'a.btn--whatsapp',
+      'a.floating-whatsapp',
+      '#lightbox-link-wa',
+      'a[href*="wa.me"]',
+      'a[href*="whatsapp.com"]'
+    ];
+    document.querySelectorAll(waSelectors.join(',')).forEach((waBtn) => {
+      waBtn.addEventListener('click', () => {
+        recordWhatsAppClick(targetSlug);
+      });
+    });
+
+    // 3. Escuchar clics en enlaces externos y proyectos
+    document.querySelectorAll('a').forEach((link) => {
+      const href = link.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+      if (href.includes('wa.me') || href.includes('whatsapp.com')) return;
+
+      if (
+        href.startsWith('http://') ||
+        href.startsWith('https://') ||
+        href.startsWith('mailto:') ||
+        href.startsWith('tel:')
+      ) {
+        try {
+          const parsed = new URL(href, window.location.origin);
+          if (parsed.origin !== window.location.origin) {
+            link.addEventListener('click', () => {
+              recordLinkClick(targetSlug, href);
+            });
+          }
+        } catch {
+          link.addEventListener('click', () => {
+            recordLinkClick(targetSlug, href);
+          });
+        }
+      }
+    });
+  }
 </script>
 

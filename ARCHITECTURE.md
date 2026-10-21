@@ -110,6 +110,20 @@ Crear una plataforma SaaS web escalable y de costo $0 que permita:
 
 ---
 
+## 📊 Sistema de Métricas Analíticas en Tiempo Real
+- **Métricas Registradas por Portafolio**:
+  - `views_count`: Visitas totales al portafolio (deduplicadas por sesión de visitante mediante `sessionStorage`).
+  - `whatsapp_clicks`: Contactos iniciados hacia WhatsApp desde cualquier botón (Hero, Flotante, Lightbox, Footer).
+  - `link_clicks`: Clics en enlaces externos de vitrina (demos en vivo, repositorios GitHub, redes y CV).
+- **Mecanismo de Persistencia y Seguridad**:
+  - Funciones RPC con `SECURITY DEFINER` en Supabase (`increment_portfolio_view`, `increment_whatsapp_click`, `increment_link_click`) permitiendo que visitantes anónimos incrementen los contadores de forma atómica sin tener permisos de escritura sobre otros campos del perfil.
+  - Módulo cliente `src/lib/analytics.ts` con tolerancia a fallos y fallback local para garantizar funcionamiento ininterrumpido en cualquier entorno.
+- **Visualización en el CMS**:
+  - **Super Administrador**: Tarjetas de métricas agregadas globales y columnas individuales de "Visitas" y "WhatsApp" en el directorio de usuarios.
+  - **Creadores de Portafolio**: Tarjeta de "Rendimiento del Portafolio" en el encabezado de su CMS con estado "En Vivo".
+
+---
+
 ## ⚡ Reglas de Eficiencia & Ahorro de Tokens para Agentes
 1. **Verificar `TODO.md` y `ARCHITECTURE.md`** antes de consultar archivos masivos.
 2. **Fallback Offline**: Soporte de fallback estático si Supabase no responde o en desarrollo offline.
